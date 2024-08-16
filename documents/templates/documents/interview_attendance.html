@@ -1,0 +1,63 @@
+{%extends "jobs/base.html"%}
+
+{%block content%}
+<div class="container">
+    <div class="text-center">
+        <h4><strong>{{interview.job.first.unit}}</strong></h4>
+        <span><strong>{{interview.job.first.job_title}}</strong></span><br>
+        <span><strong> Date: {{interview.interview_date | date:"M d, Y"}}</strong></span>
+    </div>
+    <table class="table table-bordered border-dark" >
+        <thead>
+            <th>SL</th>
+            <th>Name</th>
+            <th>Mobile No.</th>
+            <th>Arrival Time</th>
+            <th>Signature</th>
+        </thead>
+        <tbody>
+            {% for candidate in candidate_list %}
+            <tr>
+                <td class="text-center">{{forloop.counter}}</td>
+                <td class="text-nowrap">{{candidate.name}}</td>
+                <td>{{candidate.mobile}}</td>
+                <td></td>
+                <td></td>
+            </tr>
+            {% endfor %}
+        </tbody>
+    </table>
+</div>
+<div class="text-center">
+    <button id="attendanceprintButton" class="btn btn-primary">Print</button>
+</div>
+
+<style>
+    @media print {
+        body * {
+            visibility: hidden;
+        }
+
+        .container,
+        .container * {
+            visibility: visible;
+        }
+
+        #attendanceprintButton {
+            display: none;
+            /* Hide the print button when printing */
+        }
+
+        #interivew_detailsbtn {
+            display: none;
+        }
+    }
+</style>
+
+<script>
+    // Print button functionality
+    document.getElementById("attendanceprintButton").addEventListener("click", function () {
+        window.print();
+    });
+</script>
+{%endblock%}

@@ -1,0 +1,14 @@
+{%extends "jobs/base.html"%}
+{%block content%}
+{% load crispy_forms_tags %}
+<div class=" container" style="max-width: 600px;">
+    <form action="" method="post">
+        {% csrf_token %}
+        <fieldset>
+            <legend>Set Schedule for Initial Interview</legend> 
+            {{form|crispy }}
+        </fieldset>
+        <button class="btn btn-primary btn-sm mt-4" type="submit"> submit</button>
+    </form>
+</div>
+{%endblock%}

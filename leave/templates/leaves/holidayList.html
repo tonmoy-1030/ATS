@@ -1,0 +1,64 @@
+{% extends "jobs/base.html" %}
+{% block content %}
+{% load crispy_forms_tags %}
+
+<div class="container-fluid table-responsive">
+    <legend class="text-center">Leave Allocation</legend>
+    <form method="get" class="form-inline">
+        {% for field in filter.form %}
+        <div class="form-group mr-3">
+            <div class="form-control">
+                {{ field }}
+            </div>
+        </div>
+        {% endfor %}
+        <button type="submit" class="btn btn-primary"><i class="bi bi-search"></i> Filter by Year</button>
+    </form>
+    <hr>
+    <div class="container" style="max-width: 600px;">
+        <table class="table table-bordered table-hover">
+            <thead class="text-center">
+                <tr>
+                    <th>Date</th>
+                    <th>Name</th>
+                </tr>
+            </thead>
+            <tbody>
+                {% for holiday in page_obj %}
+                <tr>
+                    <td class="text-center"><a
+                            href="{% url 'leave:holidayUpdate' holiday.pk %}">{{holiday.date}}</a></td>
+                    <td>{{holiday.name}}</td>
+                </tr>
+                {% endfor %}
+            </tbody>
+        </table>
+        <a class="btn btn-primary btn-sm" href="{% url 'leave:holiday' %}">Add</a>
+    </div>
+</div>
+
+<div class="pagination justify-content-center">
+    <nav aria-label="Page navigation">
+        <ul class="pagination">
+            {% if page_obj.has_previous %}
+            <li class="page-item"><a class="page-link" href="?page=1">&laquo; First</a></li>
+            <li class="page-item"><a class="page-link" href="?page={{ page_obj.previous_page_number }}">Previous</a>
+            </li>
+            {% endif %}
+
+            <li class="page-item disabled">
+                <span class="page-link">
+                    Page {{ page_obj.number }} of {{ page_obj.paginator.num_pages }}
+                </span>
+            </li>
+
+            {% if page_obj.has_next %}
+            <li class="page-item"><a class="page-link" href="?page={{ page_obj.next_page_number }}">Next</a></li>
+            <li class="page-item"><a class="page-link" href="?page={{ page_obj.paginator.num_pages }}">Last &raquo;</a>
+            </li>
+            {% endif %}
+        </ul>
+    </nav>
+</div>
+
+{% endblock %}

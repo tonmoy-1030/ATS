@@ -1,0 +1,130 @@
+{% extends "jobs/base.html" %}
+{% block content %}
+{% load crispy_forms_tags %}
+
+<div class="main">
+    <div class="container" style="max-width: 600px;">
+        <legend class="text-center">Appointment Letter info Form</legend>
+        <fieldset>
+            <form action="" method="post">
+                {% csrf_token %}
+                <!-- <fieldset>
+                {{form | crispy}} -->
+                <div class="form-group row">
+                    <div class="form-group col-md-12 mb-2">
+                        {{form.employee | as_crispy_field}}
+                    </div>
+                    <div class="form-group col-md-6 mb-2">
+                        {{ form.salary|as_crispy_field }}
+                    </div>
+                    <div class="form-group col-md-6 mb-2">
+                        {{ form.report_to|as_crispy_field }}
+                        {{form.error}}
+                    </div>
+                    <div class="form-group col-md-6 mb-2">
+                        {{ form.place_of_posting|as_crispy_field }}
+                        {{form.error}}
+                    </div>
+                    <div class="form-group col-md-6 mb-2">
+                        {{ form.director_signature|as_crispy_field }}
+                        {{form.error}}
+                    </div>
+                    <span class="text-center text-danger text-uppercase mt-4 mb-4">Change CC According to your
+                        needs</span>
+
+                    <div class="form-group col-md-4 mb-2">
+                        {{ form.CC1|as_crispy_field }}
+                        {{form.error}}
+                    </div>
+                    <div class="form-group col-md-4 mb-2">
+                        {{ form.CC2|as_crispy_field }}
+                        {{form.error}}
+                    </div>
+                    <div class="form-group col-md-4 mb-2">
+                        {{ form.CC3|as_crispy_field }}
+                        {{form.error}}
+                    </div>
+                    <div class="form-group col-md-6 mb-2">
+                        {{ form.CC4|as_crispy_field }}
+                        {{form.error}}
+                    </div>
+                    <div class="form-group col-md-6 mb-2">
+                        {{ form.CC5|as_crispy_field }}
+                        {{form.error}}
+                    </div>
+                    <div class="form-group col-md-6 mb-2">
+                        {{ form.CC6|as_crispy_field }}
+                        {{form.error}}
+                    </div>
+                    <div class="form-group col-md-6 mb-2">
+                        {{ form.CC7|as_crispy_field }}
+                        {{form.error}}
+                    </div>
+                </div>
+
+                <button class="btn btn-primary btn-sm mt-4" type="submit">Submit</button>
+                <!-- </fieldset> -->
+            </form>
+        </fieldset>
+    </div>
+</div>
+
+{% endblock %}
+
+
+{% block extra_scripts %}
+<script>
+    document.addEventListener('DOMContentLoaded', function () {
+        // Function to update Select2 styles based on the theme
+        function updateSelect2Styles() {
+            const isDarkTheme = document.documentElement.getAttribute('data-bs-theme') === 'dark';
+            const select2Containers = document.querySelectorAll('.select2-container--default .select2-selection--single .select2-selection__rendered');
+            const select2ContainersSingle = document.querySelectorAll('.select2-container--default .select2-selection--single');
+            const select2DropDown = document.querySelectorAll('.select2-dropdown');
+            
+    
+
+            select2ContainersSingle.forEach(container => {
+                if (isDarkTheme) {
+                    container.style.backgroundColor = '#00000000'; // Black with 75% opacity
+                    container.style.color = 'white';    // White with 80% opacity
+                } else {
+                    container.style.backgroundColor = ''; // White with 75% opacity
+                    container.style.color = '';          // Black with 80% opacity
+                }
+            });
+
+            select2Containers.forEach(container => {
+                if (isDarkTheme) {
+                    container.style.backgroundColor = '#00000000'; // Black with 75% opacity
+                    container.style.color = 'white';    // White with 80% opacity
+                } else {
+                    container.style.backgroundColor = ''; // White with 75% opacity
+                    container.style.color = '';          // Black with 80% opacity
+                }
+            });
+            
+            select2DropDown.forEach(container => {
+                if (isDarkTheme) {
+                    container.style.backgroundColor = '#212529'; // Black with 75% opacity
+                    container.style.color = 'rgba(255, 255, 255, 0.8)';    // White with 80% opacity
+                } else {
+                    container.style.backgroundColor = 'white'; // White with 75% opacity
+                    container.style.color = 'black';          // Black with 80% opacity
+                }
+            });
+        }
+    
+    
+        // Function to periodically check for theme changes
+        function checkThemePeriodically() {
+            updateSelect2Styles();  // Update styles initially
+            setTimeout(checkThemePeriodically, 5);  // Recheck every 500ms
+        }
+    
+        // Start the periodic check
+        checkThemePeriodically();
+    });
+
+</script>
+{% endblock %}

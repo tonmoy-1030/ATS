@@ -1,0 +1,84 @@
+{% extends 'jobs/base.html' %}
+
+{% block content %}
+<div class="container">
+    <div class="card">
+        <div class="card-header">
+            <h2>{{ object.name }}</h2>
+            <p>vill: {{object.details.present_vill}}, PO:{{object.details.present_po}},  PS:{{object.details.present_ps}}, Dist:{{object.details.present_dist}}</p>
+            <p>{{ object.mobile_no }}</p>
+            <p>{{ object.email }}</p>
+        </div>
+    </div>
+
+    
+        {% if object.details %}
+        <h3 class="text-center mt-2">Employee Details:</h3>
+        <div class="row">
+            <div class="col-3 mt-2">
+                <div class="card mt-3">
+                    <div class="card-header">
+                        <h6 class="card-title">Personal Information:</h6>
+                    </div>
+                    <div class="card-body">
+                        <ul class="list-group">
+                            <li class="list-group-item"><strong>Permanent Address:</strong> vill: {{object.details.permanent_vill}}, PO:{{object.details.permanent_po}},  PS:{{object.details.permanent_ps}}, Dist:{{object.details.permanent_dist}}</li>
+                            <li class="list-group-item"><strong>Date of Birth:</strong> 
+                                {{object.details.date_of_birth}}</li>
+                            <li class="list-group-item"><strong>Blood Group:</strong> {{ object.details.blood_group }}
+                            </li>
+                            <li class="list-group-item"><strong>NID:</strong> {{ object.details.nid}}</li>
+                            <li class="list-group-item"><strong>Marital Status:</strong> {{object.details.marital_status }}</li>
+                        </ul>
+                    </div>
+                </div>
+            </div>
+            <div class="col-3 mt-2">
+                <div class="card mt-3">
+                    <div class="card-header">
+                        <h6 class="card-title">Eduction Qualification:</h6>
+                    </div>
+                    <div class="card-body">
+                        <ul class="list-group">
+                            <li class="list-group-item"><strong>Highest Education:</strong> {{ object.details.highest_degree}}</li>
+                            <li class="list-group-item"><strong>Degree Name:</strong> {{ object.details.degree_name }}
+                            </li>
+                            <li class="list-group-item"><strong>Subject:</strong> {{object.details.subject_highest_degree}}</li>
+                            <li class="list-group-item"><strong>Inistitution:</strong> {{ object.details.institution_highest_degree }}</li>
+                            <li class="list-group-item"><strong>Passing Year:</strong> {{object.details.passing_year_highest_degree }}</li>
+                            <li class="list-group-item"><strong>GPA/CGPA/Devision:</strong> {{object.details.division_or_gpa_highest_degree }}</li>
+                        </ul>
+                    </div>
+                </div>
+            </div>
+            <div class="col-3 mt-2">
+                <div class="card mt-3">
+                    <div class="card-header">
+                        <h6 class="card-title">Experience:</h6>
+                    </div>
+                    <div class="card-body">
+                        <ul class="list-group">
+                            <li class="list-group-item"><strong>Current Designation:</strong> {{object.candidate.details.current_designation}}</li>
+                            <li class="list-group-item"><strong>Current Organization:</strong> {{object.candidate.details.current_organization }}</li>
+                            <li class="list-group-item"><strong>Total Experience:</strong> {{object.candidate.details.total_experience}}</li>
+                        </ul>
+                    </div>
+                </div>
+            </div>
+            <div class="col-3 mt-2">
+                <div class="card mt-3">
+                    <div class="card-header">
+                        <h6 class="card-title">Personal Detials:</h6>
+                    </div>
+                    <div class="card-body">
+                        <ul class="list-group">
+                            
+                            <li class="list-group-item"><strong>Current Organization:</strong> {{object.candidate.details.current_organization }}</li>
+                            <li class="list-group-item"><strong>Total Experience:</strong> {{object.candidate.details.total_experience}}</li>
+                        </ul>
+                    </div>
+                </div>
+            </div>
+        </div>
+        {% endif %}
+{% endblock %}

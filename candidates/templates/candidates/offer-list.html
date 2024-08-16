@@ -1,0 +1,60 @@
+{% extends "jobs/base.html" %}
+{% block content %}
+{% load crispy_forms_tags %}
+<div class="container">
+    <legend class="text-center">Offered Candidate</legend>
+    <div class=" d-flex align-items-center justify-content-center">
+        <form method="get">
+            <div class="row">
+                <div class="col-md-12">
+                    <label for="" class="form-label">Name:</label>
+                    {{ filterset.form.name }}
+                    <label for="" class="form-label">Unit:</label>
+                    {{ filterset.form.unit }}
+                    <label for="" class="form-label">Status:</label>
+                    {{ filterset.form.offer_status }}
+                    <label for="" class="form-label">Joining Date:</label>
+                    {{ filterset.form.Joining_date }}
+                    <button class="btn btn-primary btn-sm" type="submit"><i class="bi bi-search"></i> Search</button>
+                </div>
+            </div>
+        </form>
+    </div>
+
+    <table class="table table-bordered mt-4">
+        <thead class="text-center">
+            <tr>
+                <th>SL</th>
+                <th>Name</th>
+                <th>Mobile Number</th>
+                <th>Position</th>
+                <th>Unit</th>
+                <th>DOJ/Tentative DOJ</th>
+                <th>Location</th>
+                <th>Status</th>
+                <th>Employee Status</th>
+            </tr>
+        </thead>
+        <tbody>
+            {% for offer in offers %}
+            <tr>
+                <td class="text-center">{{ forloop.counter }}</td>
+                <td><a href="{% url 'candidates:offer-update' offer.id %}">{{ offer.candidate.name }}</a></td>
+                <td>{{ offer.candidate.mobile }}</td>
+                <td>{{ offer.offered_designation }}</td>
+                <td>{{ offer.job.unit }}</td>
+                <td class="text-center">{{ offer.joining_date }}</td>
+                <td>{{offer.job.job_location}}</td>
+                <td>{{ offer.offer_status }}</td>
+                {% if offer.id in employee_offer_ids %}
+                <td class="text-center"> Already an Employee</td>
+                {% else %}
+                <td class="text-danger text-center"> Not Joined</td>
+                {% endif %}
+
+            </tr>
+            {% endfor %}
+        </tbody>
+    </table>
+</div>
+{% endblock %}

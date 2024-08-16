@@ -1,0 +1,115 @@
+{% extends "jobs/base.html" %}
+{% block style %}
+<style>
+    body {
+        overflow-x: hidden;
+        /* Prevent horizontal scrolling */
+    }
+
+    .leave-sidebar {
+        background: linear-gradient(180deg, #4e73df 0%, #224abe 100%);
+        border-right: 1px solid #dee2e6;
+        height: 100vh;
+        position: fixed;
+        left: 60px;
+        /* Assuming your existing sidebar width is 60px */
+        top: 0;
+        bottom: 0;
+        width: 200px;
+        /* Adjust the width as needed */
+        z-index: 100;
+        /* Ensure it sits above other content */
+        color: #fff;
+        padding-top: 20px;
+    }
+
+    .leave-sidebar .nav-link {
+        color: #fff;
+        margin-bottom: 15px;
+        font-weight: bold;
+        transition: background-color 0.3s, color 0.3s;
+        border-radius: 5px;
+        padding: 10px 15px;
+    }
+
+    .leave-sidebar .nav-link.active,
+    .leave-sidebar .nav-link:hover {
+        background-color: rgba(255, 255, 255, 0.1);
+        color: #ffffff;
+    }
+
+    .main-content {
+        margin-left: 260px;
+        /* Adjust margin-left to account for both sidebars */
+        padding: 40px;
+        background-color: transparent;
+        min-height: 100vh;
+    }
+
+    .content-section {
+        background: transparent;
+        box-shadow: 0 4px 8px rgba(0, 0, 0, 0.1);
+        border-radius: 8px;
+        padding: 30px;
+        transition: transform 0.3s ease-in-out;
+    }
+
+    .content-section.active {
+        display: block;
+        transform: scale(1.02);
+    }
+
+    .btn-primary {
+        background-color: #4e73df;
+        border-color: #4e73df;
+        transition: background-color 0.3s, border-color 0.3s;
+    }
+
+    .btn-primary:hover {
+        background-color: #224abe;
+        border-color: #224abe;
+    }
+
+    @media (max-width: 768px) {
+        .leave-sidebar {
+            position: static;
+            /* Allow it to scroll with content */
+            width: 100%;
+            height: auto;
+            left: 0;
+            padding: 10px;
+        }
+
+        .main-content {
+            margin-left: 0;
+        }
+    }
+</style>
+{% endblock %}
+
+{% block content %}
+{% load crispy_forms_tags %}
+
+<div class="container-fluid">
+    <div class="row">
+        <!-- Leave Management Sidebar -->
+        <nav id="leave-sidebar" class="leave-sidebar">
+            <div class="position-sticky pt-3">
+                <ul class="nav flex-column">
+                    <li class="nav-item">
+                        <a class="nav-link active">
+                            Leave Allocation
+                        </a>
+                    </li>
+                    <li class="nav-item">
+                        <a class="nav-link" href="{% url 'leave:leaveApplication' %}">
+                            Leave Application
+                        </a>
+                    </li>
+                </ul>
+            </div>
+        </nav>
+
+    </div>
+</div>
+{% endblock %}

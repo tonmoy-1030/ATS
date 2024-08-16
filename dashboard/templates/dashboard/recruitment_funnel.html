@@ -1,0 +1,14 @@
+<!DOCTYPE html>
+<html>
+<head>
+    <title>Dashboard</title>
+    {% load plotly_dash %}
+    {% plotly_header %}
+</head>
+<body>
+    <div id="dash-container">
+        {% plotly_app name="SimpleExample" %}
+    </div>
+    {% plotly_footer %}
+</body>
+</html>

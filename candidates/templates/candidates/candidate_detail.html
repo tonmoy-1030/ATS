@@ -1,0 +1,107 @@
+{% extends "jobs/base.html" %}
+
+{% block content %}
+<div class="container">
+    <div class="card">
+        <div class="card-header">
+            <h2>{{ object.name }}</h2>
+            <p>{{ object.mobile }}</p>
+            <p>{{ object.email }}</p>
+        </div>
+    </div>
+
+    {% if candidate_occurance %}
+    <div class="mt-4">
+        <h3>Interview Details:</h3>
+        <div class="card mt-3">
+            <table class="table table-bordered ">
+                <thead>
+                    <tr>
+                        <th>Job Title</th>
+                        <th>Unit</th>
+                        <th>Interview Type</th>
+                        <th>Interview Date</th>
+                        <th>Attendance Status</th>
+                        <th>Interview Status</th>
+                        <th>Final Interview Attendance</th>
+                        <th>Final Interview Status</th>
+                        <th> Job Offer</th>
+
+                    </tr>
+                </thead>
+                <tbody>
+                    {% for occurrence in candidate_occurance %}
+                    <tr>
+                        <td>{{ occurrence.job.first.job_title }}</td>
+                        <td>{{ occurrence.job.first.unit }}</td>
+                        <td>{{ occurrence.interview_schedule.interview_type }}</td>
+                        <td>{{ occurrence.interview_schedule.interview_date | date:"M d, Y" }}</td>
+                        <td>{{ occurrence.attendance_status }}</td>
+                        <td>{{ occurrence.initial_interview_status}}</td>
+                        <td>{{ occurrence.final_interview_attendance}}</td>
+                        <td>{{ occurrence.final_interview_status}}</td>
+                        <td>{{ occurrence.offer.offer_status}}</td>
+
+
+
+                    </tr>
+                    {% endfor %}
+                </tbody>
+            </table>
+        </div>
+        {% endif %}
+        {% if object.details %}
+        <h3 class="text-center mt-2">Candidate Details:</h3>
+        <div class="row">
+            <div class="col-4 mt-2">
+                <div class="card mt-3">
+                    <div class="card-header">
+                        <h6 class="card-title">Personal Information:</h6>
+                    </div>
+                    <div class="card-body">
+                        <ul class="list-group">
+                            <li class="list-group-item"><strong>Date of Birth:</strong> 
+                                {{object.details.date_of_birth}}</li>
+                            <li class="list-group-item"><strong>Blood Group:</strong> {{ object.details.blood_group }}
+                            </li>
+                            <li class="list-group-item"><strong>NID:</strong> {{ object.details.nid}}</li>
+                            <li class="list-group-item"><strong>Marital Status:</strong> {{object.details.marital_status }}</li>
+                        </ul>
+                    </div>
+                </div>
+            </div>
+            <div class="col-4 mt-2">
+                <div class="card mt-3">
+                    <div class="card-header">
+                        <h6 class="card-title">Eduction Qualification:</h6>
+                    </div>
+                    <div class="card-body">
+                        <ul class="list-group">
+                            <li class="list-group-item"><strong>Highest Education:</strong> {{ object.details.highest_degree}}</li>
+                            <li class="list-group-item"><strong>Degree Name:</strong> {{ object.details.degree_name }}
+                            </li>
+                            <li class="list-group-item"><strong>Subject:</strong> {{object.details.subject_highest_degree}}</li>
+                            <li class="list-group-item"><strong>Inistitution:</strong> {{ object.details.institution_highest_degree }}</li>
+                            <li class="list-group-item"><strong>Passing Year:</strong> {{object.details.passing_year_highest_degree }}</li>
+                            <li class="list-group-item"><strong>GPA/CGPA/Devision:</strong> {{object.details.division_or_gpa_highest_degree }}</li>
+                        </ul>
+                    </div>
+                </div>
+            </div>
+            <div class="col-4 mt-2">
+                <div class="card mt-3">
+                    <div class="card-header">
+                        <h6 class="card-title">Experience:</h6>
+                    </div>
+                    <div class="card-body">
+                        <ul class="list-group">
+                            <li class="list-group-item"><strong>Current Designation:</strong> {{object.details.current_designation}}</li>
+                            <li class="list-group-item"><strong>Current Organization:</strong> {{object.details.current_organization }}</li>
+                            <li class="list-group-item"><strong>Total Experience:</strong> {{object.details.total_experience}}</li>
+                        </ul>
+                    </div>
+                </div>
+            </div>
+        </div>
+        {% endif %}
+        {% endblock %}

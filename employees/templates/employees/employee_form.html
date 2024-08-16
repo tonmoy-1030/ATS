@@ -1,0 +1,91 @@
+{% extends "jobs/base.html" %}
+{% block content %}
+{% load crispy_forms_tags %}
+
+<div class="main">
+    <!-- Main content here -->
+
+    <div class="container" style="max-width: 600px;">
+        <legend class="text-center">Employee Entry Form</legend>
+        <form id="candidateform">
+            <label for="candidate">Selected Candidate:</label>
+            
+            <select class="form-select" name="candidate" id="candidate">
+                <option selected disabled>Choose Selected Candidate</option>
+                {% for candidate in offered_candidates %}
+                <option value="{{ candidate.id }}">{{ candidate.name }}</option>
+                {% endfor %}
+            </select>
+        </form>
+        <form action="" method="post">
+            {% csrf_token %}
+            <div class="form-group row">  
+                <div class="form-group col-md-6 mt-4 mb-2">
+                    {{form.EID | as_crispy_field}}
+                </div>     
+                <div class="form-group col-md-6 mt-4 mb-2">
+                    {{form.name | as_crispy_field}}
+                </div> 
+                <div class="form-group col-md-6  mb-2">
+                    {{form.designation | as_crispy_field}}
+                </div>     
+                <div class="form-group col-md-6 mb-2">
+                    {{form.department | as_crispy_field}}
+                </div> 
+                <div class="form-group col-md-6 mb-2">
+                    {{form.DOJ | as_crispy_field}}
+                </div>     
+                <div class="form-group col-md-6 mb-2">
+                    {{form.job_location | as_crispy_field}}
+                </div>          
+                <div class="form-group col-md-6 mb-2">
+                    {{form.mobile_no | as_crispy_field}}
+                </div>     
+                <div class="form-group col-md-6 mb-2">
+                    {{form.email | as_crispy_field}}
+                </div> 
+                <div class="form-group col-md-12 mb-2">
+                    {{form.unit | as_crispy_field}}
+                </div>     
+                <div class="form-group col-md-6 mb-0" style="display: none;">
+                    {{form.job | as_crispy_field}}
+                </div> 
+                <div class="form-group col-md-6 mb-0" style="display: none;">
+                    {{form.candidate | as_crispy_field}}
+                </div>     
+                <!-- {{form |crispy }} -->
+            </div>
+            <button class="btn btn-primary btn-sm mt-4" type="submit">Submit</button>
+
+        </form>
+    </div>
+</div>
+
+<script src="https://code.jquery.com/jquery-3.6.0.min.js"></script>
+<script>
+    $(document).ready(function () {
+        $('#candidate').change(function () {
+            var candidateId = $(this).val();
+            $.ajax({
+                url: '/get_candidate_data/',
+                type: 'GET',
+                data: { 'candidate_id': candidateId },
+                success: function (data) {
+                    $('#id_name').val(data.name);
+                    $('#id_EID').val(data.EID);
+                    $('#id_designation').val(data.designation);
+                    $('#id_department').val(data.department);
+                    $('#id_DOJ').val(data.DOJ);
+                    $('#id_mobile_no').val(data.personal_cell);
+                    $('#id_email').val(data.email);
+                    $('#id_unit').val(data.unit);
+                    $('#id_candidate').val(data.candidate);
+                    $('#id_job').val(data.job);
+
+                },
+            });
+        });
+    });
+</script>
+
+{% endblock %}

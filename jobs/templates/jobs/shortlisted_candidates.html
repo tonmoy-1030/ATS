@@ -1,0 +1,37 @@
+{% extends "jobs/base.html" %}
+
+{% block content %}
+{% if shortliested_candidates %}
+<h2>Shortlist Candidates for Final Interview - {{ job.first.job_title }}</h2>
+<div class="container mt-4">
+    <form method="post" action="{% url 'jobs:finalize_final_interview' pk=interview.pk %}">
+        {% csrf_token %}
+        <table class="table table-border">
+            <thead>
+                <th>Name</th>
+                <th>Mobile</th>
+                <th>Email</th>
+                <th>Initial Interview Status </th>
+            </thead>
+            {% for candidate in shortliested_candidates %}
+            <tbody>
+                <tr>
+                    <td>
+                        <input type="checkbox" name="selected_candidates" value="{{ candidate.id }}"> {{ candidate.name}}
+                    </td>
+                    <td> {{ candidate.mobile}}</td>
+                    <td> {{ candidate.email}}</td>
+                    <td> {{ candidate.initial_interview_status}}</td>
+            </tbody>
+            {% endfor %}
+
+        </table>
+        <button class="btn btn-primary" type="submit">Add</button>
+    </form>
+</div>
+{% else %}
+<div>
+    <h1>No Shortlist Candidate</h1>
+</div>
+{% endif %}
+{% endblock %}

@@ -1,0 +1,18 @@
+{% extends "jobs/base.html" %}
+{% block content %}
+{% load crispy_forms_tags %}
+
+<div>
+    <div class="container" style="max-width: 600px;">
+        <legend>Employee info Form</legend>
+        <form action="" method="post">
+            {% csrf_token %}
+            <fieldset>
+                {{form|crispy }}
+            </fieldset>
+            <button class="btn btn-primary btn-sm mt-4" type="Submit">Submit</button>
+        </form>
+    </div>
+</div>
+</body>
+{% endblock %}

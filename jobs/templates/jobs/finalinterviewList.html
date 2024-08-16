@@ -1,0 +1,54 @@
+{% extends "jobs/base.html" %}
+{% block content %}
+
+{% load crispy_forms_tags %}
+
+<div class="container">
+    <div class=" d-flex align-items-center justify-content-center">
+        <form method="get" class="row">
+            <div class="col-12">
+                <label for="" class="form-label">Unit:</label>
+                {{ filterset.form.unit }}
+                <label for="" class="form-label">Date:</label>
+                {{ filterset.form.interview_date }}
+                <button class="btn btn-primary btn-sm" type="submit"><i class="bi bi-search"></i> Search</button>
+            </div>
+        </form>
+    </div>
+    <div class="container-fluid mt-2">
+        {% if schedules%}
+        <legend class="text-center">Final Interview Schedule</legend>
+        <table class="table table-sm table-bordered">
+            <thead class="text-center align-middle">
+                <tr>
+                    <th>SL</th>
+                    <th>Unit</th>
+                    <th>Position</th>
+                    <th>interview type</th>
+                    <th>interview Date</th>
+                    <th>Actions</th>
+                </tr>
+            </thead>
+            <tbody>
+
+                {% for final_schedule in schedules %}
+                <tr>
+                    <td>{{forloop.counter}}</td>
+                    <td>{{final_schedule.job.first.unit}}</td>
+                    <td>{{final_schedule.job.first.job_title}}</td>
+                    <td>{{final_schedule.interview_type}}</td>
+                    <td>{{final_schedule.interview_date|date:"Y-m-d"}}</td>
+                    <td class="text-center"><a class="btn btn-outline-primary btn-sm" href="{% url 'jobs:update_final_schedule' final_schedule.pk %}"><i class="bi bi-arrow-repeat"></i> Update</a>
+                    <a class="btn btn-outline-info btn-sm"  href="{% url 'jobs:final_interview_details' final_schedule.id %}"></i> Details</a></td>
+                </tr>
+                {% endfor %}
+            </tbody>
+        </table>
+        {% else %}
+        <div class="alert alert-danger text-center" role="alert">
+            No interview schedules available.
+        </div>
+        {% endif %}
+    </div>
+</div>
+{% endblock %}

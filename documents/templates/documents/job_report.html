@@ -1,0 +1,81 @@
+{% extends "jobs/base.html" %}
+{% block content %}
+<div class="container mx-auto">
+    <h1>{{reference_number}}</h1>
+    <h1 class="text-center">Job Report for {{ job.job_title }}</h1>
+    <table class="table table-bordered border-secondary">
+        <thead>
+            <th>Perticulars</th>
+            <th>Info.</th>
+        </thead>
+        <tbody class="text-center">
+            <tr>
+                <td>Total Candidates:</td>
+                <td>{{ total_candidates }}</td>
+            </tr>
+            <tr>
+                <td>Total Present:</td>
+                <td>{{ total_present }} ({{ percentage_present }}%)</td>
+            </tr>
+            <tr>
+                <td>Total Shortlisted:</td>
+                <td>{{ total_forwarded }} ({{ percentage_forwarded }}%)</td>
+            </tr>
+            <tr>
+                <td>Total Requirement:</td>
+                <td>{{ total_requirements }}</td>
+            </tr>
+        </tbody>
+    </table>
+    <h6>Interviewed by:</h6>
+    <ol class="list-group-numbered">
+        {% for interviewer in interviewers %}
+        <li class="list-group-item">
+            {{ interviewer.name }}
+        </li>
+        {% endfor %}
+    </ol>
+
+</div>
+
+<div class="text-center">
+    <a id="interivew_detailsbtn" href="{% url 'documents:download_word' job_id=job_id %}" class="btn btn-secondary">
+        Download as Word</a>
+    <button id="printButton" class="btn btn-primary">Print</button>
+</div>
+
+<style>
+    @media print {
+        body * {
+            visibility: hidden;
+        }
+
+        .container,
+        .container * {
+            visibility: visible;
+        }
+
+        #printButton {
+            display: none;
+            /* Hide the print button when printing */
+        }
+
+        #interivew_detailsbtn {
+            display: none;
+        }
+
+        .website-name,
+        .date,
+        .title {
+            display: none !important;
+        }
+    }
+</style>
+
+<script>
+    // Print button functionality
+    document.getElementById("printButton").addEventListener("click", function () {
+        window.print();
+    });
+</script>
+{% endblock %}

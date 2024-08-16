@@ -1,0 +1,118 @@
+{% extends "jobs/base.html" %}
+{% block content %}
+{% load crispy_forms_tags %}
+
+    <div class="container" style="max-width: 600px;">
+        {% if form.instance.pk %}
+        <h2 class="text-center">Update Leave Application</h2>
+        {% else %}
+        <h2 class="text-center">Leave Application</h2>
+        {% endif %}
+        <form action="" method="post">
+            {% csrf_token %}
+            <div class="form-group row">  
+                {{form|crispy}}
+        </form>
+        {% if form.instance.pk %}
+        <button class="btn btn-primary btn-sm mt-4" type="submit">Update</button>
+        {% else %}
+        <button class="btn btn-primary btn-sm mt-4" type="submit">Submit</button>
+        {% endif %}
+    </div>
+
+
+{% endblock %}
+
+
+{% block extra_scripts %}
+<script>
+    document.addEventListener('DOMContentLoaded', function () {
+        // Function to update Select2 styles based on the theme
+        function updateSelect2Styles() {
+            const isDarkTheme = document.documentElement.getAttribute('data-bs-theme') === 'dark';
+            const select2Containers = document.querySelectorAll('.select2-container--default .select2-selection--single .select2-selection__rendered');
+            const select2ContainersSingle = document.querySelectorAll('.select2-container--default .select2-selection--single');
+            const select2DropDown = document.querySelectorAll('.select2-dropdown');
+            
+            select2ContainersSingle.forEach(container => {
+                if (isDarkTheme) {
+                    container.style.backgroundColor = '#00000000'; 
+                    container.style.color = 'white';    
+                } else {
+                    container.style.backgroundColor = '';
+                    container.style.color = '';         
+                }
+            });
+
+            select2Containers.forEach(container => {
+                if (isDarkTheme) {
+                    container.style.backgroundColor = '#00000000';
+                    container.style.color = 'white';    
+                } else {
+                    container.style.backgroundColor = '';
+                    container.style.color = '';        
+                }
+            });
+            
+            select2DropDown.forEach(container => {
+                if (isDarkTheme) {
+                    container.style.backgroundColor = '#212529'; 
+                    container.style.color = 'rgba(255, 255, 255, 0.8)'; 
+                } else {
+                    container.style.backgroundColor = 'white';
+                    container.style.color = 'black';         
+                }
+            });
+        }
+    
+    
+        // Function to periodically check for theme changes
+        function checkThemePeriodically() {
+            updateSelect2Styles();  // Update styles initially
+            setTimeout(checkThemePeriodically, 5);  // Recheck every 5ms
+        }
+    
+        // Start the periodic check
+        checkThemePeriodically();
+        
+        function updateLeaveDays() {
+            const startDate = $('#id_start_date').val();
+            const endDate = $('#id_end_date').val();
+
+            if (startDate && endDate) {
+                $.ajax({
+                    url: '/calculate-leave-days/',  // Ensure this URL is correct
+                    data: {
+                        start_date: startDate,
+                        end_date: endDate
+                    },
+                    dataType: 'json',
+                    success: function(data) {
+                        console.log('AJAX Response:', data);
+                        if (data.error) {
+                            alert(data.error);  // Display error message in an alert
+                            $('#id_total_days').val(0); // Reset total days to 0
+                            $('#id_start_date').val('');  // Clear start date field
+                            $('#id_end_date').val('');    // Clear end date field
+                        } else {
+                            $('#id_total_days').val(data.total_days);
+                        }
+                    },
+                    error: function(xhr, status, error) {
+                        console.error('AJAX Error:', status, error);
+                        // alert('Start date cannot be after end date, Please try again '); // Generic error alert
+                        $('#id_total_days').val(0); // Reset total days to 0
+
+                           // Clear end date field
+                    }
+                });
+            }
+        }
+
+        $('#id_start_date, #id_end_date').on('change', updateLeaveDays);
+        
+    });
+
+</script>
+
+{% endblock %}

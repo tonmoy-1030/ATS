@@ -1,0 +1,126 @@
+{% extends "jobs/base.html" %}
+{% block content %}
+
+{% load crispy_forms_tags %}
+<div class="container" style="max-width: 600px;">
+    {% if form.instance.pk %}
+    <h2 class="text-center">Update Interview Schedule</h2>
+    {% else %}
+    <h2 class="text-center">Create Interview Schedule</h2>
+    {% endif %}
+  <form action="" method="post">
+    {% csrf_token %}
+    {{form | crispy }}
+    
+    <button class="btn btn-primary btn-sm mt-4" type="submit">Submit</button>
+  </form>
+</div>
+{% endblock %}
+
+{% block extra_scripts %}
+
+
+
+
+<script>
+
+  $(document).ready(function () {
+
+      $('#id_jobs').select2({
+          width: 'resolve',
+          placeholder: 'Select jobs',
+          allowClear: true,
+      });
+
+      $('#id_unit').change(function () {
+        
+          var unit = $(this).val();
+          if (unit) {
+              $.ajax({
+                  url: '/ajax/load-jobs/',
+                  type: 'GET',
+                  data: { 'unit': unit },
+                  success: function (data) {
+                      var selectedJobs = $('#id_jobs').val() || []; // Get currently selected jobs
+                      $('#id_jobs').empty();  // Clear existing options
+                      $('#id_jobs').append($('<option>').val('').text('Select jobs').prop('disabled', true));
+                      data.forEach(function (job) {
+                          // Check if job_id is not in selectedJobs array
+                          if (selectedJobs.indexOf(String(job.job_id)) === -1) {
+                              var optionText = `${job.designation}, ${job.unit}, ${job.location}`;
+                              $('#id_jobs').append($('<option>', { 
+                                  value: job.job_id,
+                                  text : optionText
+                              }));
+                          }
+                      });
+                      $('#id_jobs').trigger('change'); // Update select2
+                  },
+              });
+          } else {
+              $('#id_jobs').empty();
+              $('#id_jobs').append($('<option>').val('').text('Select jobs').prop('disabled', true));
+              $('#id_jobs').trigger('change');
+          }
+      });
+
+  });
+</script>
+
+
+<script>
+document.addEventListener('DOMContentLoaded', function () {
+    // Function to update Select2 styles based on the theme
+    function updateSelect2Styles() {
+        const isDarkTheme = document.documentElement.getAttribute('data-bs-theme') === 'dark';
+        const select2Containers = document.querySelectorAll('.select2-container--default .select2-selection--multiple');
+        const select2results = document.querySelectorAll( '.select2-container--default .select2-selection--multiple .select2-selection__choice');
+        const select2DropDown = document.querySelectorAll('.select2-dropdown');
+
+        select2Containers.forEach(container => {
+            if (isDarkTheme) {
+                container.style.backgroundColor = '#00000000'; // Black with 75% opacity
+                container.style.color = 'rgba(255, 255, 255, 0.8)';    // White with 80% opacity
+            } else {
+                container.style.backgroundColor = 'rgba(255, 255, 255, 0.75)'; // White with 75% opacity
+                container.style.color = '#00000000';          // Black with 80% opacity
+            }
+        });
+        
+        select2results.forEach(container => {
+            if (isDarkTheme) {
+                container.style.backgroundColor = '#00000000'; // Black with 75% opacity
+                container.style.color = 'rgba(255, 255, 255, 0.8)';    // White with 80% opacity
+            } else {
+                container.style.backgroundColor = ''; // White with 75% opacity
+                container.style.color = 'black';          // Black with 80% opacity
+            }
+        });
+
+        select2DropDown.forEach(container => {
+                if (isDarkTheme) {
+                    container.style.backgroundColor = '#212529'; // Black with 75% opacity
+                    container.style.color = 'rgba(255, 255, 255, 0.8)';    // White with 80% opacity
+                } else {
+                    container.style.backgroundColor = 'white'; // White with 75% opacity
+                    container.style.color = 'black';          // Black with 80% opacity
+                }
+            });
+    }
+
+
+    // Function to periodically check for theme changes
+    function checkThemePeriodically() {
+        updateSelect2Styles();  // Update styles initially
+        setTimeout(checkThemePeriodically, 5);  // Recheck every 500ms
+    }
+
+    // Start the periodic check
+    checkThemePeriodically();
+});
+
+
+
+</script>
+
+{% endblock %}

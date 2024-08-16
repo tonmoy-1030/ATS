@@ -1,0 +1,99 @@
+{% extends "jobs/base.html" %}
+{% block content %}
+{% load crispy_forms_tags %}
+
+    <div class="container" style="max-width: 600px;">
+        <legend class="text-center">Leave Allocation</legend>
+        <form action="" method="post">
+            {% csrf_token %}
+            <div class="form-group row">  
+                {{form|crispy}}
+        </form>
+        {% if form.instance.pk %}
+        <button class="btn btn-primary btn-sm mt-4" type="submit">Update</button>
+        {% else %}
+        <button class="btn btn-primary btn-sm mt-4" type="submit">Submit</button>
+        {% endif %}
+    </div>
+
+
+{% endblock %}
+
+{% block extra_scripts %}
+<script>
+    document.addEventListener('DOMContentLoaded', function () {
+        // Function to update Select2 styles based on the theme
+        function updateSelect2Styles() {
+            const isDarkTheme = document.documentElement.getAttribute('data-bs-theme') === 'dark';
+            const select2Containers = document.querySelectorAll('.select2-container--default .select2-selection--single .select2-selection__rendered');
+            const select2ContainersSingle = document.querySelectorAll('.select2-container--default .select2-selection--single');
+            const select2DropDown = document.querySelectorAll('.select2-dropdown');
+            
+            select2ContainersSingle.forEach(container => {
+                if (isDarkTheme) {
+                    container.style.backgroundColor = '#00000000'; 
+                    container.style.color = 'white';    
+                } else {
+                    container.style.backgroundColor = '';
+                    container.style.color = '';         
+                }
+            });
+
+            select2Containers.forEach(container => {
+                if (isDarkTheme) {
+                    container.style.backgroundColor = '#00000000';
+                    container.style.color = 'white';    
+                } else {
+                    container.style.backgroundColor = '';
+                    container.style.color = '';        
+                }
+            });
+            
+            select2DropDown.forEach(container => {
+                if (isDarkTheme) {
+                    container.style.backgroundColor = '#212529'; 
+                    container.style.color = 'rgba(255, 255, 255, 0.8)'; 
+                } else {
+                    container.style.backgroundColor = 'white';
+                    container.style.color = 'black';         
+                }
+            });
+        }
+    
+    
+        // Function to periodically check for theme changes
+        function checkThemePeriodically() {
+            updateSelect2Styles();  // Update styles initially
+            setTimeout(checkThemePeriodically, 5);  // Recheck every 5ms
+        }
+    
+        // Start the periodic check
+        checkThemePeriodically();
+
+
+        const form = document.getElementsByTagName('form')[0];
+        if (form) {
+            const leaveAllocatedInput = document.getElementById('id_leave_allocated');
+            const leaveBalanceInput = document.getElementById('id_leave_balance');
+            const leaveTakenInput = document.getElementById("id_leave_taken");
+
+
+            
+            function updateLeaveBalance() {
+                const leaveAllocated = parseFloat(leaveAllocatedInput.value) || 0;
+                const leaveTaken = parseFloat(leaveTakenInput.value) || 0;
+                leaveBalanceInput.value = leaveAllocated - leaveTaken;
+            }
+
+            if (leaveAllocatedInput && leaveTakenInput && leaveBalanceInput) {
+                // Update balance when leave allocated changes
+                leaveAllocatedInput.addEventListener('input', updateLeaveBalance);
+
+                // Update balance when leave taken changes
+                leaveTakenInput.addEventListener('input', updateLeaveBalance);
+            }
+        }
+    });
+
+</script>
+{% endblock %}

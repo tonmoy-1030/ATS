@@ -1,0 +1,38 @@
+{%extends "jobs/base.html"%}
+{%block content%}
+<legend class="text-center">Headcount Requisition List</legend>
+<table class="table table-bordered">
+    <thead>
+        <th>Date</th>
+        <th>position</th>
+        <th>Department</th>
+        <th>Unit</th>
+        <th>Job Locations</th>
+        <th>Types</th>
+        <th>No of Position</th>
+        <th>Filled Position</th>
+        <th>Status</th>
+    </thead>
+    <tbody>
+        {% for requisition in requisitions %}
+
+        <tr>
+            <td><a href="{% url 'jobs:job_details' requisition.id %}">{{requisition.posting_date}}</a></td>
+            <td>{{requisition.job_title}}</td>
+            <td>{{requisition.department}}</td>
+            <td>{{requisition.unit}}</td>
+            <td>{{requisition.job_location}}</td>
+            <td>{{requisition.types}}</td>
+            <td class="text-center">{{requisition.no_of_position}}</td>
+            <td class="text-center">{{requisition.filled_positions}}</td>
+            {% if requisition.open_status %}
+                <td class="text-success">Open</td>
+            {% else %}
+                <td class="text-danger">Close</td>
+            {% endif %}
+        </tr>
+        {% endfor %}
+    </tbody>
+</table>
+
+{%endblock%}

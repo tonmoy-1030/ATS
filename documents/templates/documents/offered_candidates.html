@@ -1,0 +1,61 @@
+{% extends "jobs/base.html" %}
+
+{% block content %}
+{% if offered_candidate %}
+<h2 class="text-center mt-2">Offered Candidates</h2>
+<div class="container mt-4">
+    <form method="post" action="{% url 'documents:offer-print' %}" target="_blank">
+        {% csrf_token %}
+        <div class="table-responsive">
+            <table class="table table-bordered table-sm">
+                <thead class="text-center">
+                    <th><input class="form-check-input" type="checkbox" id="selectAll"></th>
+                    <th>Date</th>
+                    <th>Name</th>
+                    <th>Mobile</th>
+                    <th>Email</th>
+                    <th>Offered Designaiton</th>
+                    <th>Unit</th>
+                    <th>Tentative Joining Date</th>
+                </thead>
+                {% for candidate in offered_candidate %}
+                <tbody>
+                    <tr>
+                        <td>
+                            <input class="form-check-input" type="checkbox" name="offered_candidates"
+                                value="{{ candidate.id }}">
+                        </td>
+                        <td> {{candidate.interview_schedule.interview_date}}</td>
+                        <td> {{ candidate.name}} </td>
+                        <td> {{ candidate.mobile}} </td>
+                        <td> {{ candidate.email}} </td>
+                        <td> {{candidate.offer.offered_designation}} </td>
+                        <td> {{candidate.offer.job.unit}} </td>
+                        <td> {{ candidate.offer.joining_date}}</td>
+                </tbody>
+                {% endfor %}
+            </table>
+        </div>
+        <legend>Print Offer Letter</legend>
+        <button class="btn btn-primary" type="submit">PDF</button>
+    </form>
+</div>
+<script>
+    document.addEventListener("DOMContentLoaded", function () {
+        document.getElementById("selectAll").addEventListener("change", function () {
+            var checkboxes = document.getElementsByName("offered_candidates");
+            for (var i = 0; i < checkboxes.length; i++) {
+                checkboxes[i].checked = this.checked;
+            }
+        });
+    });
+</script>
+{% else %}
+<div>
+    <h1>No Shortlist Candidate</h1>
+</div>
+
+
+
+{% endif %}
+{% endblock %}

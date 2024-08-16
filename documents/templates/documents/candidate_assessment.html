@@ -1,0 +1,4 @@
+{% extends "jobs/base.html" %}
+{% block content %}
+    <iframe src="{% url 'documents:candidate_assessment_pdf' interview_id=interview_id %}" width="100%" height="600px" frameborder="0"></iframe>
+{% endblock content %}

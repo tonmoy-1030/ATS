@@ -1,0 +1,78 @@
+{% extends "jobs/base.html" %}
+
+{% block content %}
+    <form method="get" class="row">
+        <div class="col-4">
+            <label for="" class="form-label">Name:</label>
+            {{ filter.form.name }}
+        </div>
+        <div class="col-4">
+            <label for="" class="form-label">Unit:</label>
+            {{ filter.form.unit }}
+        </div>
+        <div class="col-4">
+            <label for="" class="form-label">Department:</label>
+            {{ filter.form.department }}
+            <input class="btn btn-outline-primary btn-sm" type="submit" />
+        </div>        
+    </form>
+    <hr>
+    <h1 class="text-center">Employee List</h1>
+    <table class="table table-bordered table-sm" id="employee_table">
+        <thead class="text-center align-middle">
+            <tr>
+                <th>ID</th>
+                <th>Name</th>
+                <th>Designation</th>
+                <th>Department</th>
+                <th>Mobile No.</th>
+                <th>Email</th>
+                <th>Unit</th>
+                <th>Actions</th>
+            </tr>
+        </thead>
+        <tbody>
+            {% for employee in employee_list %}
+            <tr>
+                <td>{{ employee.EID }}</td>
+                <td>{{ employee.name }}</td>
+                <td>{{ employee.designation }}</td>
+                <td>{{ employee.department }}</td>
+                <td>{{ employee.mobile_no }}</td>
+                <td>{{ employee.email }}</td>
+                <td>{{ employee.unit }}</td>
+                <td class="text-center">
+                    <a class="btn btn-outline-primary btn-sm" href="{% url 'employees:employee-update' employee.pk %}">Update</a>
+                    <a class="btn btn-outline-primary btn-sm" href="{% url 'employees:employee_profile' employee.pk %}">Details</a>
+                </td>
+            </tr>
+            {% endfor %}
+        </tbody>
+        <tfoot>
+        </tfoot>
+    </table>
+
+    <div class="pagination justify-content-center">
+        <nav aria-label="Page navigation">
+            <ul class="pagination">
+                {% if page_obj.has_previous %}
+                <li class="page-item"><a class="page-link" href="?page=1">&laquo; First</a></li>
+                <li class="page-item"><a class="page-link" href="?page={{ page_obj.previous_page_number }}">Previous</a>
+                </li>
+                {% endif %}
+    
+                <li class="page-item disabled">
+                    <span class="page-link">
+                        Page {{ page_obj.number }} of {{ page_obj.paginator.num_pages }}
+                    </span>
+                </li>
+    
+                {% if page_obj.has_next %}
+                <li class="page-item"><a class="page-link" href="?page={{ page_obj.next_page_number }}">Next</a></li>
+                <li class="page-item"><a class="page-link" href="?page={{ page_obj.paginator.num_pages }}">Last &raquo;</a>
+                </li>
+                {% endif %}
+            </ul>
+        </nav>
+    </div>
+{% endblock %}

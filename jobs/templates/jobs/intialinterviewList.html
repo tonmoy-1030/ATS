@@ -1,0 +1,57 @@
+
+{% extends "jobs/base.html" %}
+{% block content %}
+
+{% load crispy_forms_tags %}
+
+<div class="container">
+    <div class=" d-flex align-items-center justify-content-center">
+        <form method="get" class="row">
+
+            <div class="col-12">
+                <label for="" class="form-label">Unit:</label>
+                {{ filterset.form.unit }}
+                <label for="" class="form-label">Date:</label>
+                {{ filterset.form.interview_date }}
+                <input class="btn btn-outline-primary btn-sm" type="submit" />
+            </div>
+
+        </form>
+    </div>
+    <div class="container-fluid mt-2 ">
+        {% if schedules or final_schedules %}
+        <legend class="text-center">Initial Interview Schedule</legend>
+        <table class="table table-sm table-bordered  table-hover">
+            <thead class=" text-center align-middle">
+                <th>SL</th>
+                <th>Unit</th>
+                <th>Position</th>
+                <th>Interview type</th>
+                <th>Interview Date</th>
+                <th>Actions</th>
+            </thead>
+            <tbody>
+                {% for schedule in schedules %}
+                <tr>
+                    <td>{{forloop.counter}}</td>
+                    <td>{{schedule.job.first.unit}}</td>
+                    <td>{{schedule.job.first.job_title}}</td>
+                    <td>{{schedule.interview_type}}</td>
+                    <td>{{schedule.interview_date}}</td>
+                    <td class="text-center"><a class="btn btn-outline-primary btn-sm" href="{% url 'jobs:update_schedule' schedule.id %}"><i class="bi bi-arrow-repeat"></i> Update</a>
+                        <a class="btn btn-outline-info btn-sm" href="{% url 'jobs:interview_details' schedule.id %}"></i> Details</a>
+                    </td>
+                </tr>
+                {% endfor %}
+
+            </tbody>
+        </table>
+        {% else %}
+        <div class="alert alert-danger text-center" role="alert">
+            No interview schedules available.
+        </div>
+        {% endif %}
+    </div>
+
+</div>
+{% endblock %}

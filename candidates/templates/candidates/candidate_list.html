@@ -1,0 +1,63 @@
+{%extends "jobs/base.html"%}
+{%block content%}
+<div class="container">
+    <legend class="text-center">Candidate List</legend>
+    <form class="d-flex ms-auto mb-2" role="search" style="max-width: 300px;" method="GET">
+        <input class="form-control me-2" type="search" name="q" placeholder="Search" aria-label="Search">
+        <button class="btn btn-outline-success" type="submit">Search</button>
+    </form>
+    
+    <table class="table table-bordered">
+        <thead>
+            <th>SL</th>
+            <th>Name</th>
+            <th>Mobile Number</th>
+            <th>Email Address</th>
+            <th>Attendance Status</th>
+            <th>Position</th>
+            <th>Initial Interview Status</th>
+            <th>Final Interview Status</th>
+        </thead>
+        <tbody>
+            {% for candidate in candidates %}
+            {% if candidate.mobile in duplicate_mobiles %}
+            <tr class="table-warning">
+              {% else %}
+            <tr>
+              {% endif %}
+                <td>{{forloop.counter}}</td>
+                <td><a href="{% url 'candidates:candidate-detail' candidate.id %}">{{candidate.name}}</a></td>
+                <td>{{candidate.mobile}}</td>
+                <td>{{candidate.email}}</td>
+                <td>{{candidate.attendance_status}}</td>
+                <td>{{candidate.job.first.job_title}}-{{candidate.job.first.unit}}</td>                
+                <td>{{candidate.initial_interview_status}}</td>
+                <td>{{candidate.final_interview_status}}</td>
+            </tr>
+            {% endfor %}
+        </tbody>
+    </table>
+    <div class="pagination justify-content-center">
+        <nav aria-label="Page navigation">
+            <ul class="pagination">
+                {% if page_obj.has_previous %}
+                <li class="page-item"><a class="page-link" href="?page=1">&laquo; First</a></li>
+                <li class="page-item"><a class="page-link" href="?page={{ page_obj.previous_page_number }}">Previous</a>
+                </li>
+                {% endif %}
+    
+                <li class="page-item disabled">
+                    <span class="page-link">
+                        Page {{ page_obj.number }} of {{ page_obj.paginator.num_pages }}
+                    </span>
+                </li>
+    
+                {% if page_obj.has_next %}
+                <li class="page-item"><a class="page-link" href="?page={{ page_obj.next_page_number }}">Next</a></li>
+                <li class="page-item"><a class="page-link" href="?page={{ page_obj.paginator.num_pages }}">Last &raquo;</a>
+                </li>
+                {% endif %}
+            </ul>
+        </nav>
+</div>
+{%endblock%}

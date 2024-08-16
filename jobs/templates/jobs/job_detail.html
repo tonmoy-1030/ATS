@@ -1,0 +1,62 @@
+{% extends "jobs/base.html" %}
+
+{% block content %}
+  <div class="container mt-5">
+    <div class="card w-50 mx-auto">
+      <div class="card-body">
+        <h5 class="card-title"><strong>Job Title: </strong>{{ object.job_title }}</h5>
+        <p class="card-text">Requisition Date: {{ object.posting_date | date:"M d, Y" }}</p>
+        <p class="card-text">Department: {{ object.department }}</p>
+        <p class="card-text">Unit: {{ object.unit }}</p>
+        <p class="card-text">Vacant Positions: {{ object.no_of_position }}</p>
+        <p class="card-text">Status: {% if object.open_status %} <span class="text-primary">Open</span>{% else %} <span class="text-danger">Close</span> {% endif %}</p>
+        
+        {% if interviews %}          
+        <h2 class="text-center mt-4 mb-3">Interview Schedules</h2>
+          <table class="table table-bordered">
+            <thead>
+              <th>Interview Date</th>
+              <th>Interview Type</th>
+              <th>Interviewer</th>
+            </thead>
+            <tbody>
+              {% for interview in interviews %}
+                <tr>
+                  <td><a href="{% url 'jobs:interview_details' interview.id%}">{{ interview.interview_date | date:"M d, Y" }}</a></td>
+                  <td>{{ interview.interview_type }}</td>
+                  <td>
+                    {% for interviewer in interview.interviewer.all %}
+                    {{ interviewer.name }}
+                    {% if not forloop.last %}, {% endif %}
+                    {% endfor %}
+                  </td>
+                </tr>
+              {% endfor %}
+                {% if final_interviews %}
+                {% for interview in final_interviews %}
+                <tr>
+                  <td><a href="{% url 'jobs:final_interview_details' interview.id%}">{{ interview.interview_date | date:"M d, Y" }}</a></td>
+                  <td>{{ interview.interview_type }}</td>
+                  <td>
+                    {% for interviewer in interview.interviewer.all %}
+                    {{ interviewer.name }}
+                    {% if not forloop.last %}, {% endif %}
+                    {% endfor %}
+                  </td>
+                </tr>
+              {% endfor %}
+                {% endif %}
+            </tbody>
+          </table>
+        {% endif %}
+      </div>
+    </div>
+  </div>
+  <div class="container mt-3">
+    <div class="card w-50 mx-auto">
+      <div class="card-body">
+        <a href="{% url 'jobs:job_update' object.id %}" class="btn btn-secondary">Update</a>
+      </div>
+    </div>
+  </div>
+{% endblock %}

@@ -1,0 +1,119 @@
+{% extends "jobs/base.html" %}
+{% block content %}
+{% load crispy_forms_tags %}
+
+<div class="container-fluid table-responsive">
+    <legend class="text-center">Leave Allocation</legend>
+    <form method="get" class="form-inline">
+        {% for field in filter.form %}
+        <div class="form-group mr-3">
+            <div class="form-control">
+                {{ field.label_tag }}
+                {{ field }}
+            </div>
+        </div>
+        {% endfor %}
+        <button type="submit" class="btn btn-primary"><i class="bi bi-search"></i> Search</button>
+    </form>
+    <hr>
+    <table class="table table-bordered table-hover">
+        <thead class="text-center">
+            <tr>
+                <th>ID</th>
+                <th>Name</th>
+                <th>Designation</th>
+                <th>Department</th>
+                <th>Unit</th>
+                <th>Year</th>
+                <th>Leave Type</th>
+                <th>Leave Allocated</th>
+                <th>Leave Taken</th>
+                <th>Leave Balance</th>
+                <th>Actions</th>
+            </tr>
+        </thead>
+        <tbody>
+            {% for allocation in page_obj %}
+            <tr>
+                <td class="text-center"><a
+                        href="{% url 'leave:leaveAllocationUpdate' allocation.pk %}">{{allocation.employee.EID}}</a>
+                </td>
+                <td>{{allocation.employee.name}}</td>
+                <td>{{allocation.employee.designation}}</td>
+                <td>{{allocation.employee.department}}</td>
+                <td class="text-center">{{allocation.employee.unit}}</td>
+                <td class="text-center">{{allocation.year}}</td>
+                <td>{{allocation.leave_type}}</td>
+                <td class="text-center">{{allocation.leave_allocated}}</td>
+                <td class="text-center">{{allocation.leave_taken}}</td>
+                <td class="text-center">{{allocation.leave_balance}}</td>
+                <td class="text-center "><a href="{% url 'leave:allocationDelete' allocation.id %}"
+                        class="text-danger h6" data-bs-toggle="modal" data-bs-target="#leaveAllocationUpdate"><i
+                            class="bi bi-trash"></i></a>
+
+                    <!-- modal -->
+
+
+                    <div class="modal" id="leaveAllocationUpdate" tabindex="-1" aria-labelledby="leaveAllocationUpdatelabel"
+                        aria-hidden="true">
+                        <div class="modal-dialog modal-dialog-centered modal-md">
+                            <div class="modal-content">
+                                <div class="modal-header">
+                                    <h1 class="modal-title fs-5" id="leaveAllocationUpdatelabel">Delete?</h1>
+                                    <button type="button" class="btn-close" data-bs-dismiss="modal"
+                                        aria-label="Close"></button>
+                                </div>
+                                <div class="modal-body">
+                                    <h6>Are you sure you want to delete "{{ allocation }}"?</h6>
+                                </div>
+                                <div class="modal-footer">
+                                    <button type="button" class="btn btn-secondary"
+                                        data-bs-dismiss="modal">Close</button>
+                                    <form class="d-inline-block" method="post"
+                                        action="{% url 'leave:allocationDelete' allocation.id %}">
+                                        {% csrf_token %}
+                                        <input class="btn btn-danger" type="submit" value="Confirm">
+                                    </form>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+
+                    <!-- end modal -->
+
+                </td>
+            </tr>
+            {% endfor %}
+        </tbody>
+    </table>
+</div>
+
+
+
+
+
+<div class="pagination justify-content-center">
+    <nav aria-label="Page navigation">
+        <ul class="pagination">
+            {% if page_obj.has_previous %}
+            <li class="page-item"><a class="page-link" href="?page=1">&laquo; First</a></li>
+            <li class="page-item"><a class="page-link" href="?page={{ page_obj.previous_page_number }}">Previous</a>
+            </li>
+            {% endif %}
+
+            <li class="page-item disabled">
+                <span class="page-link">
+                    Page {{ page_obj.number }} of {{ page_obj.paginator.num_pages }}
+                </span>
+            </li>
+
+            {% if page_obj.has_next %}
+            <li class="page-item"><a class="page-link" href="?page={{ page_obj.next_page_number }}">Next</a></li>
+            <li class="page-item"><a class="page-link" href="?page={{ page_obj.paginator.num_pages }}">Last &raquo;</a>
+            </li>
+            {% endif %}
+        </ul>
+    </nav>
+</div>
+
+{% endblock %}

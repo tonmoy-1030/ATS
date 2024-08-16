@@ -1,0 +1,334 @@
+{% extends "jobs/base.html" %}
+{% block content %}
+{% load custom_tags %}
+{% load plotly_dash %}
+<div class="container">
+  <div class="row">
+    <div class="col-lg-4">
+      <legend class="text-center">Unit Wise Time to Fill</legend>
+      <canvas id="Unit_wise_attrition_rate" width="350" height="200"></canvas>
+    </div>
+    <div class="col-lg-4">
+      {{chart_funnel|safe}}
+    </div>
+
+    <div class="col-lg-4">
+      <h5 class="text-center">Employee First Year Attrition Rate -
+        <script>document.write(new Date().getFullYear())</script> &
+        <script>document.write(new Date().getFullYear() - 1)</script>
+      </h5>
+      <canvas id="attritionChart" width="350" height="200"></canvas>
+    </div>
+ 
+    <!-- Divider -->
+    
+    <div class="b-example-divider"></div>
+    
+    <div class="col-lg-6">
+      <legend class="text-center">Attrition Rate -
+        <script>document.write(new Date().getFullYear())</script>
+      </legend>
+      <table class="table table-bordered table-sm table-hover">
+        <thead class="text-center">
+          <tr>
+            <th>Unit</th>
+            <th>Jan</th>
+            <th>Feb</th>
+            <th>Mar</th>
+            <th>Apr</th>
+            <th>May</th>
+            <th>Jun</th>
+            <th>Jul</th>
+            <th>Aug</th>
+            <th>Sep</th>
+            <th>Oct</th>
+            <th>Nov</th>
+            <th>Dec</th>
+          </tr>
+        </thead>
+        <tbody>
+          {% for unit, data in attrition_data.items %}
+          <tr>
+            <td class="text-nowrap">{{ unit }}</td>
+            {% for month in months %}
+            {% get_item data month as attrition_rate %}
+            <td>{{ attrition_rate|floatformat:"1" }}%</td>
+            {% endfor %}
+          </tr>
+          {% endfor %}
+        </tbody>
+      </table>
+    </div>
+
+    <div class="col-lg-6">
+      <legend class="text-center">Offer Acceptance Rate</legend>
+      <canvas id="offer_acceptance" width="280" height="75"></canvas>
+    </div>
+
+<!-- Divider -->
+    
+  <div class="b-example-divider"></div>
+    
+    <div class="col-lg-6">
+      <legend class="text-center">Separated Employees with Service Length (<span id="selected-value">ALL</span>)</legend>
+      <form id="filter-form" class="form-inline">
+          {% csrf_token %}
+          <div>
+              <input class="form-check-input ml-4" type="radio" name="where" value="ALL" id="where-all" checked>
+              <label for="where-all">ALL</label>
+          </div>
+          <div>
+              <input class="form-check-input mr-4" type="radio" name="where" value="MGT" id="where-mgt">
+              <label for="where-mgt">Permanent</label>
+          </div>
+      </form>
+      
+
+      <table class="table table-bordered table-sm table-hover">
+          <thead>
+              <tr class="text-center align-middle">
+                  <th>Unit</th>
+                  {% for length in service_length %}
+                  <th>{{ length }}</th>
+                  {% endfor %}
+              </tr>
+          </thead>
+          <tbody id="separation-table-body">
+              <!-- Table rows will be populated by JavaScript -->
+          </tbody>
+      </table>
+  </div>
+  <div class="col-lg-6"  id="plotly-chart">
+    {{chart_interview|safe}}
+  </div>
+  <div class="b-example-divider"></div>
+  <div class="col-lg-6"  id="plotly-chart">
+    {{chart_institution|safe}}
+  </div>
+  <div class="col-lg-6"  id="plotly-chart">
+    {{chart_district|safe}}
+  </div>
+  <div class="col-lg-6">
+    {{attrition_table|safe}}
+  </div>
+  </div>
+  
+
+</div>
+
+{% endblock %}
+
+{% block extra_scripts %}
+
+<script>
+  var labelMapping = {
+    "T.K. Food Products Distribution Limited": "TKFPDL",
+    "Prime Pusti Limited": "PPL",
+    "Prime Cosmetics Limited": "PCL",
+    "Pusti Glory": "Glory",
+    "Consumer Division": "Cons"
+  };
+  var yearly_labels = {{ unit_labels | safe }};
+  yearly_labels = yearly_labels.map(label => labelMapping[label] || label);
+  var yearly_data = {{ avg_ttf_values | safe }};
+  Chart.register(ChartDataLabels);
+  const ctx = document.getElementById('Unit_wise_attrition_rate');
+  new Chart(ctx, {
+    type: 'bar',
+    data: {
+      labels: yearly_labels,
+      datasets: [{
+        backgroundColor: ['#FF3784','#36A2EB','#4BC0C0','#F77825','#9966FF','#00A8C6','#379F7A','#CC2738','#8B628A','#8FBE00','#606060'],
+        borderColor: ['rgb(255, 99, 132)','rgb(255, 159, 64)','rgb(255, 205, 86)','rgb(75, 192, 192)','rgb(54, 162, 235)','rgb(153, 102, 255)','rgb(201, 203, 207)'],
+        label: 'Unit Wise Time to Fill',
+        data: yearly_data,
+        borderWidth: 1
+      }]
+    },
+    options: {
+      plugins: {
+        datalabels: {
+          align: 'end',
+          anchor: 'end',
+          font: {
+            weight: 'bold'
+          },
+          formatter: Math.ceil,
+        }
+      },
+      legend: false,
+      scales: {
+        y: {
+          beginAtZero: true
+        }
+      }
+    },
+  });
+</script>
+
+
+<script>
+  var labelMapping = {
+    "T.K. Food Products Distribution Limited": "TKFPDL",
+    "Prime Pusti Limited": "PPL",
+    "Prime Cosmetics Limited": "PCL",
+    "Pusti Glory": "Glory",
+    "Consumer Division": "Cons"
+  };
+
+  var data_2023 = {{ data_2023 | safe }};
+  var data_2024 = {{ data_2024 | safe }};
+
+  var units_2023 = data_2023.map(item => labelMapping[item.unit] || item.unit);
+  var units_2024 = data_2024.map(item => labelMapping[item.unit] || item.unit);
+  var attritionRates_2023 = data_2023.map(item => item.attrition_rate_percentage);
+  var attritionRates_2024 = data_2024.map(item => item.attrition_rate_percentage);
+
+  var ctxx = document.getElementById('attritionChart').getContext('2d');
+
+  var attritionChart = new Chart(ctxx, {
+    type: 'bar',
+    data: {
+      labels: [...new Set([...units_2023, ...units_2024])],  // Combine both sets of units, removing duplicates
+      datasets: [
+        {
+          label: 'Attrition Rate 2023 (%)',
+          data: attritionRates_2023,
+          backgroundColor: '#FF3784',    // Red with transparency
+          borderColor: 'rgba(255, 99, 132, 1)',          // Solid red border
+          borderWidth: 1
+        },
+        {
+          label: 'Attrition Rate 2024 (%)',
+          data: attritionRates_2024,
+          backgroundColor: '#36A2EB',    // Blue with transparency
+          borderColor: 'rgba(54, 162, 235, 1)',          // Solid blue border
+          borderWidth: 1
+        }
+      ]
+    },
+    options: {
+      plugins: {
+        datalabels: {
+          align: 'center',
+          anchor: 'center',
+          font: {
+            weight: 'bold'
+          },
+          formatter: Math.ceil,
+        }
+      },
+      legend: false,
+      scales: {
+        y: {
+          beginAtZero: true
+        }
+      }
+    },
+  });
+</script>
+
+
+<script>
+  var labelMapping = {
+    "T.K. Food Products Distribution Limited": "TKFPDL",
+    "Prime Pusti Limited": "PPL",
+    "Prime Cosmetics Limited": "PCL",
+    "Pusti Glory": "Glory",
+    "Consumer Division": "Cons"
+  };
+
+  var acceptance_rate_data = {{ offer_acceptance_rates | safe }};
+  var units = acceptance_rate_data.map(item => labelMapping[item.acceptance_unit] || item.acceptance_unit);
+  var acceptance_data = acceptance_rate_data.map(item => item.offer_acceptance);
+
+
+  const acceptanceChartCtx = document.getElementById('offer_acceptance').getContext('2d');
+  new Chart(acceptanceChartCtx, {
+    type: 'bar',
+    data: {
+      labels: units,
+      datasets: [{
+        backgroundColor: [
+          '#FF3784', '#36A2EB', '#4BC0C0', '#F77825', '#9966FF',
+          '#00A8C6', '#379F7A', '#CC2738', '#8B628A', '#8FBE00', '#606060'
+        ],
+        borderColor: [
+          'rgb(255, 99, 132)', 'rgb(255, 159, 64)', 'rgb(255, 205, 86)',
+          'rgb(75, 192, 192)', 'rgb(54, 162, 235)', 'rgb(153, 102, 255)',
+          'rgb(201, 203, 207)'
+        ],
+        label: 'Offer Acceptance Rate (%)',
+        data: acceptance_data,
+        borderWidth: 1
+      }]
+    },
+    options: {
+      indexAxis: 'y',
+      plugins: {
+        datalabels: {
+          align: 'end',
+          anchor: 'center',
+          font: {
+            weight: 'bold'
+          },
+          formatter: Math.ceil,
+        },
+        legend: {
+          display: false
+        }
+
+      },
+
+    }
+  });
+</script>
+
+<script>
+  $(document).ready(function() {
+      const serviceLengths = {{ service_length|safe }};
+      
+      $('input[name="where"]').on('change', function() {
+          let selectedValues = [];
+          $('input[name="where"]:checked').each(function() {
+              selectedValues.push($(this).val());
+          });
+
+          const selectedValueText = selectedValues.join(', ');
+          $('#selected-value').text(selectedValueText);
+
+          $.ajax({
+              url: "{% url 'dashboard:separated_employee_json' %}",
+              data: {
+                  'where': selectedValues.join(','),
+              },
+              headers: {
+                  'X-CSRFToken': $('input[name="csrfmiddlewaretoken"]').val()
+              },
+              success: function(data) {
+                  $('#separation-table-body').empty();
+
+                  $.each(data.data, function(unit, unitData) {
+                      let row = `<tr><td class="text-nowrap">${unit}</td>`;
+
+                      $.each(serviceLengths, function(index, length) {
+                          const lengthValue = unitData[length] || '';
+                          row += `<td class="text-center">${lengthValue}</td>`;
+                      });
+
+                      row += '</tr>';
+                      $('#separation-table-body').append(row);
+                  });
+              },
+              error: function(xhr, status, error) {
+                  console.error('Error:', error);
+              }
+          });
+      });
+
+      // Trigger change event on page load to load default data
+      $('input[name="where"]:checked').trigger('change');
+  });
+</script>
+
+{% endblock %}

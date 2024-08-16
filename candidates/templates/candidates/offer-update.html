@@ -1,0 +1,13 @@
+{% extends "jobs/base.html" %}
+
+{% block content %}
+{% load crispy_forms_tags %}
+<div class="container" style="max-width: 600px;">
+    <h2>Update Job Offer for {{ object.candidate.name }}</h2>
+    <form method="post">
+        {% csrf_token %}
+            {{form | crispy}}
+        <button type="submit" class="btn btn-primary mt-4">Submit</button>
+    </form>
+</div>
+{% endblock %}

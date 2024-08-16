@@ -1,0 +1,327 @@
+{%extends "jobs/base.html"%}
+{%block content%}
+<div class="container-fluid">
+    <div class="row">
+        <div class="col-lg-4 mt-4 chart-container" style="margin: 0 auto;">
+            <legend class="text-center"> Yearly Number of Joining -
+                <script>document.write(new Date().getFullYear())</script>
+            </legend>
+            <canvas id="yearly_joining_chart"></canvas>
+        </div>
+        <div class="col-lg-4 mt-4">
+            <legend class="text-center">Monthly Joining -
+                <script>document.write((new Date()).toLocaleString('en-US', { month: 'long' }))</script>
+            </legend>
+            <canvas id="monthly_joining_chart"></canvas>
+        </div>
+
+        <div class="col-lg-4 table-responsive mt-4" style="max-height: 300px; overflow-y: auto;">
+            <legend class="text-center">Upcoming Interview Schedule</legend>
+            {% if schedules or final_schedules %}
+            <table class="table table-sm table-bordered">
+                <thead class="text-center align-middle">
+                    <th>Unit</th>
+                    <th>Position</th>
+                    <th>Type</th>
+                    <th>Date</th>
+                </thead>
+                <tbody>
+                    {% for schedule in schedules %}
+                    <tr class="text-nowrap">
+                        <!-- many to many relationship of job in interview schedule -->
+                        <td>{{schedule.job.first.unit}}</td>
+                        <td><a
+                                href="{% url 'jobs:interview_details' schedule.id %}">{{schedule.job.first.job_title}}</a>
+                        </td>
+                        <td>{{schedule.interview_type}}</td>
+                        <td class="text-nowrap">{{schedule.interview_date|date:"Y-m-d h:i:s A" }}</td>
+                    </tr>
+                    {% endfor %}
+
+                    {% for final_schedule in final_schedules %}
+                    <tr class="text-nowrap">
+                        <td>{{final_schedule.job.first.unit}}</td>
+                        <td><a
+                                href="{% url 'jobs:final_interview_details' final_schedule.id %}">{{final_schedule.job.first.job_title}}</a>
+                        </td>
+                        <td>{{final_schedule.interview_type}}</td>
+                        <td>{{ final_schedule.interview_date|date:"Y-m-d h:i:s A" }}</td>
+                    </tr>
+                    {% endfor %}
+                </tbody>
+            </table>
+            {% else %}
+            <div class="alert alert-danger text-center" role="alert">
+                No interview schedules available.
+            </div>
+            {% endif %}
+        </div>
+        <hr>
+        <div class="col-lg-6 table-responsive" style="max-height: 300px; overflow-y: auto;">
+            {% if grouped_requisitions %}
+            <legend class="text-center">Vacant Positions</legend>
+            <table class="table table-bordered table-hover">
+                <thead class="thead-dark text-center align-middle">
+                    <tr>
+                        <th></th>
+                        <th class="text-nowrap">Date</th>
+                        <th class="text-nowrap">Position</th>
+                        <th class="text-nowrap">Department</th>
+                        <th>Location</th>
+                        <th>No of Position</th>
+                        <th>Filled Position</th>
+                    </tr>
+                </thead>
+                <tbody>
+                    {% for unit, reqs in grouped_requisitions.items %}
+                    <tr class="unit-row bg-light">
+                        <td colspan="5" class="p-2">
+                            <a href="javascript:void(0);" class="unit-toggle text-primary" data-unit="{{ unit|slugify }}"><strong>
+                                <i class="bi bi-plus-square"></i> {{ unit }}
+                            </strong></a>
+                        </td>
+                        <td class="text-center">
+                            <strong>
+                                {% for sum in unit_sums %}
+                                    {% if sum.unit == unit %}
+                                        {{ sum.total_positions|default:"0" }}
+                                    {% endif %}
+                                {% endfor %}
+                            </strong>
+                        </td>
+                        <td class="text-center">
+                            <strong>
+                                {% for sum in unit_sums %}
+                                    {% if sum.unit == unit %}
+                                        {{ sum.total_filled|default:"0" }}
+                                    {% endif %}
+                                {% endfor %}
+                            </strong>
+                        </td>
+                    </tr>
+                    {% for req in reqs %}
+                    <tr class="unit-details unit-{{ unit|slugify }}" style="display: none;">    
+                        <td><a  href="{% url 'jobs:job_details' req.id %}"><i class="bi bi-view-stacked"></i></a></td>
+                        <td class="text-nowrap">{{ req.posting_date }}</td>
+                        <td class="text-nowrap">{{ req.job_title }}</td>
+                        <td class="text-center">{{ req.department }}</td>
+                        <td class="text-center">{{ req.job_location }}</td>
+                        <td class="text-center">{{ req.no_of_position }}</td>
+                        <td class="text-center">{{ req.filled_positions|default:"0" }}</td>
+                    </tr>
+                    {% endfor %}
+                   
+                    {% endfor %}
+                </tbody>
+            </table>
+            {% else %}
+            <legend class="text-center">No Vacant Position</legend>
+            {% endif %}
+        </div>
+
+        <div class="col-lg-6 table-responsive" style="max-height: 300px; overflow-y: auto;">
+            {% if grouped_joining %}
+            <legend class="text-center">Upcoming Joining</legend>
+            <table class="table table-bordered table-hover">
+                <thead class="thead-dark text-center align-middle">
+                    <tr>
+                        <th>SL</th>
+                        <th class="text-nowrap">Name</th>
+                        <th class="text-nowrap">Position</th>
+                        <th class="text-nowrap">Department</th>
+                        <th class="doj_changed">Total Number</th>
+                    </tr>
+                </thead>
+                <tbody>
+                    {% for joining_unit, joinings in grouped_joining.items %}
+                    <tr class="joining-unit-row bg-light">
+                        <td colspan="4" class="p-2">
+                            <a href="javascript:void(0);" class="joining-unit-toggle text-primary" data-unit="{{ joining_unit|slugify }}"><strong>
+                                <i class="bi bi-plus-square"></i> {{ joining_unit }}
+                            </strong></a>
+                        </td>
+                        <td class="text-center">
+                            <strong>
+                                {% for sum in joining_unit_sum %}
+                                    {% if sum.unit == joining_unit %}
+                                        {{ sum.total_number|default:"0" }}
+                                    {% endif %}
+                                {% endfor %}
+                            </strong>
+                        </td>
+                    </tr>
+                    {% for offer in joinings %}
+                    <tr class="joining-unit-details joining-unit-{{ joining_unit|slugify }}" style="display: none;">
+                        <td class="text-center">{{forloop.counter}}</td>
+                        <td><a
+                                href="{% url 'candidates:candidate-detail' offer.candidate.id %}">{{offer.candidate.name}}</a>
+                        </td>
+                        <td>{{offer.offered_designation}}</td>
+                        <td class="text-center">{{offer.job.department}}</td>
+                        <td>{{offer.joining_date}}</td>
+                    </tr>
+                    {% endfor %}
+                   
+                    {% endfor %}
+                </tbody>
+            </table>
+            {% else %}
+            <legend class="text-center">No Vacant Position</legend>
+            {% endif %}
+        </div>
+    </div>
+</div>
+{%endblock%}
+
+{% block extra_scripts %}
+<script>
+    var yearly_labels = {{ yearly_labels | safe }};
+    var yearly_data = {{ yearly_data | safe }};
+    var labelMappings = {
+        "T.K. Food Products Distribution Limited": "TKFPDL",
+        "Prime Pusti Limited": "PPL",
+        "Prime Cosmetics Limited": "PCL",
+        "Pusti Glory": "Glory",
+        "Consumer Division": "Cons"
+    };
+
+    // Replace the labels with their short forms
+    yearly_labels = yearly_labels.map(label => labelMappings[label] || label);
+    Chart.register(ChartDataLabels);
+    var yearly_chart = new Chart('yearly_joining_chart', {
+        type: 'bar',
+        data: {
+            labels: yearly_labels,
+            datasets: [{
+                backgroundColor: [
+                    '#FF3784', '#36A2EB', '#4BC0C0',
+                    '#F77825', '#9966FF', '#00A8C6',
+                    '#379F7A', '#CC2738', '#8B628A',
+                    '#8FBE00', '#606060',
+                ],
+                borderColor: [
+                    'rgb(255, 99, 132)',
+                    'rgb(255, 159, 64)',
+                    'rgb(255, 205, 86)',
+                    'rgb(75, 192, 192)',
+                    'rgb(54, 162, 235)',
+                    'rgb(153, 102, 255)',
+                    'rgb(201, 203, 207)'
+                ],
+                data: yearly_data
+            }]
+        },
+        options: {
+            plugins: {
+                datalabels: {
+                    display: true,
+                    align: 'end',
+                    anchor: 'start',
+                    color: '#fff',
+                    font: {
+                        size: 11,
+                        weight: 600
+                    },
+                    formatter: function (value) {
+                        return Math.round(value * 10) / 10;
+                    }
+                },
+                legend: {
+                    display: false
+                }
+            }
+        }
+    });
+
+    // Configuration for monthly joining chart
+    var monthly_labels = {{ monthly_labels | safe }};
+    var monthly_data = {{ monthly_data | safe }};
+    var labelMapping = {
+        "T.K. Food Products Distribution Limited": "TKFPDL",
+        "Prime Pusti Limited": "PPL",
+        "Prime Cosmetics Limited": "PCL",
+        "Pusti Glory": "Glory",
+        "Consumer Division": "Cons"
+    };
+    monthly_labels = monthly_labels.map(label => labelMapping[label] || label);
+    var monthly_chart = new Chart('monthly_joining_chart', {
+        type: 'bar',
+        data: {
+            labels: monthly_labels,
+            datasets: [{
+                backgroundColor: [
+                    '#FF3784','#36A2EB','#4BC0C0','#F77825','#9966FF',
+                    '#00A8C6','#379F7A','#CC2738','#8B628A','#8FBE00','#606060',
+                ],
+                borderColor: [
+                    'rgb(255, 99, 132)','rgb(255, 159, 64)','rgb(255, 205, 86)',
+                    'rgb(75, 192, 192)','rgb(54, 162, 235)','rgb(153, 102, 255)','rgb(201, 203, 207)'
+                ],
+                data: monthly_data
+            }]
+        },
+        options: {
+            legend: false,
+            plugins: {
+                datalabels: {
+                    display: true,
+                    align: 'end',
+                    anchor: 'start',
+                    color: '#fff',
+                    font: {
+                        size: 11,
+                        weight: 600
+                    },
+                    formatter: function (value) {
+                        return Math.round(value * 10) / 10;
+                    }
+                },
+                legend: {
+                    display: false
+                },
+            }
+        }
+    });
+</script>
+
+
+
+
+<script>
+    $(document).ready(function () {
+        $('.unit-toggle').click(function () {
+            var unit = $(this).data('unit');
+            var icon = $(this).find('i');
+
+            $('.unit-' + unit).toggle(); 
+
+            if (icon.hasClass('bi-plus-square')) {
+                icon.removeClass('bi-plus-square').addClass('bi-dash-square');
+            } else {
+                icon.removeClass('bi-dash-square').addClass('bi-plus-square');
+            }
+        });
+    });
+</script>
+
+<script>
+    $(document).ready(function () {
+        $('.joining-unit-toggle').click(function () {
+            var unit = $(this).data('unit');
+            var icon = $(this).find('i');
+            var header = $('.doj_changed');
+
+            $('.joining-unit-' + unit).toggle(); 
+
+            if (icon.hasClass('bi-plus-square')) {
+                icon.removeClass('bi-plus-square').addClass('bi-dash-square');
+                header.text('Date of Joining');
+            } else {
+                icon.removeClass('bi-dash-square').addClass('bi-plus-square');
+                header.text('Total Number');
+            }
+        });
+    });
+</script>
+{% endblock %}
+

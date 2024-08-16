@@ -1,0 +1,143 @@
+{% extends "jobs/base.html" %}
+
+{% block content %}
+  <div class="container mt-5">
+    <div class="card w-50 mx-auto">
+      <div class="card-body">
+        <h5 class="card-title"><strong>Job Title: </strong>{{ object.job.first.job_title }}</h5>
+        <p class="card-text">Interview Stage: {{ object.interview_type }}</p>
+        <p class="card-text">Interview Date: {{ object.interview_date | date:"M d, Y"}}</p>
+        <p class="card-text"><strong> Interviewer: </strong>
+          {% for interviewer in object.interviewer.all %}
+          {{ interviewer.name }}
+          {% if not forloop.last %}, {% endif %}
+          {% endfor %}
+        </p>
+      </div>
+    </div>
+  </div>
+  <div class="container mt-3">
+    <div class="card w-50 mx-auto">
+      <div class="card-body">
+        <div class="btn-group">
+          <a href="{% url 'jobs:shortlisted' pk=object.id %}" class="btn btn-warning "><i class="bi bi-building-add"></i> Select Shortlisted Candidate</a>
+          <a href="{% url 'candidates:final_upload_candidate_files' pk=object.id %}" class="btn btn-primary"><i class="bi bi-upload"></i>  Upload Resume</a>
+        </div>
+      </div>
+    </div>
+
+    <div class="container mt-3">
+      <div class="">
+        <div class="card-body">
+          {% if candidates %}
+          <div class="btn-group">
+            <a class="btn btn-primary btn-sm mb-2"
+              href="{% url 'candidates:final_canidadates_update' object.id %}"><i class="bi bi-arrow-repeat"></i> Update
+              All</a>
+            <a class="btn btn-info btn-sm mb-2 text-dark"
+              href="{% url 'documents:job_report' object.job.first.id %}"><i class="bi bi-ticket-detailed"></i> Interview
+              Details</a>
+            <button onclick="copyPhoneNumbers()" class="btn btn-danger btn-sm mb-2"><i class="bi bi-copy"></i>
+              Copy Phone Numbers</button>
+          </div>
+          <div class="table-responsive">
+            <table class="table table-bordered table-sm table-hover">
+              <thead class="text-center align-middle">
+                <th>SL</th>
+                <th>Name</th>
+                <th>Phone</th>
+                <th>Email</th>
+                <th>Initial Status</th>
+                <th>Initial Date</th>
+                <th>Attendance Status</th>
+                <th>Final Status</th>
+                <th>Final Interview Date</th>
+                <th colspan="3">Actions</th>
+              </thead>
+              <tbody>
+                {% for candidate in candidates %}
+                <tr>
+                  <td>{{ forloop.counter }}</td>
+                  <td class="text-nowrap"><a href="{% url 'candidates:candidate-detail' candidate.id %}">
+                      {{candidate.name}}</a></td>
+                  <td>{{ candidate.mobile }}</td>
+                  <td>{{ candidate.email }}</td>
+                  <td>{{ candidate.initial_interview_status }}</td>
+                  <td>{{ candidate.interview_schedule.interview_date | date:"M d, Y" }}</td>
+                  <td>{{ candidate.final_interview_attendance }}</td>
+                  <td>{{ candidate.final_interview_status }}</td>
+                  <td>{{ candidate.final_interview.interview_date | date:"M d, Y" }}</td>
+                  <td class="text-nowrap">
+                    <div class="d-inline-block">
+                      <a class="btn btn-outline-primary btn-sm interview_details_button"
+                        href="{% url 'candidates:final_candidate_update' candidate.id %}"><i
+                          class="bi bi-arrow-repeat"></i> Update</a>
+                      {% if candidate.final_interview_status == 'Immediate Recruitment' %}
+                      <a class="btn btn-outline-primary btn-sm interview_details_button"
+                        href="{% url 'candidates:candidate-offer' candidate.id %}"><i class="bi bi-envelope"></i>
+                        Offer</a>
+                      {% endif %}
+                    </div>
+                    <form id="delete-form-{{ candidate.id }}" class="d-inline-block" method="post"
+                      action="{% url 'jobs:remove_final_interview_candidate' candidate.id %}">
+                      {% csrf_token %}
+                      <button type="button" class="btn btn-outline-danger btn-sm delete-button"
+                        data-candidate-id="{{ candidate.id }}"><i class="bi bi-trash ml-4"></i> Delete</button>
+                    </form>
+                  </td>
+                </tr>
+                {% endfor %}
+              </tbody>
+            </table>
+          </div>
+          {% else %}
+          <h1 class="w-50 mx-auto text-danger">Candidate is yet to be selected</h1>
+          {% endif %}
+        </div>
+      </div>
+    </div>
+
+    <script>
+      function copyPhoneNumbers() {
+        // Create a textarea element to hold the phone numbers
+        const textarea = document.createElement('textarea');
+        textarea.style.position = 'fixed';
+        textarea.style.top = 0;
+        textarea.style.left = 0;
+        textarea.style.width = '1px';
+        textarea.style.height = '1px';
+        textarea.style.opacity = 0;
+
+        // Retrieve phone numbers from table cells
+        const phoneNumbers = document.querySelectorAll('tbody td:nth-child(3)'); // Assuming phone numbers are in the 4th column
+        phoneNumbers.forEach(function (element) {
+          textarea.value += element.textContent.trim() + '\n';
+        });
+
+        // Append the textarea to the document body
+        document.body.appendChild(textarea);
+
+        // Select the text within the textarea
+        textarea.select();
+        textarea.setSelectionRange(0, 99999); // For mobile devices
+
+        // Copy the selected text to the clipboard
+        document.execCommand('copy');
+
+        // Remove the textarea from the document body
+        document.body.removeChild(textarea);
+
+        // Alert or display a message to indicate that the phone numbers have been copied
+        alert('Phone numbers copied to clipboard!');
+      }
+
+      document.querySelectorAll('.delete-button').forEach(button => {
+        button.addEventListener('click', function () {
+          const candidateId = this.getAttribute('data-candidate-id');
+          if (confirm('Are you sure you want to delete this candidate?')) {
+            document.getElementById(`delete-form-${candidateId}`).submit();
+          }
+        });
+      });
+    </script>
+{% endblock %}

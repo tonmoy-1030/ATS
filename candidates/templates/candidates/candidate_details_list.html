@@ -1,0 +1,93 @@
+{%extends "jobs/base.html"%}
+{%block content%}
+<div class="container">
+    <legend class="text-center">Candidate List</legend>
+    <form class="d-flex ms-auto mb-2" role="search" style="max-width: 400px;" method="GET">
+        <input class="form-control me-2" type="search" name="q" placeholder="Search" aria-label="Search">
+        <button class="btn btn-outline-success me-2" type="submit">Search</button>
+        <div class="dropdown ml-2">
+            <button class="btn btn-outline-primary dropdown-toggle" type="button" id="dropdownMenuButton"
+                data-bs-toggle="dropdown" aria-expanded="false">
+                Action
+            </button>
+            <ul class="dropdown-menu" aria-labelledby="dropdownMenuButton">
+                <li><a class="dropdown-item" href="{% url 'candidates:candidates_details_csv' %}">Download as csv</a>
+                </li>
+                <li>
+                    <hr class="dropdown-divider">
+                </li>
+                <li><a class="dropdown-item" href="{% url 'candidates:update_candidate_details'%}">Upadate Candidate
+                        Info</a></li>
+            </ul>
+
+        </div>
+    </form>
+    <div class="table-responsive">
+        <table class="table table-bordered table-sm text-nowrap">
+            <thead>
+                <th>SL</th>
+                <th>Name</th>
+                <th>Mobile Number</th>
+                <th>Email Address</th>
+                <th>Position</th>
+                <th>DOB</th>
+                <th>Marital Status</th>
+                <th>Religion</th>
+                <th>Home District</th>
+                <th>Highest Degree</th>
+                <th>Current Designation</th>
+                <th>Current Organization</th>
+                <th>Total Experience</th>
+            </thead>
+            <tbody>
+                {% for candidate in candidates %}
+                {% if candidate.mobile in duplicate_mobiles %}
+                <tr class="table-warning">
+                    {% else %}
+                <tr>
+                    {% endif %}
+                    <td>{{forloop.counter}}</td>
+                    <td class="text-nowrap"><a
+                            href="{% url 'candidates:candidate-detail' candidate.id %}">{{candidate.name}}</a></td>
+                    <td>{{candidate.mobile}}</td>
+                    <td>{{candidate.email}}</td>
+                    <td>{{candidate.job.first.job_title}}-{{candidate.job.first.unit}}</td>
+                    <td>{{candidate.details.date_of_birth}}</td>
+                    <td>{{candidate.details.marital_status}}</td>
+                    <td>{{candidate.details.religion}}</td>
+                    <td>{{candidate.details.permanent_dist}}</td>
+                    <td>{{candidate.details.degree_name}}</td>
+                    <td>{{candidate.details.current_designation}}</td>
+                    <td>{{candidate.details.current_organization}}</td>
+                    <td>{{candidate.details.total_experience}}</td>
+                </tr>
+                {% endfor %}
+            </tbody>
+        </table>
+    </div>
+    <div class="pagination justify-content-center">
+        <nav aria-label="Page navigation">
+            <ul class="pagination">
+                {% if page_obj.has_previous %}
+                <li class="page-item"><a class="page-link" href="?page=1">&laquo; First</a></li>
+                <li class="page-item"><a class="page-link" href="?page={{ page_obj.previous_page_number }}">Previous</a>
+                </li>
+                {% endif %}
+
+                <li class="page-item disabled">
+                    <span class="page-link">
+                        Page {{ page_obj.number }} of {{ page_obj.paginator.num_pages }}
+                    </span>
+                </li>
+
+                {% if page_obj.has_next %}
+                <li class="page-item"><a class="page-link" href="?page={{ page_obj.next_page_number }}">Next</a></li>
+                <li class="page-item"><a class="page-link" href="?page={{ page_obj.paginator.num_pages }}">Last
+                        &raquo;</a>
+                </li>
+                {% endif %}
+            </ul>
+        </nav>
+    </div>
+
+    {%endblock%}

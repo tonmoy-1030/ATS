@@ -1,0 +1,36 @@
+{% extends "jobs/base.html" %}
+{% block content %}
+{% load crispy_forms_tags %}
+<div class="container table-responsive">
+    <legend>Update All the Candidate Details</legend>
+    <form method="post">
+        {% csrf_token %}
+        {{ formset.management_form }}
+        <div class="table-responsive "style="max-height: 550px;">
+        <table class="table table-sm table-bordered" >
+            <thead class="text-center">
+                <tr>
+                    <th>SL</th>
+                    <th>Name</th>
+                    <th>Attendance Status</th>
+                    <th>Interview Status</th>
+                    <th style="display: none;"></th>
+                    
+                </tr>
+            </thead>
+            <tbody class="table-group-divider">
+                {% for form in formset %}
+                <tr class="align-middle text-center">
+                    <td style="font-size: .9rem;">{{ forloop.counter }}</td>
+                    {% for field in form %}
+                    <td style="font-size: .9rem;">{{ field }}</td>
+                    {% endfor %}
+                </tr>
+                {% endfor %}
+            </tbody>
+        </table>
+    </div>
+        <button type="submit" class="btn btn-primary"><i class="bi bi-arrow-repeat"></i> Update</button>
+    </form>
+</div>
+{% endblock %}

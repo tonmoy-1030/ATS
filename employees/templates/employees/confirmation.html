@@ -1,0 +1,104 @@
+{% extends "jobs/base.html" %}
+{% block content %}
+{% load crispy_forms_tags %}
+<form method="post">
+    {% csrf_token %}
+    
+    <table class="table table-bordered text-center">
+        {{ formset.management_form }}
+        <thead>
+            <tr>
+                <th>SL</th>
+                <th>EID</th>
+                <th>Name</th>
+                <th>New Designation</th>
+                <th>Status</th>
+                <th>Development Area</th>
+                <th>Effective Date</th>
+                <th>Remarks</th>
+            </tr>
+        </thead>
+        <tbody>
+            {% for form in formset %}
+                <tr>
+                    <td>{{ forloop.counter }}</td>
+                    <td>
+                        {{ form.eid }}
+                        {{ form.eid.errors }}
+                    </td>
+                    <td>
+                        {{ form.name }}
+                        {{ form.name.errors }}
+                    </td>
+                    <td style="display: none;">
+                        {{ form.employee }}
+                        {{ form.employee.errors }}
+                    </td>
+                    <td>
+                        {{ form.new_designation }}
+                        {{ form.new_designation.errors }}
+                    </td>
+                    <td>
+                        {{ form.status }}
+                        {{ form.status.errors }}
+                    </td>
+                    <td>
+                        {{ form.development_area }}
+                        {{ form.development_area.errors }}
+                    </td>
+                    <td>
+                        {{ form.effective_date }}
+                        {{ form.effective_date.errors }}
+                    </td>
+                    <td>
+                        {{ form.remarks }}
+                        {{ form.remarks.errors }}
+                    </td>
+                </tr>
+            {% endfor %}
+        </tbody>
+    </table>
+    <button class="btn btn-primary" type="submit">Save</button>
+</form>
+<script src="https://code.jquery.com/jquery-3.6.0.min.js"></script>
+<script type="text/javascript">
+    $(document).ready(function() {
+        $('input[name^="form-"][name$="-eid"]').on('input', function() {
+            var index = $(this).attr('name').match(/form-(\d+)-eid/)[1];
+            var query = $(this).val();
+            var nameField = $('input[name="form-' + index + '-name"]');
+            var employeeField = $('select[name="form-' + index + '-employee"]');
+            var designationField = $('input[name="form-' + index + '-new_designation"]');
+
+            if (query.length >= 2) {
+                $.ajax({
+                    url: '/employees/search',
+                    data: {
+                        'eid': query
+                    },
+                    success: function(data) {
+                        if (data.results && data.results.name) {
+                            nameField.val(data.results.name);
+                            employeeField.val(data.results.employee).trigger('change'); // Trigger change event for select field
+                            designationField.val(data.results.designation);
+                        } else {
+                            nameField.val('');
+                            employeeField.val('').trigger('change'); // Clear and trigger change event
+                            designationField.val('');
+                        }
+                    },
+                    error: function(xhr, status, error) {
+                        nameField.val('');
+                        employeeField.val('').trigger('change'); // Clear and trigger change event
+                        designationField.val('');
+                    }
+                });
+            } else {
+                nameField.val('');
+                employeeField.val('').trigger('change'); // Clear and trigger change event
+                designationField.val('');
+            }
+        });
+    });
+</script>
+{% endblock %}
