@@ -195,7 +195,7 @@ def sample_employee_upload_file(reques):
     return response
 
 
-class EmployeeSeperation(CreateView):
+class EmployeeSeparationCreateView(CreateView):
     model = SeperationStatus
     form_class = SeperationForm
     template_name = "employees/seperation_form.html"
@@ -203,8 +203,9 @@ class EmployeeSeperation(CreateView):
     
 class EmployeeSeperationUpdateView(UpdateView):
     model = SeperationStatus
-    # form_class = SeperationForm
+    form_class = SeperationForm
     template_name = "employees/seperation_form.html"
+    success_url = "/employees/seperation"
 
 
 
@@ -263,7 +264,7 @@ def separate_upload_file(request):
             response = import_separated_employees(request.FILES["file"])
             if response:
                 return response
-            return HttpResponseRedirect("/employees")
+            return HttpResponseRedirect("/employees/")
     else:
         form = UploadFileForm()
     return render(request, "employees/upload.html", {"form": form})
@@ -400,6 +401,7 @@ def transfer_order(request):
         formset = TransferFormset(queryset=TransferOrder.objects.none())
         
     return render(request, 'employees/transfer_order.html', {'formset':formset})
+
 
 def posting_order(request):
     PostingFormset = modelformset_factory(PostingOrder, PostingOrderForm, extra=10)
