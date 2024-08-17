@@ -13,7 +13,7 @@ def create_envelope(file_path, employee_info):
         f"{employee_info['designation']}",
         f"ID: {employee_info['EID']}",
     ]
-    c.setFont("Times-Bold", 12)
+    c.setFont("Times-Bold", 11)
     y = height - 1.5 * inch  
     for line in recipient_address:
         c.drawString(5 * inch, y, line)  
