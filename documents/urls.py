@@ -5,7 +5,8 @@ from .views import (job_report, job_report_document, Attendance_sheet,
                     confirm_appraisal_form, employee_confirmation_list, 
                     generate_confirmation_letter, employee_confirmation_letter_list, generate_transfer_letter,
                     transfer_letter_list,posting_letter_list, generate_posting_letter,
-                    appointment_letter_list, generate_appointment_letter, employee_list_envelope, envelopePrinting)
+                    appointment_letter_list, generate_appointment_letter, employee_list_envelope, envelopePrinting,
+                    candidateReport)
 
 app_name = 'documents'
 
@@ -30,6 +31,7 @@ urlpatterns = [
     path('employee/appointment_letter/', generate_appointment_letter, name='appointment_letter'),
     path('employees/envelope-list/', employee_list_envelope, name='envelope_list'),
     path('employees/envelope-list/print/', envelopePrinting, name='envelope_print'),
-
+    path('report/Candidate_report/', candidateReport, name='Candidate_report'),
+    
 ]
 

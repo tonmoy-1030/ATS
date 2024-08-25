@@ -111,8 +111,19 @@
 
         $('#id_start_date, #id_end_date').on('change', updateLeaveDays);
         
+        
     });
 
 </script>
+
+<script>
+    document.addEventListener('keydown', function(event) {
+      // Check if Ctrl + Shift + I is pressed
+      if (event.ctrlKey && event.shiftKey && event.key === 'S') {
+        event.preventDefault(); // Prevent default action
+        document.getElementById('id_employee').focus(); // Focus on the input box
+      }
+    });
+  </script>
 
 {% endblock %}

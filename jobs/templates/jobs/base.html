@@ -492,7 +492,7 @@
 
             {% if messages %}
             {%for message in messages%}
-            <div class="alert alert-{{message.tags}}">
+            <div class="alert alert-{{message.tags}} text-center">
                 {{message}}
             </div>
             {% endfor %}
@@ -512,9 +512,7 @@
     <script src="{% static 'jobs/assets/dist/js/bootstrap.bundle.min.js' %}"></script>
     <script src="{% static 'jobs/script.js' %}"></script>
     
-   
-    {{leave_allocation_form.media.js}}
-    {{leave_application_form.media.js}}
+
     {{ form.media.js }}
 
 

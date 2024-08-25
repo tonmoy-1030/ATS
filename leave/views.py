@@ -128,7 +128,7 @@ def calculate_leave_days(request):
                 pass
             elif current_date.weekday() == 5:
                 total_days += 0.5
-            elif current_date.weekday() < 7 and current_date not in holidays:
+            elif current_date.weekday() <= 7 and current_date not in holidays:
                 total_days += 1
             current_date += timezone.timedelta(days=1)
 

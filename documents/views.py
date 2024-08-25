@@ -25,6 +25,8 @@ from .forms import (EmployeeFilter, EmployeeConfirmationFilter,
                     EmployeeConfirmationLetterFilter, PostingLetterFilter,
                     TransferLetterFilter, AppointmentLetterFilter)
 from django.core.paginator import Paginator, EmptyPage, PageNotAnInteger
+from .utils.envelope import create_envelope
+from django.db import connection
 
 
 
@@ -143,7 +145,7 @@ def generate_candidate_assessment(request, interview_id):
             total_exp = ""
         else:
             education_qualification = candidate.details.degree_name
-            age = str(datetime.now().year - candidate.details.date_of_birth.year) + " years"
+            age = str(timezone.now().year - candidate.details.date_of_birth.year) + " years"
             total_exp = candidate.details.total_experience
         candidate_data = {
         'date': candidate.interview_schedule.interview_date,
@@ -629,15 +631,6 @@ def generate_appointment_letter(request):
             
         
             reference = f"T.K./{unit_ref}/HR/APPT/{appointment.reference_number:02d}/{appointment.issue_date.month:02d}/{timezone.now().year}"            
-            # if appointment.CC4 == None:
-            #    appointment_CC4 = ""
-            # else:
-            #     appointment_CC4 = appointment.CC6
-                
-            # if appointment.CC5 == None:
-            #    appointment_CC5 = ""
-            # else:
-            #     appointment_CC5 = appointment.CC5 
             appointment_data = {
                 "ref": reference,
                 "issue_date": appointment.issue_date,
@@ -691,7 +684,7 @@ def employee_list_envelope(request):
     
     return render(request, 'documents/employee_envelope_form.html', {'filter': employee_filter, 'page_obj': page_obj})
 
-from .utils.envelope import create_envelope
+
 def envelopePrinting(request):
     merged_buffer = BytesIO()
     merger = PdfMerger()
@@ -722,4 +715,133 @@ def envelopePrinting(request):
     return response
 
 
+from django.http import HttpResponse
+from django.shortcuts import render
+from django.db import connection
+from .forms import CandidateDetailsForm
+from io import BytesIO
+import xlsxwriter
+import datetime
+import json
+import uuid
+from django.contrib import messages
+from datetime import timedelta 
 
+def candidateReport(request):
+    if request.method == "POST":
+        form = CandidateDetailsForm(request.POST)
+        if form.is_valid():
+            from_date = form.cleaned_data.get("from_date")
+            to_date = form.cleaned_data.get("to_date")
+            unit = form.cleaned_data.get('unit')
+            if len(unit) > 1:
+                unit = tuple(unit)
+            else:
+                for i in unit:
+                    unit = i
+                unit = f'("{unit}")'
+            
+            
+            
+            # Ensure from_date and to_date are not None
+            if not from_date or not to_date:
+                return render(request, "documents/candidateDetails.html", {
+                    'form': form,
+                    'error': 'Please provide both from and to dates.'
+                })
+            
+            # Format the dates for SQL
+            from_date_str = from_date.strftime('%Y-%m-%d')
+            to_date_str = (to_date + timedelta(days=1)).strftime('%Y-%m-%d')
+            
+            query = f"""
+            SELECT DISTINCT
+            cc.name AS Name,
+            cc.mobile AS Mobile,
+            cc.email,
+            DATE(js1.interview_date) AS Interview_Date,
+            jobs_job.job_title AS Job_Title,
+            jobs_job.unit AS Unit
+        FROM
+            jobs_interviewschedule js1
+                JOIN
+            candidates_candidate cc ON js1.id = cc.interview_schedule_id
+                JOIN
+            jobs_interviewschedule_job jsj ON js1.id = jsj.interviewschedule_id
+                JOIN
+            jobs_job ON jsj.job_id = jobs_job.id
+
+        WHERE
+            js1.interview_date BETWEEN '{from_date_str}' AND '{to_date_str}' and jobs_job.unit in {unit}
+        order by 
+        jobs_job.unit desc,
+        jobs_job.job_title desc;       
+            """
+
+            with connection.cursor() as cursor:
+                cursor.execute(query)
+                results = cursor.fetchall()
+                description = cursor.description
+                if results !=():
+                    headers = [d[0] for d in description]
+                    
+                    output = Exporter().ExcelExporter(headers=headers, body=results)
+                    output.seek(0)
+
+                    response = HttpResponse(output, content_type="application/vnd.ms-excel")
+                    response["Content-Disposition"] = 'attachment; filename="Candidate_Report.xlsx"'
+                    return response
+                else:
+                    messages.warning(request, "Empty Results")
+                    form = CandidateDetailsForm()                 
+                    
+    else:
+        form = CandidateDetailsForm()
+
+    return render(request, template_name="documents/candidateDetails.html", context={'form': form})
+        
+
+class Exporter:
+    def ExcelExporter(self, headers, body):
+        output = BytesIO()
+        wb = xlsxwriter.Workbook(output, {"in_memory": True})
+        ws = wb.add_worksheet("Candidate Report")
+
+        # Define a cell format with borders
+        border_format = wb.add_format({
+            "border": 1,
+            "text_wrap": True,
+            "font": "Times New Roman"
+        })
+
+        # Define a header format with bold text and borders
+        header_format = wb.add_format({
+            "bold": True,
+            "border": 1,
+            "bg_color": "#D7E4BC",
+            "font": "Times New Roman"
+        })
+
+        # Write the custom title
+        ws.merge_range(0, 0, 0, len(headers) - 1, "T.K. Group", header_format)
+
+        # Write headers with formatting
+        for col_num, header in enumerate(headers):
+            ws.write(1, col_num, header, header_format)
+        
+        # Write data with border formatting
+        for row_num, data_row in enumerate(body, start=2):
+            for col_num, data in enumerate(data_row):
+                if isinstance(data, (datetime.datetime, uuid.UUID)):
+                    data = str(data)
+                if isinstance(data, (dict, list)):
+                    data = json.dumps(data)
+                ws.write(row_num, col_num, data, border_format)
+
+        # Auto fit columns
+        for col_num in range(len(headers)):
+            max_width = max(len(str(row[col_num])) for row in body) + 2
+            ws.set_column(col_num, col_num, max_width)
+
+        wb.close()
+        return output

@@ -2,7 +2,7 @@ import django_filters
 import django_filters.widgets
 from employees.models import Employee, EmployeeConfirmation, TransferOrder, PostingOrder, SalaryInfo
 from django_select2 import forms as s2forms
-from django.forms import forms
+from django import forms
 
 
 
@@ -156,3 +156,22 @@ class AppointmentLetterFilter(django_filters.FilterSet):
         model = SalaryInfo
         fields = ['name', 'unit','issue_date' ]
         
+
+class CandidateDetailsForm(forms.Form):
+    BUSINESS_UNIT = [
+        ('Consumer Division', 'Consumer'),
+        ('T.K. Food Products Distribution Limited', 'T.K. Food'),
+        ('Prime Pusti Limited', 'PPL'),
+        ('Prime Cosmetics Limited', 'PCL'),
+        ('Pusti Glory', 'Glory'),
+    ]
+    unit = forms.MultipleChoiceField(choices=BUSINESS_UNIT, widget=forms.SelectMultiple(attrs={'class': 'form-select', 'id': 'id_unit'}))
+    from_date = forms.DateField(
+        widget=forms.DateInput(attrs={'class': 'form-control', 'type': 'date'}),
+        label="From Date"
+    )
+    to_date = forms.DateField(
+        widget=forms.DateInput(attrs={'class': 'form-control', 'type': 'date'}),
+        label="To Date"
+    )
+    
