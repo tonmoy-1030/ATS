@@ -95,33 +95,6 @@ def ResumeExtractor(file):
                       phone=DataExtraction.extract_phonenumbers(extracted_textinfo),
                       email=DataExtraction.extract_emails(extracted_textinfo))
     return data
-
-# class FileFieldFormView(FormView):
-#     form_class = FileFieldForm
-#     template_name = "candidates/upload.html"
-
-#     def form_valid(self, form):
-#         files = form.cleaned_data["file_field"]
-#         interview_schedule_pk = self.kwargs.get('pk')
-#         interview_schedule = get_object_or_404(InterviewSchedule, pk=interview_schedule_pk)
-#         job_pk = interview_schedule.job.id
-#         job = get_object_or_404(Job, pk=job_pk)
-
-#         candidate_list = []
-
-#         for file in files:
-#             resume_info = ResumeExtractor(file)
-#             candidate = Candidate(name=resume_info.name, mobile=resume_info.phone,
-#                                   email=resume_info.email, filename=resume_info.file_name,
-#                                   attendance_status='absent', interview_schedule=interview_schedule, job=job)
-#             candidate_list.append(candidate)
-
-#         Candidate.objects.bulk_create(candidate_list)
-#         self.interview_schedule_pk = interview_schedule_pk
-#         return super().form_valid(form)
-    
-#     def get_success_url(self):
-#         return reverse('jobs:interview_details', kwargs={'pk': self.interview_schedule_pk})
     
 class FileFieldFormView(FormView):
     form_class = FileFieldForm
@@ -152,32 +125,6 @@ class FileFieldFormView(FormView):
     def get_success_url(self):
         return reverse('jobs:interview_details', kwargs={'pk': self.interview_schedule_pk})
     
-# class final_FileFieldFormView(FormView):
-#     form_class = FileFieldForm
-#     template_name = "candidates/upload.html"
-
-#     def form_valid(self, form):
-#         files = form.cleaned_data["file_field"]
-#         interview_schedule_pk = self.kwargs.get('pk')
-#         interview_schedule = get_object_or_404(FinalInterviewSchedule, pk=interview_schedule_pk)
-#         job_pk = interview_schedule.job.id
-#         job = get_object_or_404(Job, pk=job_pk)
-
-#         candidate_list = []
-
-#         for file in files:
-#             resume_info = ResumeExtractor(file)
-#             candidate = Candidate(name=resume_info.name, mobile=resume_info.phone,
-#                                   email=resume_info.email, filename=resume_info.file_name,
-#                                   attendance_status='absent', final_interview=interview_schedule, job=job)
-#             candidate_list.append(candidate)
-
-#         Candidate.objects.bulk_create(candidate_list)
-#         self.interview_schedule_pk = interview_schedule_pk
-#         return super().form_valid(form)
-    
-#     def get_success_url(self):
-#         return reverse('jobs:final_interview_details', kwargs={'pk': self.interview_schedule_pk})
     
 class final_FileFieldFormView(FormView):
     form_class = FileFieldForm
@@ -204,24 +151,6 @@ class final_FileFieldFormView(FormView):
     def get_success_url(self):
         return reverse('jobs:final_interview_details', kwargs={'pk': self.interview_schedule_pk})
     
-# class CandidateCreateView(SuccessMessageMixin, CreateView):
-#     model = Candidate
-#     fields = ['name','email','mobile']
-    
-#     def form_valid(self, form):
-#         interview_schedule_pk = self.kwargs.get('pk')
-#         interview_schedule = get_object_or_404(InterviewSchedule, pk=interview_schedule_pk)
-#         job_pk = interview_schedule.job.id
-#         job = get_object_or_404(Job, pk=job_pk)
-#         form.instance.interview_schedule = interview_schedule
-#         form.instance.job = job
-#         self.interview_schedule_pk = interview_schedule_pk
-#         return super().form_valid(form)
-    
-#     def get_success_url(self):
-#         return reverse('jobs:interview_details', kwargs={'pk': self.interview_schedule_pk})
-    
-#     success_message = '%(name)s is entered successfully'
     
 #many to many relationship    
 class CandidateCreateView(SuccessMessageMixin, CreateView):
@@ -478,7 +407,7 @@ def CandidateDtailsUpdate(request):
 
     service = get_authenticated_service()
     responses = get_form_responses(service, form_id)
-    print(responses)
+
     alert_messages = []
 
     if responses:
