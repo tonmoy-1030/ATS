@@ -1,27 +1,37 @@
 {% extends "jobs/base.html" %}
 {% block content %}
 {% load crispy_forms_tags %}
-
-    <div class="container" style="max-width: 600px;">
-        {% if form.instance.pk %}
-        <h2 class="text-center">Update Leave Application</h2>
-        {% else %}
-        <h2 class="text-center">Leave Application</h2>
-        {% endif %}
-        <form action="" method="post">
-            {% csrf_token %}
-            <div class="form-group row">  
-                {{form|crispy}}
-        </form>
-        {% if form.instance.pk %}
-        <button class="btn btn-primary btn-sm mt-4" type="submit">Update</button>
-        {% else %}
-        <button class="btn btn-primary btn-sm mt-4" type="submit">Submit</button>
-        {% endif %}
+<div class="container-fluid">
+    <div class="row">
+        <!-- Sidebar Column -->
+        <div class="col-md-4">
+        {% include 'leaves/leaveManuBar.html' %}
+        </div>
+        
+        <!-- Form Column -->
+        <div class="col-md-8" style="max-width: 600px;"> <!-- Adjusted column width to 8 -->
+            {% if form.instance.pk %}
+                <h2 class="text-center">Update Leave Application</h2>
+            {% else %}
+                <h2 class="text-center">Leave Application</h2>
+            {% endif %}
+            
+            <form action="" method="post">
+                {% csrf_token %}
+                <div class="form-group">
+                    {{ form|crispy }}
+                </div>
+                {% if form.instance.pk %}
+                    <button class="btn btn-primary btn-sm mt-4" type="submit">Update</button>
+                {% else %}
+                    <button class="btn btn-primary btn-sm mt-4" type="submit">Submit</button>
+                {% endif %}
+            </form>
+        </div>
     </div>
-
-
+</div>
 {% endblock %}
+
 
 
 {% block extra_scripts %}
@@ -33,48 +43,48 @@
             const select2Containers = document.querySelectorAll('.select2-container--default .select2-selection--single .select2-selection__rendered');
             const select2ContainersSingle = document.querySelectorAll('.select2-container--default .select2-selection--single');
             const select2DropDown = document.querySelectorAll('.select2-dropdown');
-            
+
             select2ContainersSingle.forEach(container => {
                 if (isDarkTheme) {
-                    container.style.backgroundColor = '#00000000'; 
-                    container.style.color = 'white';    
+                    container.style.backgroundColor = '#00000000';
+                    container.style.color = 'white';
                 } else {
                     container.style.backgroundColor = '';
-                    container.style.color = '';         
+                    container.style.color = '';
                 }
             });
 
             select2Containers.forEach(container => {
                 if (isDarkTheme) {
                     container.style.backgroundColor = '#00000000';
-                    container.style.color = 'white';    
+                    container.style.color = 'white';
                 } else {
                     container.style.backgroundColor = '';
-                    container.style.color = '';        
+                    container.style.color = '';
                 }
             });
-            
+
             select2DropDown.forEach(container => {
                 if (isDarkTheme) {
-                    container.style.backgroundColor = '#212529'; 
-                    container.style.color = 'rgba(255, 255, 255, 0.8)'; 
+                    container.style.backgroundColor = '#212529';
+                    container.style.color = 'rgba(255, 255, 255, 0.8)';
                 } else {
                     container.style.backgroundColor = 'white';
-                    container.style.color = 'black';         
+                    container.style.color = 'black';
                 }
             });
         }
-    
-    
+
+
         // Function to periodically check for theme changes
         function checkThemePeriodically() {
             updateSelect2Styles();  // Update styles initially
             setTimeout(checkThemePeriodically, 5);  // Recheck every 5ms
         }
-    
+
         // Start the periodic check
         checkThemePeriodically();
-        
+
         function updateLeaveDays() {
             const startDate = $('#id_start_date').val();
             const endDate = $('#id_end_date').val();
@@ -87,7 +97,7 @@
                         end_date: endDate
                     },
                     dataType: 'json',
-                    success: function(data) {
+                    success: function (data) {
                         console.log('AJAX Response:', data);
                         if (data.error) {
                             alert(data.error);  // Display error message in an alert
@@ -98,32 +108,32 @@
                             $('#id_total_days').val(data.total_days);
                         }
                     },
-                    error: function(xhr, status, error) {
+                    error: function (xhr, status, error) {
                         console.error('AJAX Error:', status, error);
                         // alert('Start date cannot be after end date, Please try again '); // Generic error alert
                         $('#id_total_days').val(0); // Reset total days to 0
 
-                           // Clear end date field
+                        // Clear end date field
                     }
                 });
             }
         }
 
         $('#id_start_date, #id_end_date').on('change', updateLeaveDays);
-        
-        
+
+
     });
 
 </script>
 
 <script>
-    document.addEventListener('keydown', function(event) {
-      // Check if Ctrl + Shift + I is pressed
-      if (event.ctrlKey && event.shiftKey && event.key === 'S') {
-        event.preventDefault(); // Prevent default action
-        document.getElementById('id_employee').focus(); // Focus on the input box
-      }
+    document.addEventListener('keydown', function (event) {
+        // Check if Ctrl + Shift + I is pressed
+        if (event.ctrlKey && event.shiftKey && event.key === 'S') {
+            event.preventDefault(); // Prevent default action
+            document.getElementById('id_employee').focus(); // Focus on the input box
+        }
     });
-  </script>
+</script>
 
 {% endblock %}
