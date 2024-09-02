@@ -87,9 +87,14 @@ class JobOfferForm(forms.ModelForm):
         offer_status = cleaned_data.get('offer_status')
 
         if job and offer_status == 'accepted':
-            if job.offers.filter(offer_status='accepted').count() >= job.no_of_position:
+            # Exclude the current instance if it is being updated
+            existing_accepted_offers_count = job.offers.filter(offer_status='accepted').exclude(pk=self.instance.pk).count()
+            
+            if existing_accepted_offers_count >= job.no_of_position:
                 raise forms.ValidationError("Offer cannot be made as there are no available positions.")
+
         return cleaned_data
+
 
 class JobOfferFilter(django_filters.FilterSet):
     OFFER_STATUS_CHOICES = [
