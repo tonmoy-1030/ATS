@@ -7,7 +7,7 @@ from django import forms
 
 
 class EmployeeFilter(django_filters.FilterSet):
-    name = django_filters.CharFilter(field_name='name', lookup_expr='icontains')
+    name = django_filters.CharFilter(field_name='name', lookup_expr='icontains', label='Name')
     unit = django_filters.ChoiceFilter(choices=[])
     from_doj = django_filters.DateFromToRangeFilter(field_name='DOJ',
                                                     widget=django_filters.widgets.RangeWidget(
@@ -29,6 +29,12 @@ class EmployeeFilter(django_filters.FilterSet):
     class Meta:
         model = Employee
         fields = ['name', 'unit', 'from_doj']
+        
+        widgets = {
+            'name': forms.TextInput(attrs={'class': 'form-control'}),
+            'unit': forms.Select(attrs={'class': 'form-select'}),
+            'from_doj': forms.DateInput(attrs={'class': 'form-control', 'type': 'date'}),  # Added DateInput widget for 'from_doj'
+        }
         
 
 class EmployeeConfirmationFilter(django_filters.FilterSet):

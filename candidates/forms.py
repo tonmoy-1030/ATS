@@ -71,13 +71,14 @@ class JobOfferForm(forms.ModelForm):
                 }
             )
         }
+        
     def __init__(self, *args, **kwargs):
         candidate_id = kwargs.pop('candidate_id', None)
         super().__init__(*args, **kwargs)
         self.candidate_id = candidate_id 
         if candidate_id:
             candidate = get_object_or_404(Candidate, pk=candidate_id)
-            self.fields['job'].queryset = candidate.final_interview.job.filter(open_status=True)
+            self.fields['job'].queryset = candidate.final_interview.job.filter()
             
               
     def clean(self):
