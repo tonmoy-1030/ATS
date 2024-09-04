@@ -1,7 +1,7 @@
 from django.urls import path
 from .views import (job_report, job_report_document, Attendance_sheet,
                     generate_candidate_assessment, offer_letter_generator, 
-                    OfferedCandidate, joining_form_generator, employee_list,
+                    JobOfferList, joining_form_generator, employee_list,
                     confirm_appraisal_form, employee_confirmation_list, 
                     generate_confirmation_letter, employee_confirmation_letter_list, generate_transfer_letter,
                     transfer_letter_list,posting_letter_list, generate_posting_letter,
@@ -15,7 +15,7 @@ urlpatterns = [
     path('job_report_document/<int:job_id>/', job_report_document, name='download_word'),
     path('interview_attendance/<int:interview_id>/', Attendance_sheet, name='interview_attendance'),
     path('interview/<int:interview_id>/assessment/', generate_candidate_assessment, name='interview_assessment'),
-    path('candidate/offer-letter/', OfferedCandidate.as_view(), name='offer-letter'),
+    path('candidate/offer-letter/', JobOfferList, name='offer-letter'),
     path('candidate/offer-print/', offer_letter_generator, name='offer-print'),
     path('employee/joining-form/', joining_form_generator, name='joining-form'),
     path('employees/joining-form-list/', employee_list, name='joining-form-list'),

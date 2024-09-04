@@ -1,103 +1,124 @@
 {% extends "jobs/base.html" %}
 {% block content %}
+{% load crispy_forms_tags %}
 
-<div class="container">
-    <legend class="text-center"> Generate Employee's Confirmation Appraisal Form</legend>
-    <form method="get" class="form-inline">
-        {% for field in filter.form %}
-        <div class="form-group mr-3">
-            {{ field.label_tag }}
-            {{ field }}
-        </div>
-        {% endfor %}
-        <button type="submit" class="btn btn-primary"><i class="bi bi-search"></i> Search</button>
-    </form>
-    <hr>
-    {% if page_obj  %}
-    <form method="post" action="{% url 'documents:confirm_document' %}" target="_blank">
-        {% csrf_token %}
-        <div class="table-responsive">
-            <table class="table table-bordered table-hover">
-                <thead >
-                    <tr>
-                        <th><input class="form-check-input" type="checkbox" id="selectAll"></th>
-                        <th>ID</th>
-                        <th>Name</th>
-                        <th>Designation</th>
-                        <th>Department</th>
-                        <th>Mobile No.</th>
-                        <th>Email</th>
-                        <th>Date of Joining</th>
-                        <th>Unit</th>
-                        <th>Confirmation Date</th>
-                        <!-- <th>Confirmation Status</th> -->
-                    </tr>
-                </thead>
-                <tbody>
-                {% for employee in page_obj %}
-                    <tr>
-                        <td>
-                            <input class="form-check-input" type="checkbox" name="employees_list"
-                                   value="{{ employee.id }}">
-                        </td>
-                        <td>{{ employee.EID }}</td>
-                        <td>{{ employee.name }}</td>
-                        <td>{{ employee.designation }}</td>
-                        <td>{{ employee.department }}</td>
-                        <td>{{ employee.mobile_no }}</td>
-                        <td>{{ employee.email }}</td>
-                        <td>{{ employee.DOJ }}</td>
-                        <td>{{ employee.unit }}</td>
-                        <td>{{employee.confirmation_date}}</td>
-                        <!-- <td>{{employee.confirmation.status}}</td> -->
-                    </tr>
+{% block style%}
+<style>
+    .form-group>div {
+        display: flex;
+        align-items: center;
+    }
 
-                {% endfor %}
-                </tbody>
-            </table>
-        </div>
-        <button class="btn btn-primary mb-2" type="submit"> <i class="bi bi-file-earmark-plus"></i> Generate Form</button>
-        <div class="pagination justify-content-center">
-            <nav aria-label="Page navigation">
-                <ul class="pagination">
-                    {% if page_obj.has_previous %}
-                        <li class="page-item">
-                            <a class="page-link" href="?{% if request.GET %}{{ request.GET.urlencode|safe }}&{% endif %}page=1">First</a>
-                        </li>
-                        <li class="page-item">
-                            <a class="page-link" href="?{% if request.GET %}{{ request.GET.urlencode|safe }}&{% endif %}page={{ page_obj.previous_page_number }}">Previous</a>
-                        </li>
-                    {% endif %}
-                    
-                    <li class="page-item disabled">
-                        <a class="page-link">Page {{ page_obj.number }} of {{ page_obj.paginator.num_pages }}</a>
-                    </li>
-                    
-                    {% if page_obj.has_next %}
-                        <li class="page-item">
-                            <a class="page-link" href="?{% if request.GET %}{{ request.GET.urlencode|safe }}&{% endif %}page={{ page_obj.next_page_number }}">Next</a>
-                        </li>
-                        <li class="page-item">
-                            <a class="page-link" href="?{% if request.GET %}{{ request.GET.urlencode|safe }}&{% endif %}page={{ page_obj.paginator.num_pages }}">Last</a>
-                        </li>
-                    {% endif %}
-                </ul>
-            </nav>
-        </div>
-    </form>
-    {% else %}
-        <legend class="text-danger text-center"> No Employee Available</legend>
-    {% endif %}
-</div>
-
-<script>
-    document.addEventListener("DOMContentLoaded", function () {
-        document.getElementById("selectAll").addEventListener("change", function () {
-            var checkboxes = document.getElementsByName("employees_list");
-            for (var i = 0; i < checkboxes.length; i++) {
-                checkboxes[i].checked = this.checked;
-            }
-        });
-    });
-</script>
+    .form-group>div>div {
+        margin-right: 10px;
+        /* Adjust the spacing as needed */
+    }
+</style>
 {% endblock %}
+<div class="container-fluid">
+    <div class="row">
+        <!-- Sidebar Column -->
+        <div class="col-md-3">
+            {% include 'documents/DocumentManuBar.html' %}
+        </div>
+        <!-- Form Column -->
+        <div class="col-md-9"> <!-- Adjusted column width to 8 -->
+
+            <div class="table-responsive">
+                <legend class="text-center"> Appraisal Form for Probationary</legend>
+                <form method="get" class="form-inline">
+                    {{filter.form | crispy}}
+                    <button type="submit" class="btn btn-primary mt-4"><i class="bi bi-search"></i> Search</button>
+                </form>
+                <hr>
+                {% if page_obj %}
+                <form method="post" action="{% url 'documents:confirm_document' %}" target="_blank">
+                    {% csrf_token %}
+                    <div class="table-responsive">
+                        <table class="table table-bordered table-hover table-sm">
+                            <thead class="text-center align-middle">
+                                <tr>
+                                    <th><input class="form-check-input" type="checkbox" id="selectAll"></th>
+                                    <th>ID</th>
+                                    <th>Name</th>
+                                    <th>Designation</th>
+                                    <th>Location</th>
+                                    <th>Date of Joining</th>
+                                    <th>Unit</th>
+                                    <th>Confirmation Date</th>
+                                </tr>
+                            </thead>
+                            <tbody>
+                                {% for employee in page_obj %}
+                                <tr>
+                                    <td>
+                                        <input class="form-check-input" type="checkbox" name="employees_list"
+                                            value="{{ employee.id }}">
+                                    </td>
+                                    <td>{{ employee.EID }}</td>
+                                    <td>{{ employee.name }}</td>
+                                    <td>{{ employee.designation }}</td>
+                                    <td>{{ employee.job_location }}</td>
+                                    <td>{{ employee.DOJ }}</td>
+                                    <td>{{ employee.unit }}</td>
+                                    <td>{{employee.confirmation_date}}</td>
+                                </tr>
+
+                                {% endfor %}
+                            </tbody>
+                        </table>
+                    </div>
+                    <button class="btn btn-primary mb-2" type="submit"> <i class="bi bi-printer"></i> Print</button>
+                    <div class="pagination justify-content-center">
+                        <nav aria-label="Page navigation">
+                            <ul class="pagination">
+                                {% if page_obj.has_previous %}
+                                <li class="page-item">
+                                    <a class="page-link"
+                                        href="?{% if request.GET %}{{ request.GET.urlencode|safe }}&{% endif %}page=1">First</a>
+                                </li>
+                                <li class="page-item">
+                                    <a class="page-link"
+                                        href="?{% if request.GET %}{{ request.GET.urlencode|safe }}&{% endif %}page={{ page_obj.previous_page_number }}">Previous</a>
+                                </li>
+                                {% endif %}
+
+                                <li class="page-item disabled">
+                                    <a class="page-link">Page {{ page_obj.number }} of {{ page_obj.paginator.num_pages }}</a>
+                                </li>
+
+                                {% if page_obj.has_next %}
+                                <li class="page-item">
+                                    <a class="page-link"
+                                        href="?{% if request.GET %}{{ request.GET.urlencode|safe }}&{% endif %}page={{ page_obj.next_page_number }}">Next</a>
+                                </li>
+                                <li class="page-item">
+                                    <a class="page-link"
+                                        href="?{% if request.GET %}{{ request.GET.urlencode|safe }}&{% endif %}page={{ page_obj.paginator.num_pages }}">Last</a>
+                                </li>
+                                {% endif %}
+                            </ul>
+                        </nav>
+                    </div>
+                </form>
+                {% else %}
+                <legend class="text-danger text-center"> No Employee Available</legend>
+                {% endif %}
+            </div>
+        </div>
+    </div>
+
+    {% endblock %}
+
+    {% block extra_scripts %}
+    <script>
+        document.addEventListener("DOMContentLoaded", function () {
+            document.getElementById("selectAll").addEventListener("change", function () {
+                var checkboxes = document.getElementsByName("employees_list");
+                for (var i = 0; i < checkboxes.length; i++) {
+                    checkboxes[i].checked = this.checked;
+                }
+            });
+        });
+    </script>
+    {% endblock %}

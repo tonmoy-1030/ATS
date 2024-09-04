@@ -446,38 +446,13 @@
                 </li>
 
                 <li class="sidebar-item">
-                    <a href="#" class="sidebar-link collapsed has-dropdown" data-bs-toggle="collapse"
-                        data-bs-target="#leave" aria-expanded="false" aria-controls="leave">
+                    <a href="{% url 'leave:leaveApplication' %}" class="sidebar-link " aria-controls="leave">
                         <i class="bi bi-kanban"></i>
                         <span>Leave Management</span>
                     </a>
-                    <ul id="leave" class="sidebar-dropdown list-unstyled collapse" data-bs-parent="#sidebar">
-                        <li class="sidebar-item">
-                            <a  href="{% url 'leave:leaveApplication' %}"
-                                class="sidebar-link"><i class="bi bi-check-circle-fill"></i>Leave Application</a>
-                        </li>
-                        <li class="sidebar-item">
-                            <a  href="{% url 'leave:leaveAllocation' %}"
-                                class="sidebar-link"><i class="bi bi-check-circle-fill"></i>Leave Allocation</a>
-                        </li>
-                        <li class="sidebar-item">
-                            <a  href="{% url 'leave:leaveApplication_list' %}"
-                                class="sidebar-link"><i class="bi bi-check-circle-fill"></i>Leave Application List</a>
-                        </li>
-                        <li class="sidebar-item">
-                            <a  href="{% url 'leave:leaveAllocation_list' %}"
-                                class="sidebar-link"><i class="bi bi-check-circle-fill"></i>Leave Allocation List</a>
-                        </li>
-                        <li class="sidebar-item">
-                            <a  href="{% url 'leave:holidayList' %}"
-                                class="sidebar-link"><i class="bi bi-check-circle-fill"></i>Holiday</a>
-                        </li>
-                    </ul>
                 </li>
   
                 <!-- end process -->
-
-
             </ul>
 
             <div class="sidebar-footer">

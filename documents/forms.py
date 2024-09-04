@@ -3,16 +3,17 @@ import django_filters.widgets
 from employees.models import Employee, EmployeeConfirmation, TransferOrder, PostingOrder, SalaryInfo
 from django_select2 import forms as s2forms
 from django import forms
+from candidates.models import Offer
 
 
 
 class EmployeeFilter(django_filters.FilterSet):
     name = django_filters.CharFilter(field_name='name', lookup_expr='icontains', label='Name')
-    unit = django_filters.ChoiceFilter(choices=[])
+    unit = django_filters.ChoiceFilter(choices=[], label='Unit')
     from_doj = django_filters.DateFromToRangeFilter(field_name='DOJ',
                                                     widget=django_filters.widgets.RangeWidget(
                                                     attrs={
-                                                            'type': 'date'
+                                                            'type': 'date', 'class':'form-control'
                                                         }
                                                     )
                                                 )  
@@ -33,9 +34,41 @@ class EmployeeFilter(django_filters.FilterSet):
         widgets = {
             'name': forms.TextInput(attrs={'class': 'form-control'}),
             'unit': forms.Select(attrs={'class': 'form-select'}),
-            'from_doj': forms.DateInput(attrs={'class': 'form-control', 'type': 'date'}),  # Added DateInput widget for 'from_doj'
+            'from_doj': forms.DateInput(attrs={'class': 'form-control', 'type': 'date'})
         }
         
+class JobOfferFilter(django_filters.FilterSet):
+    name = django_filters.CharFilter(field_name='candidate__name', lookup_expr='icontains', label='Name')
+    unit = django_filters.ChoiceFilter(choices=[], label='Unit', field_name='job__unit' )
+    from_doj = django_filters.DateFromToRangeFilter(field_name='joining_date', 
+                                                    widget=django_filters.widgets.RangeWidget(
+                                                    attrs={
+                                                            'type': 'date', 'class':'form-control'
+                                                        }
+                                                    )
+                                                )  
+
+    def __init__(self, *args, **kwargs):
+        super().__init__(*args, **kwargs)
+        self.filters['unit'].extra['choices'] = self.get_unit_choices()
+        
+        
+    def get_unit_choices(self):
+        unique_units = Employee.objects.values_list('unit', flat=True).distinct()
+        choices = [(unit, unit) for unit in unique_units]
+        return choices
+    
+    class Meta:
+        model = Offer
+        fields = ['name', 'unit', 'from_doj']
+        
+        widgets = {
+            'name': forms.TextInput(attrs={'class': 'form-control'}),
+            'unit': forms.Select(attrs={'class': 'form-select'}),
+            'from_doj': forms.DateInput(attrs={'class': 'form-control', 'type': 'date'})
+        }
+    
+
 
 class EmployeeConfirmationFilter(django_filters.FilterSet):
     name = django_filters.CharFilter(field_name='name')
@@ -63,8 +96,8 @@ class EmployeeConfirmationFilter(django_filters.FilterSet):
         fields = ['name', 'unit', 'confirmation_date']
         
 class EmployeeConfirmationLetterFilter(django_filters.FilterSet):
-    name = django_filters.CharFilter(field_name='employee__name')
-    unit = django_filters.ChoiceFilter(field_name='employee__unit', choices=[])
+    name = django_filters.CharFilter(field_name='employee__name', label='Name')
+    unit = django_filters.ChoiceFilter(field_name='employee__unit', choices=[], label="Unit")
 
     issue_date = django_filters.DateFromToRangeFilter(field_name='issue_date',
                                                     widget=django_filters.widgets.RangeWidget(
@@ -88,9 +121,8 @@ class EmployeeConfirmationLetterFilter(django_filters.FilterSet):
         fields = ['name', 'unit', 'issue_date']
 
 class TransferLetterFilter(django_filters.FilterSet):
-    name = django_filters.CharFilter(field_name='employee__name')
-    unit = django_filters.ChoiceFilter(field_name='employee__unit', choices=[])
-
+    name = django_filters.CharFilter(field_name='employee__name', label='Name')
+    unit = django_filters.ChoiceFilter(field_name='employee__unit', choices=[], label='Unit')
     issue_date = django_filters.DateFromToRangeFilter(field_name='issue_date',
                                                     widget=django_filters.widgets.RangeWidget(
                                                     attrs={
@@ -107,14 +139,14 @@ class TransferLetterFilter(django_filters.FilterSet):
         choices = [(unit, unit) for unit in unique_units]
         return choices
 
-
     class Meta:
         model = TransferOrder
         fields = ['name', 'unit', 'issue_date']
+        
 
 class PostingLetterFilter(django_filters.FilterSet):
-    name = django_filters.CharFilter(field_name='employee__name')
-    unit = django_filters.ChoiceFilter(field_name='employee__unit', choices=[])
+    name = django_filters.CharFilter(field_name='employee__name', label='Name')
+    unit = django_filters.ChoiceFilter(field_name='employee__unit', choices=[], label='Unit')
 
     issue_date = django_filters.DateFromToRangeFilter(field_name='issue_date',
                                                     widget=django_filters.widgets.RangeWidget(

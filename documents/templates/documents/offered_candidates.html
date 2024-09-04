@@ -1,61 +1,123 @@
 {% extends "jobs/base.html" %}
-
 {% block content %}
-{% if offered_candidate %}
-<h2 class="text-center mt-2">Offered Candidates</h2>
-<div class="container mt-4">
-    <form method="post" action="{% url 'documents:offer-print' %}" target="_blank">
-        {% csrf_token %}
-        <div class="table-responsive">
-            <table class="table table-bordered table-sm">
-                <thead class="text-center">
-                    <th><input class="form-check-input" type="checkbox" id="selectAll"></th>
-                    <th>Date</th>
-                    <th>Name</th>
-                    <th>Mobile</th>
-                    <th>Email</th>
-                    <th>Offered Designaiton</th>
-                    <th>Unit</th>
-                    <th>Tentative Joining Date</th>
-                </thead>
-                {% for candidate in offered_candidate %}
-                <tbody>
-                    <tr>
-                        <td>
-                            <input class="form-check-input" type="checkbox" name="offered_candidates"
-                                value="{{ candidate.id }}">
-                        </td>
-                        <td> {{candidate.interview_schedule.interview_date}}</td>
-                        <td> {{ candidate.name}} </td>
-                        <td> {{ candidate.mobile}} </td>
-                        <td> {{ candidate.email}} </td>
-                        <td> {{candidate.offer.offered_designation}} </td>
-                        <td> {{candidate.offer.job.unit}} </td>
-                        <td> {{ candidate.offer.joining_date}}</td>
-                </tbody>
-                {% endfor %}
-            </table>
-        </div>
-        <legend>Print Offer Letter</legend>
-        <button class="btn btn-primary" type="submit">PDF</button>
-    </form>
-</div>
-<script>
-    document.addEventListener("DOMContentLoaded", function () {
-        document.getElementById("selectAll").addEventListener("change", function () {
-            var checkboxes = document.getElementsByName("offered_candidates");
-            for (var i = 0; i < checkboxes.length; i++) {
-                checkboxes[i].checked = this.checked;
-            }
-        });
-    });
-</script>
-{% else %}
-<div>
-    <h1>No Shortlist Candidate</h1>
-</div>
+{% load crispy_forms_tags %}
 
+{% block style%}
+<style>
+    .form-group>div {
+        display: flex;
+        align-items: center;
+    }
 
-
-{% endif %}
+    .form-group>div>div {
+        margin-right: 10px;
+        /* Adjust the spacing as needed */
+    }
+</style>
 {% endblock %}
+<div class="container-fluid">
+    <div class="row">
+        <!-- Sidebar Column -->
+        <div class="col-md-3">
+            {% include 'documents/DocumentManuBar.html' %}
+        </div>
+        <!-- Form Column -->
+        <div class="col-md-9"> <!-- Adjusted column width to 8 -->
+
+            <div class="table-responsive">
+                <legend class="text-center"> Offered Candidate </legend>
+                <form method="get" class="form-inline">
+                    {{ filter.form | crispy }}
+                    <button type="submit" class="btn btn-primary mt-4"><i class="bi bi-search"></i> Search</button>
+                </form>
+                <hr>
+                {% if page_obj %}
+                <form method="post" action="{% url 'documents:offer-print' %}" target="_blank">
+                    {% csrf_token %}
+                    <div class="table-responsive">
+                        <table class="table table-bordered table-hover table-sm">
+                            <thead class="text-center">
+                                <tr>
+                                    <th><input class="form-check-input" type="checkbox" id="selectAll"></th>
+                                    <th>Name</th>
+                                    <th>Position</th>
+                                    <th>Unit</th>
+                                    <th>Joining Date</th>
+                                    <th>Status</th>
+                                </tr>
+                            </thead>
+                            <tbody>
+                                {% for offer in page_obj %}
+                                <tr>
+                                    <td>
+                                        <input class="form-check-input" type="checkbox" name="offered_candidates"
+                                            value="{{ offer.id }}">
+                                    </td>
+                                    <td>{{ offer.candidate.name }}</td>
+                                    <td>{{ offer.offered_designation }}</td>
+                                    <td>{{ offer.candidate.job.first.unit }}</td>
+                                    <td>{{ offer.joining_date }}</td>
+                                    <td>{{ offer.offer_status }}</td>
+
+                                </tr>
+            
+                                {% endfor %}
+                            </tbody>
+                        </table>
+                    </div>
+                    <button class="btn btn-primary btn-sm mb-2" type="submit"> <i class="bi bi-printer"></i> Print </button>
+
+                    <div class="pagination justify-content-center">
+                        <nav aria-label="Page navigation">
+                            <ul class="pagination">
+                                {% if page_obj.has_previous %}
+                                <li class="page-item">
+                                    <a class="page-link"
+                                        href="?{% if request.GET %}{{ request.GET.urlencode|safe }}&{% endif %}page=1">First</a>
+                                </li>
+                                <li class="page-item">
+                                    <a class="page-link"
+                                        href="?{% if request.GET %}{{ request.GET.urlencode|safe }}&{% endif %}page={{ page_obj.previous_page_number }}">Previous</a>
+                                </li>
+                                {% endif %}
+            
+                                <li class="page-item disabled">
+                                    <a class="page-link">Page {{ page_obj.number }} of {{ page_obj.paginator.num_pages }}</a>
+                                </li>
+            
+                                {% if page_obj.has_next %}
+                                <li class="page-item">
+                                    <a class="page-link"
+                                        href="?{% if request.GET %}{{ request.GET.urlencode|safe }}&{% endif %}page={{ page_obj.next_page_number }}">Next</a>
+                                </li>
+                                <li class="page-item">
+                                    <a class="page-link"
+                                        href="?{% if request.GET %}{{ request.GET.urlencode|safe }}&{% endif %}page={{ page_obj.paginator.num_pages }}">Last</a>
+                                </li>
+                                {% endif %}
+                            </ul>
+                        </nav>
+                    </div>
+                </form>
+                {% else %}
+                <legend class="text-danger text-center"> No Employee Available</legend>
+                {% endif %}
+            </div>
+        </div>
+    </div>
+
+    {% endblock %}
+
+    {% block extra_scripts %}
+    <script>
+        document.addEventListener("DOMContentLoaded", function () {
+            document.getElementById("selectAll").addEventListener("change", function () {
+                var checkboxes = document.getElementsByName("offered_candidates");
+                for (var i = 0; i < checkboxes.length; i++) {
+                    checkboxes[i].checked = this.checked;
+                }
+            });
+        });
+    </script>
+    {% endblock %}
+<!-- __________________________ -->

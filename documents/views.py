@@ -23,7 +23,7 @@ from .utils.transfer_posting_order import transfer_letter, posting_letter
 from .utils.number2text import format_number, convert_to_words
 from .forms import (EmployeeFilter, EmployeeConfirmationFilter,
                     EmployeeConfirmationLetterFilter, PostingLetterFilter,
-                    TransferLetterFilter, AppointmentLetterFilter)
+                    TransferLetterFilter, AppointmentLetterFilter, JobOfferFilter)
 from django.core.paginator import Paginator, EmptyPage, PageNotAnInteger
 from .utils.envelope import create_envelope
 from django.db import connection
@@ -175,42 +175,42 @@ class OfferedCandidate(ListView):
 def offer_letter_generator(request):
     if request.method == "POST":
         offered_candidate_ids = request.POST.getlist('offered_candidates')
-        offered_candidates = Candidate.objects.filter(id__in=offered_candidate_ids)
+        offers = Offer.objects.filter(id__in=offered_candidate_ids)
         merged_buffer = BytesIO()
         merger = PdfMerger()
-        for candidate in offered_candidates:
+        for offer in offers:
             buffer = BytesIO()
-            unit = candidate.offer.job.unit
+            unit = offer.job.unit
 
 
-            if candidate.offer.job.unit == 'Prime Pusti Limited':
+            if offer.job.unit == 'Prime Pusti Limited':
                 unit_ref = "PPL"
                 location = '9th'
-            elif candidate.offer.job.unit == 'Prime Cosmetics Limited':
+            elif offer.job.unit == 'Prime Cosmetics Limited':
                 unit_ref = 'PCL'
                 location = '9th'    
-            elif candidate.offer.job.unit == 'Consumer Division':
+            elif offer.job.unit == 'Consumer Division':
                 unit_ref = 'Cons'
                 unit = 'Super Oil Refinery Ltd.'
                 location = '5th'
             else:
                 location = '5th' 
-                unit = candidate.offer.job.unit  
+                unit = offer.job.unit  
             
 
         
-            reference = f"T.K./{unit_ref}/HR/OFR/{candidate.offer.reference_number:02d}/{candidate.offer.offer_date.month:02d}/{timezone.now().year}"            
+            reference = f"T.K./{unit_ref}/HR/OFR/{offer.reference_number:02d}/{offer.offer_date.month:02d}/{timezone.now().year}"            
             candidate_data={
             'ref': reference,
             'date': timezone.now().date,
-            'name': candidate.name,
-            'designation': candidate.offer.offered_designation,
-            'joining_date': candidate.offer.joining_date,
+            'name': offer.candidate.name,
+            'designation': offer.offered_designation,
+            'joining_date': offer.joining_date,
             'unit': unit,
-            'vill': candidate.details.permanent_vill,
-            'po': candidate.details.permanent_po,
-            'ps': candidate.details.permanent_ps,
-            'dist': candidate.details.permanent_dist,
+            'vill': offer.candidate.details.permanent_vill,
+            'po': offer.candidate.details.permanent_po,
+            'ps': offer.candidate.details.permanent_ps,
+            'dist': offer.candidate.details.permanent_dist,
             'location':location,
             
         }
@@ -231,7 +231,7 @@ def offer_letter_generator(request):
 
 
 def employee_list(request):
-    employee_filter = EmployeeFilter(request.GET, queryset=Employee.objects.all().order_by('id')) 
+    employee_filter = EmployeeFilter(request.GET, queryset=Employee.objects.filter(details__isnull=False).order_by('-DOJ'))
     
     paginator = Paginator(employee_filter.qs, 10)  
     page_number = request.GET.get('page')
@@ -243,6 +243,20 @@ def employee_list(request):
         page_obj = paginator.page(paginator.num_pages)
     
     return render(request, 'documents/employee_joining_form.html', {'filter': employee_filter, 'page_obj': page_obj})
+
+def JobOfferList(request):
+    employee_filter = JobOfferFilter(request.GET, queryset=Offer.objects.filter(joining_date__gte=timezone.now().date(), offer_status="accepted"))
+    
+    paginator = Paginator(employee_filter.qs, 10)  
+    page_number = request.GET.get('page')
+    try:
+        page_obj = paginator.page(page_number)
+    except PageNotAnInteger:
+        page_obj = paginator.page(1)
+    except EmptyPage:
+        page_obj = paginator.page(paginator.num_pages)
+    
+    return render(request, 'documents/offered_candidates.html', {'filter': employee_filter, 'page_obj': page_obj})
 
 def employee_confirmation_list(request):
     employee_filter = EmployeeConfirmationFilter(request.GET, queryset=Employee.objects.all().order_by('id')) 
@@ -289,7 +303,7 @@ def joining_form_generator(request):
         
         for employee in employee_list:
             if not hasattr(employee, 'details'):
-                return HttpResponse(f"{employee.name} has no details information available, please update informations and try again!")
+                return HttpResponse(f"{employee.name} has no details information available, please update information and try again!")
             else:
                 company_name = employee.unit
                 if employee.unit == "Consumer Division" or employee.unit == "Pusti Glory":
