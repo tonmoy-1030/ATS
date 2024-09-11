@@ -1,95 +1,101 @@
 {% extends "jobs/base.html" %}
 {% block content %}
 {% load crispy_forms_tags %}
-<form method="post">
-    {% csrf_token %}
-    <div class="table-responsive">
-        <legend class="text-center">Transfer Order</legend>
-        <table class="table table-bordered text-center table-sm">
-            {{ formset.management_form }}
-            <thead class="align-middle">
-                <tr>
-                    <th>EID</th>
-                    <th>Name</th>
-                    <th>Current Locations</th>
-                    <th>Type</th>
-                    <th>Region/Zone</th>
-                    <th>Type</th>
-                    <th>New Location</th>
-                    <th>Type</th>
-                    <th>Region/Zone</th>
-                    <th>Type</th>
-                    <th>New Designation</th>
-                    <th>Report to</th>
-                    <th>Effective Date</th>
-                </tr>
-            </thead>
-            <tbody>
-                {% for form in formset %}
-                <tr>
-                    <td>
-                        {{ form.eid }}
-                        {{ form.eid.errors }}
-                    </td>
-                    <td>
-                        {{ form.name }}
-                        {{ form.name.errors }}
-                    </td>
-                    <td style="display: none;">
-                        {{ form.employee }}
-                        {{ form.employee.errors }}
-                    </td>
-                    <td>
-                        {{ form.current_job_location }}
-                        {{ form.current_job_location.errors }}
-                    </td>
-                    <td>
-                        {{ form.current_location_type }}
-                        {{ form.current_location_type.errors }}
-                    </td>
-                    <td>
-                        {{ form.current_under_region_zone }}
-                        {{ form.current_under_region_zone.errors }}
-                    </td>
-                    <td>
-                        {{ form.current_under_region_zone_type }}
-                        {{ form.current_under_region_zone_type.errors }}
-                    </td>
-                    <td>
-                        {{ form.new_job_location }}
-                        {{ form.new_job_location.errors }}
-                    </td>
-                    <td>
-                        {{ form.new_location_type }}
-                        {{ form.new_location_type.errors }}
-                    </td>
-                    <td>
-                        {{ form.new_under_region_zone }}
-                        {{ form.new_under_region_zone.errors }}
-                    </td>
-                    <td>
-                        {{ form.new_under_region_zone_type }}
-                        {{ form.new_under_region_zone_type.errors }}
-                    </td>
-                    <td>
-                        {{ form.new_designation }}
-                        {{ form.new_designation.errors }}
-                    </td>
-                    <td>
-                        {{ form.report_to }}
-                        {{ form.report_to.errors }}
-                    </td>
-                    <td>
-                        {{ form.effective_date }}
-                        {{ form.effective_date.errors }}
-                    </td>
-                </tr>
-                {% endfor %}
-            </tbody>
-        </table>
+<div class="container-fluid">
+    <div class="d-inline-flex">
+        <a class="btn btn-outline-primary mb-2" href="{% url 'employees:employee-create' %}"><i
+                class="bi bi-skip-backward-circle"></i></a>
     </div>
-    <button class="btn btn-primary" type="submit">Save</button>
-</form>
+    <form method="post">
+        {% csrf_token %}
+        <div class="table-responsive">
+            <legend class="text-center">Transfer Order</legend>
+            <table class="table table-bordered text-center table-sm">
+                {{ formset.management_form }}
+                <thead class="align-middle">
+                    <tr>
+                        <th>EID</th>
+                        <th>Name</th>
+                        <th>Current Locations</th>
+                        <th>Type</th>
+                        <th>Region/Zone</th>
+                        <th>Type</th>
+                        <th>New Location</th>
+                        <th>Type</th>
+                        <th>Region/Zone</th>
+                        <th>Type</th>
+                        <th>New Designation</th>
+                        <th>Report to</th>
+                        <th>Effective Date</th>
+                    </tr>
+                </thead>
+                <tbody>
+                    {% for form in formset %}
+                    <tr>
+                        <td>
+                            {{ form.eid }}
+                            {{ form.eid.errors }}
+                        </td>
+                        <td>
+                            {{ form.name }}
+                            {{ form.name.errors }}
+                        </td>
+                        <td style="display: none;">
+                            {{ form.employee }}
+                            {{ form.employee.errors }}
+                        </td>
+                        <td>
+                            {{ form.current_job_location }}
+                            {{ form.current_job_location.errors }}
+                        </td>
+                        <td>
+                            {{ form.current_location_type }}
+                            {{ form.current_location_type.errors }}
+                        </td>
+                        <td>
+                            {{ form.current_under_region_zone }}
+                            {{ form.current_under_region_zone.errors }}
+                        </td>
+                        <td>
+                            {{ form.current_under_region_zone_type }}
+                            {{ form.current_under_region_zone_type.errors }}
+                        </td>
+                        <td>
+                            {{ form.new_job_location }}
+                            {{ form.new_job_location.errors }}
+                        </td>
+                        <td>
+                            {{ form.new_location_type }}
+                            {{ form.new_location_type.errors }}
+                        </td>
+                        <td>
+                            {{ form.new_under_region_zone }}
+                            {{ form.new_under_region_zone.errors }}
+                        </td>
+                        <td>
+                            {{ form.new_under_region_zone_type }}
+                            {{ form.new_under_region_zone_type.errors }}
+                        </td>
+                        <td>
+                            {{ form.new_designation }}
+                            {{ form.new_designation.errors }}
+                        </td>
+                        <td>
+                            {{ form.report_to }}
+                            {{ form.report_to.errors }}
+                        </td>
+                        <td>
+                            {{ form.effective_date }}
+                            {{ form.effective_date.errors }}
+                        </td>
+                    </tr>
+                    {% endfor %}
+                </tbody>
+            </table>
+        </div>
+        <button class="btn btn-primary" type="submit">Save</button>
+    </form>
+</div>
 <script src="https://code.jquery.com/jquery-3.6.0.min.js"></script>
 <script type="text/javascript">
     $(document).ready(function () {

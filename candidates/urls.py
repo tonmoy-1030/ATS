@@ -14,13 +14,15 @@ from .views import (FileFieldFormView,
                     OfferDeleteview,
                     CandidateDetailsListView, 
                     final_FileFieldFormView, 
-                    OfferListView
+                    OfferListView,
+                    get_upload_progress
                     )
 
 app_name = 'candidates'
 
 urlpatterns = [
     path('upload/<int:pk>', FileFieldFormView.as_view(), name='upload_candidate_files' ),
+    path('upload/progress/<int:pk>/', get_upload_progress, name='get_upload_progress'),
     path('final_upload/<int:pk>', final_FileFieldFormView.as_view(), name='final_upload_candidate_files' ),
     path('candidate/<int:pk>/new', CandidateCreateView.as_view(), name='candidate_new'),
     path('candidate/', CandidateListView.as_view(), name='candidates'),

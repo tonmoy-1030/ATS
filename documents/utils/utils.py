@@ -250,7 +250,7 @@ def create_offer_letter(pdf_file,candidate_data):
         <br/>
         _____________________________________ <br/>
         Col Almas Raisul Ghani, psc, G (Retd) <br/>						                             
-        Director, HR & Admin <br/>
+        Director, HR & OD <br/>
         T.K. Group <br/>
         </b>
 """

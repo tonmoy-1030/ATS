@@ -1,25 +1,30 @@
 {% extends "jobs/base.html" %}
 {% block content %}
 {% load crispy_forms_tags %}
-<form method="post">
-    {% csrf_token %}
-    
-    <table class="table table-bordered text-center">
-        {{ formset.management_form }}
-        <thead>
-            <tr>
-                <th>SL</th>
-                <th>EID</th>
-                <th>Name</th>
-                <th>New Designation</th>
-                <th>Status</th>
-                <th>Development Area</th>
-                <th>Effective Date</th>
-                <th>Remarks</th>
-            </tr>
-        </thead>
-        <tbody>
-            {% for form in formset %}
+<div class="container-fluid">
+    <div class="d-inline-flex">
+        <a class="btn btn-outline-primary mb-2" href="{% url 'employees:employee-create' %}"><i
+                class="bi bi-skip-backward-circle"></i></a>
+    </div>
+    <form method="post">
+        {% csrf_token %}
+
+        <table class="table table-bordered text-center">
+            {{ formset.management_form }}
+            <thead>
+                <tr>
+                    <th>SL</th>
+                    <th>EID</th>
+                    <th>Name</th>
+                    <th>New Designation</th>
+                    <th>Status</th>
+                    <th>Development Area</th>
+                    <th>Effective Date</th>
+                    <th>Remarks</th>
+                </tr>
+            </thead>
+            <tbody>
+                {% for form in formset %}
                 <tr>
                     <td>{{ forloop.counter }}</td>
                     <td>
@@ -55,15 +60,16 @@
                         {{ form.remarks.errors }}
                     </td>
                 </tr>
-            {% endfor %}
-        </tbody>
-    </table>
-    <button class="btn btn-primary" type="submit">Save</button>
-</form>
+                {% endfor %}
+            </tbody>
+        </table>
+        <button class="btn btn-primary" type="submit">Save</button>
+    </form>
+</div>
 <script src="https://code.jquery.com/jquery-3.6.0.min.js"></script>
 <script type="text/javascript">
-    $(document).ready(function() {
-        $('input[name^="form-"][name$="-eid"]').on('input', function() {
+    $(document).ready(function () {
+        $('input[name^="form-"][name$="-eid"]').on('input', function () {
             var index = $(this).attr('name').match(/form-(\d+)-eid/)[1];
             var query = $(this).val();
             var nameField = $('input[name="form-' + index + '-name"]');
@@ -76,7 +82,7 @@
                     data: {
                         'eid': query
                     },
-                    success: function(data) {
+                    success: function (data) {
                         if (data.results && data.results.name) {
                             nameField.val(data.results.name);
                             employeeField.val(data.results.employee).trigger('change'); // Trigger change event for select field
@@ -87,7 +93,7 @@
                             designationField.val('');
                         }
                     },
-                    error: function(xhr, status, error) {
+                    error: function (xhr, status, error) {
                         nameField.val('');
                         employeeField.val('').trigger('change'); // Clear and trigger change event
                         designationField.val('');

@@ -1,15 +1,27 @@
 {%extends "jobs/base.html"%}
 {%block content%}
 {% load crispy_forms_tags %}
-<div class="container" style="max-width: 600px;">
-    <form action="" method="post">
-        {% csrf_token %}
-        <fieldset>
-            <legend>Employee info Form</legend>
-            {{form|crispy }}
-        </fieldset>
-        <button class="btn btn-primary btn-sm mt-4" type="Submit">Submit</button>
-    </form>
+<div class="container-fluid">
+    <!-- Main content here -->
+    <div class="row">
+        <div class="col-md-3">
+            {% include 'employees/EmployeesManuBar.html' %}
+        </div>
+        <div class="col-md-9">
+            <div style="max-width: 600px;">
+                <form action="" method="post">
+                    {% csrf_token %}
+                    <fieldset>
+                        <legend>Employee info Form</legend>
+                        {{form|crispy }}
+                    </fieldset>
+                    <button class="btn btn-primary btn-sm mt-4" type="Submit">Submit</button>
+                </form>
+            </div>
+        </div>
+        <p class="mt-4 text-center"> Note: CSV file for bulk closing Employee, <a
+                href="{% url 'employees:import_separate_csv' %}">click here</a> for execution</p>
+    </div>
 </div>
 {%endblock%}
 
@@ -22,8 +34,8 @@
             const select2Containers = document.querySelectorAll('.select2-container--default .select2-selection--single .select2-selection__rendered');
             const select2ContainersSingle = document.querySelectorAll('.select2-container--default .select2-selection--single');
             const select2DropDown = document.querySelectorAll('.select2-dropdown');
-            
-    
+
+
 
             select2ContainersSingle.forEach(container => {
                 if (isDarkTheme) {
@@ -44,7 +56,7 @@
                     container.style.color = '';          // Black with 80% opacity
                 }
             });
-            
+
             select2DropDown.forEach(container => {
                 if (isDarkTheme) {
                     container.style.backgroundColor = '#212529'; // Black with 75% opacity
@@ -55,14 +67,14 @@
                 }
             });
         }
-    
-    
+
+
         // Function to periodically check for theme changes
         function checkThemePeriodically() {
             updateSelect2Styles();  // Update styles initially
             setTimeout(checkThemePeriodically, 5);  // Recheck every 500ms
         }
-    
+
         // Start the periodic check
         checkThemePeriodically();
     });

@@ -189,7 +189,7 @@
                 <li class="sidebar-item">
                     <a href="#" class="sidebar-link collapsed has-dropdown" data-bs-toggle="collapse"
                         data-bs-target="#dashboard" aria-expanded="false" aria-controls="dashboard">
-                        <i class="bi bi-palette"></i>
+                        <i width="16" height="16" class="bi bi-palette"></i>
                         <span>Dashboard</span>
                     </a>
                     <ul id="dashboard" class="sidebar-dropdown list-unstyled collapse" data-bs-parent="#sidebar">
@@ -206,7 +206,7 @@
                 <li class="sidebar-item">
                     <a href="#" class="sidebar-link collapsed has-dropdown" data-bs-toggle="collapse"
                         data-bs-target="#hcrf" aria-expanded="false" aria-controls="hcrf">
-                        <i class="bi bi-person-plus"></i>
+                        <i width="16" height="16" class="bi bi-person-plus"></i>
                         <span>Headcount Requisition</span>
                     </a>
                     <ul id="hcrf" class="sidebar-dropdown list-unstyled collapse" data-bs-parent="#sidebar">
@@ -224,7 +224,7 @@
                 <li class="sidebar-item">
                     <a href="#" class="sidebar-link collapsed has-dropdown" data-bs-toggle="collapse"
                         data-bs-target="#interview" aria-expanded="false" aria-controls="interview">
-                        <i class="bi bi-person-badge"></i>
+                        <i width="16" height="16" class="bi bi-toggles"></i>
                         <span>Interview</span>
                     </a>
                     <ul id="interview" class="sidebar-dropdown list-unstyled collapse" data-bs-parent="#sidebar">
@@ -258,173 +258,38 @@
                             <a href="{% url 'candidates:candidates_details' %}" class="sidebar-link"><i
                                     class="bi bi-check-circle-fill"></i>Candidate Details</a>
                         </li>
-                    </ul>
-                </li>
-
-                <!--  -->
-
-                <!-- Employee -->
-                <li class="sidebar-item">
-                    <a href="#" class="sidebar-link collapsed has-dropdown" data-bs-toggle="collapse"
-                        data-bs-target="#employee" aria-expanded="false" aria-controls="employee">
-                        <i class="bi bi-person-workspace"></i>
-                        <span><b>Employees</b></span>
-                    </a>
-                    <ul id="employee" class="sidebar-dropdown list-unstyled collapse" data-bs-parent="#sidebar">
-                        <li class="sidebar-item">
-                            <a href="{% url 'employees:employee' %}" class="sidebar-link"><i
-                                    class="bi bi-check-circle-fill"></i>Employee List</a>
-                        </li>
-                    </ul>
-                    <ul id="employee" class="sidebar-dropdown list-unstyled collapse" data-bs-parent="#sidebar">
-                        <li class="sidebar-item">
-                            <a href="#" class="sidebar-link collapsed" data-bs-toggle="collapse"
-                                data-bs-target="#employee-two" aria-expanded="false" aria-controls="employee-two">
-                                Employee Joining
-                            </a>
-                            <ul id="employee-two" class="sidebar-dropdown list-unstyled collapse">
-                                <li class="sidebar-item">
-                                    <a href="{% url 'employees:employee-create' %}" class="sidebar-link">Employee
-                                        Entry</a>
-                                </li>
-                                <li class="sidebar-item">
-                                    <a href="{% url 'employees:import_employee_csv' %}" class="sidebar-link">Employee
-                                        Entry with CSV</a>
-                                </li>
-                            </ul>
-                        </li>
-                    </ul>
-
-                    <ul id="employee" class="sidebar-dropdown list-unstyled collapse" data-bs-parent="#sidebar">
-                        <li class="sidebar-item">
-                            <a href="#" class="sidebar-link collapsed" data-bs-toggle="collapse"
-                                data-bs-target="#employee-five" aria-expanded="false" aria-controls="employee-five">
-                                <b>Appointment Letter</b>
-                            </a>
-                            <ul id="employee-five" class="sidebar-dropdown list-unstyled collapse">
-                                <li class="sidebar-item">
-                                    <a href="{% url 'employees:salary_info' %}" class="sidebar-link"><i
-                                            class="bi bi-check-circle-fill"></i>Employee Salary Info</a>
-                                </li>
-                            </ul>
-                            <ul id="employee-five" class="sidebar-dropdown list-unstyled collapse">
-                                <li class="sidebar-item">
-                                    <a href="{% url 'documents:appointment_letter_list' %}" class="sidebar-link"><i
-                                            class="bi bi-check-circle-fill"></i>Print Appointment Letter</a>
-                                </li>
-                            </ul>
-
-                        </li>
-                    </ul>
-
-                    <ul id="employee" class="sidebar-dropdown list-unstyled collapse" data-bs-parent="#sidebar">
-                        <li class="sidebar-item">
-                            <a href="#" class="sidebar-link collapsed" data-bs-toggle="collapse"
-                                data-bs-target="#employee-four" aria-expanded="false" aria-controls="employee-four">
-                                <b>Activities</b>
-                            </a>
-                            <ul id="employee-four" class="sidebar-dropdown list-unstyled collapse">
-                                <li class="sidebar-item">
-                                    <a href="{% url 'employees:employee-confirmation' %}" class="sidebar-link"><i
-                                            class="bi bi-check-circle-fill"></i>Employee Confirmation</a>
-                                </li>
-                            </ul>
-                            <ul id="employee-four" class="sidebar-dropdown list-unstyled collapse">
-                                <li class="sidebar-item">
-                                    <a href="{% url 'employees:employee-transfer' %}" class="sidebar-link"><i
-                                            class="bi bi-check-circle-fill"></i>Transfer Order</a>
-                                </li>
-                            </ul>
-                            <ul id="employee-four" class="sidebar-dropdown list-unstyled collapse">
-                                <li class="sidebar-item">
-                                    <a href="{% url 'employees:employee-posting' %}" class="sidebar-link"><i
-                                            class="bi bi-check-circle-fill"></i>Posting Order</a>
-                                </li>
-                            </ul>
-                        </li>
-                    </ul>
-
-                    <ul id="employee" class="sidebar-dropdown list-unstyled collapse" data-bs-parent="#sidebar">
-                        <li class="sidebar-item">
-                            <a href="#" class="sidebar-link collapsed" data-bs-toggle="collapse"
-                                data-bs-target="#employee-three" aria-expanded="false" aria-controls="employee-three">
-                                Employee Separation
-                            </a>
-                            <ul id="employee-three" class="sidebar-dropdown list-unstyled collapse">
-                                <li class="sidebar-item">
-                                    <a href="{% url 'employees:employee-seperation' %}" class="sidebar-link">Separation
-                                        Entry</a>
-                                </li>
-                                <li class="sidebar-item">
-                                    <a href="{% url 'employees:seperate_csv' %}" class="sidebar-link">Separation Entry
-                                        with CSV</a>
-                                </li>
-                            </ul>
-                        </li>
-                    </ul>
-                </li>
-                <!-- end employee -->
-
-                <!-- Offered -->
-                <li class="sidebar-item">
-                    <a href="#" class="sidebar-link collapsed has-dropdown" data-bs-toggle="collapse"
-                        data-bs-target="#offer" aria-expanded="false" aria-controls="offer">
-                        <i class="bi bi-envelope"></i>
-                        <span>Job Offer</span>
-                    </a>
-                    <ul id="offer" class="sidebar-dropdown list-unstyled collapse" data-bs-parent="#sidebar">
-                        <li class="sidebar-item">
-                            <a href="{% url 'documents:offer-letter' %}" class="sidebar-link"><i
-                                    class="bi bi-check-circle-fill"></i>Offer Letter</a>
-                        </li>
                         <li class="sidebar-item">
                             <a href="{% url 'candidates:offer-list' %}" class="sidebar-link"><i
                                     class="bi bi-check-circle-fill"></i>Offered Candidate</a>
                         </li>
                     </ul>
                 </li>
-                <!-- end offer -->
-                  <!-- documents -->
+
+                <!--  -->    
                 <li class="sidebar-item">
                     <a href="#" class="sidebar-link collapsed has-dropdown" data-bs-toggle="collapse"
-                        data-bs-target="#document" aria-expanded="false" aria-controls="document">
+                        data-bs-target="#operation" aria-expanded="false" aria-controls="operation">
                         <i class="bi bi-file-text"></i>
-                        <span>Documents</span>
+                        <span> HR Operation</span>
                     </a>
-                    <ul id="document" class="sidebar-dropdown list-unstyled collapse" data-bs-parent="#sidebar">
+                    <ul id="operation" class="sidebar-dropdown list-unstyled collapse" data-bs-parent="#sidebar">
+                        
+                        <li class="sidebar-item">
+                            <a  href="{% url 'employees:employee-create' %}" class="sidebar-link"><i
+                                class="bi bi-check-circle-fill"></i> Employee Management </a>
+                        </li>
+
+                        <li class="sidebar-item">
+                            <a  href="{% url 'leave:leaveApplication' %}" class="sidebar-link"><i
+                                class="bi bi-check-circle-fill"></i> Leave Management </a>
+                        </li>
+                    
                         <li class="sidebar-item">
                             <a href="{% url 'documents:joining-form-list' %}" class="sidebar-link"><i
-                                    class="bi bi-check-circle-fill"></i>Generate Joining Form</a>
+                                class="bi bi-check-circle-fill"></i> Document Management </a>
                         </li>
-                        <li class="sidebar-item">
-                            <a href="{% url 'documents:offer-letter' %}" class="sidebar-link"><i
-                                    class="bi bi-check-circle-fill"></i>Generate Offer Letter</a>
-                        </li>
-                        <li class="sidebar-item">
-                            <a href="{% url 'documents:employee_confirmation_list' %}" class="sidebar-link"><i
-                                    class="bi bi-check-circle-fill"></i>Confirmation Appraisal Form</a>
-                        </li>
-                        <li class="sidebar-item">
-                            <a href="{% url 'documents:employee_confirmation_letter_list' %}" class="sidebar-link"><i
-                                    class="bi bi-check-circle-fill"></i>Confirmation/Extension Letter</a>
-                        </li>
-                        <li class="sidebar-item">
-                            <a href="{% url 'documents:transfer_order_list' %}" class="sidebar-link"><i
-                                    class="bi bi-check-circle-fill"></i>Transfer Letter</a>
-                        </li>
-
-                        <li class="sidebar-item">
-                            <a href="{% url 'documents:posting_order_list' %}" class="sidebar-link"><i
-                                    class="bi bi-check-circle-fill"></i>Posting Letter</a>
-                        </li>
-                        <li class="sidebar-item">
-                            <a href="{% url 'documents:envelope_list' %}" class="sidebar-link"><i
-                                    class="bi bi-check-circle-fill"></i>Envelope</a>
-                        </li>
-
                     </ul>
                 </li>
-                <!-- end documents -->
 
                 <!-- Process -->
                 <li class="sidebar-item">
@@ -444,14 +309,6 @@
                         </li>
                     </ul>
                 </li>
-
-                <li class="sidebar-item">
-                    <a href="{% url 'leave:leaveApplication' %}" class="sidebar-link " aria-controls="leave">
-                        <i class="bi bi-kanban"></i>
-                        <span>Leave Management</span>
-                    </a>
-                </li>
-  
                 <!-- end process -->
             </ul>
 

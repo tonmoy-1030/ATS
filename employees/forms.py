@@ -47,9 +47,9 @@ class EmployeeEntryForm(forms.ModelForm):
  
  
 class EmployeeFilter(django_filters.FilterSet):
-    name = django_filters.CharFilter(lookup_expr='icontains')
-    department = django_filters.CharFilter(lookup_expr='icontains')
-    unit = django_filters.ChoiceFilter(choices=[])
+    name = django_filters.CharFilter(lookup_expr='icontains', label="Name")
+    department = django_filters.CharFilter(lookup_expr='icontains', label='Department')
+    unit = django_filters.ChoiceFilter(choices=[], label='Unit')
 
     def __init__(self, *args, **kwargs):
         super().__init__(*args, **kwargs)

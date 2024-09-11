@@ -1,24 +1,32 @@
 {% extends "jobs/base.html" %}
 {% block content %}
 {% load crispy_forms_tags %}
+{% block style%}
+<style>
+    .form-group>div {
+        display: flex;
+        align-items: center;
+    }
+
+    .form-group>div>div {
+        margin-right: 10px;
+        /* Adjust the spacing as needed */
+    }
+</style>
+{% endblock %}
+
+
 <div class="container">
     <legend class="text-center">Offered Candidate</legend>
     <div class=" d-flex align-items-center justify-content-center">
-        <form method="get">
             <div class="row">
                 <div class="col-md-12">
-                    <label for="" class="form-label">Name:</label>
-                    {{ filterset.form.name }}
-                    <label for="" class="form-label">Unit:</label>
-                    {{ filterset.form.unit }}
-                    <label for="" class="form-label">Status:</label>
-                    {{ filterset.form.offer_status }}
-                    <label for="" class="form-label">Joining Date:</label>
-                    {{ filterset.form.Joining_date }}
-                    <button class="btn btn-primary btn-sm" type="submit"><i class="bi bi-search"></i> Search</button>
+                    <form method="get" class="form-inline">
+                        {{ filterset.form | crispy }}
+                        <button type="submit" class="btn btn-primary mt-4"><i class="bi bi-search"></i> Search</button>
+                    </form>
                 </div>
             </div>
-        </form>
     </div>
 
     <table class="table table-bordered mt-4">
@@ -30,7 +38,6 @@
                 <th>Position</th>
                 <th>Unit</th>
                 <th>DOJ/Tentative DOJ</th>
-                <th>Location</th>
                 <th>Status</th>
                 <th>Employee Status</th>
             </tr>
@@ -44,7 +51,6 @@
                 <td>{{ offer.offered_designation }}</td>
                 <td>{{ offer.job.unit }}</td>
                 <td class="text-center">{{ offer.joining_date }}</td>
-                <td>{{offer.job.job_location}}</td>
                 <td>{{ offer.offer_status }}</td>
                 {% if offer.id in employee_offer_ids %}
                 <td class="text-center"> Already an Employee</td>

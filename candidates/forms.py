@@ -104,15 +104,16 @@ class JobOfferFilter(django_filters.FilterSet):
     ]
     name = django_filters.CharFilter(field_name='candidate__name', 
                                      lookup_expr='icontains', 
-                                     label="Candidate Name")
-    unit = django_filters.ChoiceFilter(field_name='candidate__job__unit', choices=[], 
+                                     label="Name")
+    unit = django_filters.ChoiceFilter(field_name='candidate__job__unit', choices=[], label='Unit' 
                                         
                                        )
     offer_status = django_filters.ChoiceFilter(field_name='offer_status', 
                                                choices=OFFER_STATUS_CHOICES, 
+                                               label='Status'
                                               
                                                )
-    Joining_date = django_filters.DateFromToRangeFilter(field_name='joining_date',
+    Joining_date = django_filters.DateFromToRangeFilter(field_name='joining_date', label="Joining Date",
                                                     widget=django_filters.widgets.RangeWidget(
                                                     attrs={
                                                             'type': 'date'

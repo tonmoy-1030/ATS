@@ -31,6 +31,6 @@ urlpatterns = [
     path('employees/search', employee_search),
     path('employee/transfer_order', transfer_order, name='employee-transfer'),
     path('employee/posting_order', posting_order, name='employee-posting'),
-    path('seperate/upload/csv',separate_upload_file , name='seperate_csv' ),
+    path('separate/upload/csv',separate_upload_file , name='import_separate_csv' ),
     path('employee/salary',EmployeeSalaryInfo.as_view() , name='salary_info' ),
 ]

@@ -95,7 +95,10 @@ def ResumeExtractor(file):
                       phone=DataExtraction.extract_phonenumbers(extracted_textinfo),
                       email=DataExtraction.extract_emails(extracted_textinfo))
     return data
-    
+  
+  
+
+
 class FileFieldFormView(FormView):
     form_class = FileFieldForm
     template_name = "candidates/upload.html"
@@ -106,24 +109,79 @@ class FileFieldFormView(FormView):
         interview_schedule = get_object_or_404(InterviewSchedule, pk=interview_schedule_pk)
         jobs = interview_schedule.job.all()
 
+        total_files = len(files)
+        session_key = f'upload_progress_{interview_schedule_pk}'
+        self.request.session[session_key] = 0  # Initialize progress to 0
+        self.request.session.modified = True
+        self.request.session.save()  # Save the session
 
-        for file in files:
+        for i, file in enumerate(files, 1):
+            # Extract resume info (replace ResumeExtractor with your actual logic)
             resume_info = ResumeExtractor(file)
-            candidate = Candidate(name=resume_info.name, 
-                                  mobile=resume_info.phone,
-                                  email=resume_info.email, 
-                                  filename=resume_info.file_name,
-                                  attendance_status='absent', 
-                                  interview_schedule=interview_schedule)
+
+            candidate = Candidate(
+                name=resume_info.name,
+                mobile=resume_info.phone,
+                email=resume_info.email,
+                filename=resume_info.file_name,
+                attendance_status='absent',
+                interview_schedule=interview_schedule
+            )
             candidate.save()
             candidate.job.set(jobs)
 
+            # Calculate the progress after each file is processed
+            progress = int((i / total_files) * 100)
+            self.request.session[session_key] = progress
+            self.request.session.modified = True  # Mark the session as modified
+            self.request.session.save()  # Explicitly save the session after each update
         
-        self.interview_schedule_pk = interview_schedule_pk
-        return super().form_valid(form)
+        # Ensure final progress is set to 100 when all files are uploaded
+        self.request.session[session_key] = 100
+        self.request.session.modified = True
+        self.request.session.save()
+
+        return JsonResponse({'status': 'success'})
+
+    def form_invalid(self, form):
+        return JsonResponse({'status': 'error', 'errors': form.errors}, status=400)
+
+
+# Helper view to return progress
+def get_upload_progress(request, pk):
+    session_key = f'upload_progress_{pk}'
+    progress = request.session.get(session_key, 0)  # Default to 0 if progress is not found
+    return JsonResponse({'progress': progress})
+
+
+# class FileFieldFormView(FormView):
+#     form_class = FileFieldForm
+#     template_name = "candidates/upload.html"
+
+#     def form_valid(self, form):
+#         files = form.cleaned_data["file_field"]
+#         interview_schedule_pk = self.kwargs.get('pk')
+#         interview_schedule = get_object_or_404(InterviewSchedule, pk=interview_schedule_pk)
+#         jobs = interview_schedule.job.all()
+
+
+#         for file in files:
+#             resume_info = ResumeExtractor(file)
+#             candidate = Candidate(name=resume_info.name, 
+#                                   mobile=resume_info.phone,
+#                                   email=resume_info.email, 
+#                                   filename=resume_info.file_name,
+#                                   attendance_status='absent', 
+#                                   interview_schedule=interview_schedule)
+#             candidate.save()
+#             candidate.job.set(jobs)
+
+        
+#         self.interview_schedule_pk = interview_schedule_pk
+#         return super().form_valid(form)
     
-    def get_success_url(self):
-        return reverse('jobs:interview_details', kwargs={'pk': self.interview_schedule_pk})
+#     def get_success_url(self):
+#         return reverse('jobs:interview_details', kwargs={'pk': self.interview_schedule_pk})
     
     
 class final_FileFieldFormView(FormView):
