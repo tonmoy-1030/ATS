@@ -94,10 +94,10 @@ def transfer_letter(transfer_data, pdf_file):
         
     
     
-    signature_text = """
+    signature_text = f"""
         <b>_________________________</b><br/> 				
-        <b>Khaiyam Khan</b><br/> 						                             
-        <b>Senior Manager, HR & Admin</b><br/> 
+        <b>{transfer_data["signature"]}</b><br/> 						                             
+        <b>{transfer_data["signature_designation"]}</b><br/> 
         <b>T.K. Group</b><br/> <br/> <br/> <br/> 
 
         Cc:<br/> 								
@@ -191,10 +191,10 @@ def posting_letter(transfer_data, pdf_file):
         
     
     
-    signature_text = """
+    signature_text = f"""
         <b>________________________</b><br/> 				
-        <b>Khaiyam Khan</b><br/> 						                             
-        <b>Senior Manager, HR & Admin</b><br/> 
+        <b>{transfer_data["signature"]}</b><br/> 						                             
+        <b>{transfer_data["signature_designation"]}</b><br/> 
         <b>T.K. Group</b><br/> <br/> <br/> <br/> 
 
         Cc:<br/> 								

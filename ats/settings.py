@@ -46,7 +46,6 @@ INSTALLED_APPS = [
     'crispy_bootstrap4',
     'django_select2',
     'dashboard.apps.DashboardConfig',
-    "slick_reporting",
     'django_filters',
     'explorer',
     'dashboard.templatetags',

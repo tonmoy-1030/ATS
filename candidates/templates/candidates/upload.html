@@ -41,7 +41,6 @@
 
             var formData = new FormData(this);
             var progressBar = $('.progress-bar');
-            var displayProgress = $('.progress');
             var uploadStatus = $('#uploadStatus');
             var pollInterval;
 
@@ -56,21 +55,35 @@
                     progressBar.css('width', '0%');
                     progressBar.text('0%');
                     uploadStatus.html('');
-            
-
+                
                     // Start polling the server for progress
                     pollInterval = setInterval(function() {
                         $.getJSON('/upload/progress/' + pk + '/', function(data) {
                             var percentComplete = data.progress;
+
+                            // Update progress bar
                             progressBar.css('width', percentComplete + '%');
                             progressBar.attr('aria-valuenow', percentComplete);
                             progressBar.text(percentComplete + '%');
+
+                            // Stop polling if progress reaches 100%
+                            if (percentComplete >= 100) {
+                                clearInterval(pollInterval);
+                                uploadStatus.html('<div class="alert alert-success">Files uploaded successfully!</div>');
+                            }
                         });
-                    }, 1000);  // Poll every 1 second
+                    }, 1000);  // Poll every 0.5 second
                 },
                 success: function(response) {
-                     // Stop polling once upload is complete
+                    // Ensure the progress bar reaches 100% if it's not already
+                    if (progressBar.attr('aria-valuenow') < 100) {
+                        progressBar.css('width', '100%');
+                        progressBar.attr('aria-valuenow', 100);
+                        progressBar.text('100%');
+                    }
                     uploadStatus.html('<div class="alert alert-success">Files uploaded successfully!</div>');
+                    // Stop the polling (it should already be stopped if progress reached 100)
+                    clearInterval(pollInterval);
                 },
                 error: function(xhr, status, error) {
                     clearInterval(pollInterval);  // Stop polling on error
@@ -80,4 +93,5 @@
         });
     });
 </script>
+
 {% endblock %}

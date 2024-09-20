@@ -150,7 +150,7 @@ def generate_candidate_assessment(request, interview_id):
         candidate_data = {
         'date': candidate.interview_schedule.interview_date,
         'name': candidate.name,
-        'applied_for': candidate.job.first().job_title,
+        'applied_for': candidate.interview_schedule.job.first().job_title,
         'educational_qualification': education_qualification,
         'age':age,
         'total_experience': total_exp
@@ -502,10 +502,16 @@ def generate_transfer_letter(request):
         for transfer in transfer_list:
             if transfer.employee.unit == 'Prime Pusti Limited':
                 unit_ref = "PPL"
+                signature = "Abdullah -Al- Momen Mollah"
+                signature_designation = "Manager, HR & Admin"
             elif transfer.employee.unit == 'Prime Cosmetics Limited':
                 unit_ref = 'PCL' 
+                signature = "Abdullah -Al- Momen Mollah"
+                signature_designation = "Manager, HR & Admin"
             elif transfer.employee.unit == 'Consumer Division':
                 unit_ref = 'CONS'
+                signature = "Khaiyam Khan"
+                signature_designation = "Senior Manager, HR & Admin"
 
             reference = f"T.K./{unit_ref}/HR/TFR/{transfer.reference_number:02d}/{transfer.issue_date.month:02d}/{timezone.now().year}"            
            
@@ -528,6 +534,8 @@ def generate_transfer_letter(request):
                 "new_designation": transfer.new_designation,
                 "report_to": transfer.report_to,
                 "effective_date": transfer.effective_date,
+                "signature": signature,
+                "signature_designation":signature_designation
                 
             }
             
@@ -555,10 +563,16 @@ def generate_posting_letter(request):
         for posting in posting_list:
             if posting.employee.unit == 'Prime Pusti Limited':
                 unit_ref = "PPL"
+                signature = "Abdullah -Al- Momen Mollah"
+                signature_designation = "Manager, HR & Admin"
             elif posting.employee.unit == 'Prime Cosmetics Limited':
-                unit_ref = 'PCL'   
+                unit_ref = 'PCL'
+                signature_designation = "Abdullah -Al- Momen Mollah"
+                signature_designation = "Manager, HR & Admin"   
             elif posting.employee.unit == 'Consumer Division':
                 unit_ref = 'CONS'
+                signature = "Khaiyam Khan"
+                signature_designation = "Senior Manager, HR & Admin"
         
             reference = f"T.K./{unit_ref}/HR/PO/{posting.reference_number:02d}/{posting.issue_date.month:02d}/{timezone.now().year}"            
            
@@ -575,6 +589,8 @@ def generate_posting_letter(request):
                 "new_region/zone_type": posting.new_under_region_zone_type,
                 "report_to": posting.report_to,
                 "effective_date": posting.effective_date,
+                "signature": signature,
+                "signature_designation": signature_designation
                 
             }
             buffer = BytesIO()

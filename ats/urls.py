@@ -27,6 +27,5 @@ urlpatterns = [
     path('', include('leave.urls', namespace='leave')),
     path("select2/", include("django_select2.urls")),
     path('explorer/', include('explorer.urls')),
-    path('django_plotly_dash/', include('django_plotly_dash.urls')),
     
 ]

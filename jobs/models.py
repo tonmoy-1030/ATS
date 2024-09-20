@@ -5,14 +5,13 @@ from candidates.models import Offer
 
 
 
-
 class Job(models.Model):
     BUSINESS_UNIT = [
-        ('Consumer Division', 'Consumer'),
-        ('T.K. Food Products Distribution Limited', 'T.K. Food'),
-        ('Prime Pusti Limited', 'PPL'),
-        ('Prime Cosmetics Limited', 'PCL'),
-        ('Pusti Glory', 'Glory'),
+        ('Consumer Division', 'Consumer Division'),
+        ('T.K. Food Products Distribution Limited', 'T.K. Food Products Distribution Limited'),
+        ('Prime Pusti Limited', 'Prime Pusti Limited'),
+        ('Prime Cosmetics Limited', 'Prime Cosmetics Limited'),
+        ('Pusti Glory', 'Pusti Glory'),
     ]
 
     JOB_TYPES = [
@@ -22,7 +21,9 @@ class Job(models.Model):
     
     job_title = models.CharField(max_length=255, null=False)
     department = models.CharField(max_length=255, null=False)
-    unit = models.CharField(max_length=255, choices=BUSINESS_UNIT, null=False)
+    
+    unit = models.CharField(max_length=255, choices=BUSINESS_UNIT, null=False, blank=False)
+
     job_location = models.CharField(max_length=255, null=False, blank=True)
     posting_date = models.DateField(null=False)
     types = models.CharField(max_length=255, choices=JOB_TYPES, null=False)
@@ -39,10 +40,11 @@ class Job(models.Model):
 
     def save(self, *args, **kwargs):
         self.full_clean()  
-        super().save(*args, **kwargs) 
-    
+        super().save(*args, **kwargs)
+
     def __str__(self):
         return f"{self.id}, {self.unit}, {self.department}, {self.job_title}, {self.job_location}"
+
 
 
     
