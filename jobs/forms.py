@@ -47,7 +47,27 @@ class Employeewidgets(s2forms.ModelSelect2MultipleWidget):
         self.attrs['data-placeholder'] = "Select interviewers..."
         self.attrs['data-minimum-input-length'] = 0
         self.attrs['class'] = 'form-select'
+ 
+ 
+class HCRFFilter(django_filters.FilterSet):
+    position = django_filters.CharFilter(field_name="job_title")
+    unit = django_filters.ChoiceFilter( field_name='unit', choices=[])
+    open_status = django_filters.ChoiceFilter(field_name='open_status', choices = [('True', 'Open'), ('False', 'Close')])
+    
+    def __init__(self, *args, **kwargs):
+        super().__init__(*args, **kwargs)
+        self.filters['unit'].extra['choices'] = self.get_unit_choices()
         
+    def get_unit_choices(self):
+        unique_units = Job.objects.values_list('unit__id', 'unit__name').distinct()
+        choices = [(unit_id, unit_name) for unit_id, unit_name in unique_units]
+        return choices
+ 
+    class Meta:
+        model = Job
+        fields = ['position','unit', 'open_status']
+
+               
         
 class RequisitionForm(forms.ModelForm):
     class Meta:
@@ -211,8 +231,8 @@ class InterviewFilter(django_filters.FilterSet):
       
         
     def get_unit_choices(self):
-        unique_units = Job.objects.values_list('unit', flat=True).distinct()
-        choices = [(unit, unit) for unit in unique_units]
+        unique_units = Job.objects.values_list('unit__id', 'unit__name').distinct()
+        choices = [(unit_id, unit_name) for unit_id, unit_name in unique_units]
         return choices
  
     class Meta:
@@ -234,8 +254,8 @@ class FinalInterviewFilter(django_filters.FilterSet):
         self.filters['unit'].extra['choices'] = self.get_unit_choices()
 
     def get_unit_choices(self):
-        unique_units = Job.objects.values_list('unit', flat=True).distinct()
-        choices = [(unit, unit) for unit in unique_units]
+        unique_units = Job.objects.values_list('unit__id', 'unit__name').distinct()
+        choices = [(unit_id, unit_name) for unit_id, unit_name in unique_units]
         return choices
 
     class Meta:

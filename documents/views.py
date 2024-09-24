@@ -27,6 +27,7 @@ from .forms import (EmployeeFilter, EmployeeConfirmationFilter,
 from django.core.paginator import Paginator, EmptyPage, PageNotAnInteger
 from .utils.envelope import create_envelope
 from django.db import connection
+from io import BytesIO
 
 
 
@@ -180,39 +181,20 @@ def offer_letter_generator(request):
         merger = PdfMerger()
         for offer in offers:
             buffer = BytesIO()
-            unit = offer.job.unit
-
-
-            if offer.job.unit == 'Prime Pusti Limited':
-                unit_ref = "PPL"
-                location = '9th'
-            elif offer.job.unit == 'Prime Cosmetics Limited':
-                unit_ref = 'PCL'
-                location = '9th'    
-            elif offer.job.unit == 'Consumer Division':
-                unit_ref = 'Cons'
-                unit = 'Super Oil Refinery Ltd.'
-                location = '5th'
-            else:
-                location = '5th' 
-                unit = offer.job.unit  
-            
-
         
-            reference = f"T.K./{unit_ref}/HR/OFR/{offer.reference_number:02d}/{offer.offer_date.month:02d}/{timezone.now().year}"            
+            reference = f"T.K./{offer.job.unit.short_name}/HR/OFR/{offer.reference_number:02d}/{offer.offer_date.month:02d}/{timezone.now().year}"            
             candidate_data={
             'ref': reference,
             'date': timezone.now().date,
             'name': offer.candidate.name,
             'designation': offer.offered_designation,
             'joining_date': offer.joining_date,
-            'unit': unit,
+            'unit': offer.job.unit.name,
             'vill': offer.candidate.details.permanent_vill,
             'po': offer.candidate.details.permanent_po,
             'ps': offer.candidate.details.permanent_ps,
             'dist': offer.candidate.details.permanent_dist,
-            'location':location,
-            
+            'location':offer.job.unit.floor_location,
         }
     
             create_offer_letter(candidate_data=candidate_data, pdf_file=buffer)
@@ -275,7 +257,8 @@ def employee_confirmation_list(request):
 
 # Confirmation Employee List
 def employee_confirmation_letter_list(request):
-    employee_filter = EmployeeConfirmationLetterFilter(request.GET, queryset=EmployeeConfirmation.objects.all().order_by('employee__unit')) 
+    employee_filter = EmployeeConfirmationLetterFilter(request.GET, queryset=EmployeeConfirmation.objects.all().\
+        order_by('employee__unit')) 
     paginator = Paginator(employee_filter.qs, 10)  
     page_number = request.GET.get('page')
     try:
@@ -305,18 +288,15 @@ def joining_form_generator(request):
             if not hasattr(employee, 'details'):
                 return HttpResponse(f"{employee.name} has no details information available, please update information and try again!")
             else:
-                company_name = employee.unit
-                if employee.unit == "Consumer Division" or employee.unit == "Pusti Glory":
-                    company_name = "Super Oil Refinery Limited"
-                
+               
                 employee_data = {
                     "eid": employee.EID,
                     "name": employee.name,
                     "doj": employee.DOJ,
                     "designation": employee.designation,
                     "dept": employee.department,
-                    "company": company_name,
-                    'unit': employee.unit,
+                    "company": employee.unit.factory,
+                    'unit': employee.unit.name,
                     'maritial_status':  employee.details.marital_status,
                     "father_name": employee.details.father_name,
                     "mother_name": employee.details.mother_name,
@@ -358,7 +338,7 @@ def joining_form_generator(request):
                 create_joining_form(employee_data=employee_data, pdf_file=buffer)
                 buffer.seek(0)
                 merger.append(buffer)
-                if employee.unit != "Prime Pusti Limited" and employee.unit != "Prime Cosmetics Limited":
+                if employee.unit.name != "Prime Pusti Limited" and employee.unit.name != "Prime Cosmetics Limited":
                     with open(benevolent_fund, 'rb') as bf_file:
                         merger.append(bf_file)
 
@@ -385,7 +365,7 @@ def confirm_appraisal_form(request):
                 "name":employee.name,
                 "designation": employee.designation,
                 "department": employee.department,
-                "unit": employee.unit,
+                "unit": employee.unit.name,
                 "location": employee.job_location,
                 "joining_date": employee.DOJ,
                 "confirmation_date": employee.confirmation_date,
@@ -402,10 +382,7 @@ def confirm_appraisal_form(request):
     response['Content-Disposition'] = 'inline; filename="confirmation_appraisal_paper.pdf"'
     return response
 
-from io import BytesIO
-from django.http import HttpResponse
-from django.utils import timezone
-from PyPDF2 import PdfMerger
+
 
 def generate_confirmation_letter(request):
     merged_buffer = BytesIO()
@@ -427,7 +404,7 @@ def generate_confirmation_letter(request):
             st = "CON" if employee.status == "Confirmation" else "EXT"
             
             # Generate reference number
-            reference = f"T.K./{unit_ref}/HR/{st}/{employee.reference_number:02d}/{employee.issue_date.month:02d}/{timezone.now().year}"
+            reference = f"T.K./{employee.employee.unit.short_name}/HR/{st}/{employee.reference_number:02d}/{employee.issue_date.month:02d}/{timezone.now().year}"
             
             # Collect employee data
             employee_data = {
@@ -500,20 +477,19 @@ def generate_transfer_letter(request):
         transfer_list = TransferOrder.objects.filter(id__in=employee_ids)
         
         for transfer in transfer_list:
-            if transfer.employee.unit == 'Prime Pusti Limited':
-                unit_ref = "PPL"
+            if transfer.employee.unit.name == 'Prime Pusti Limited':
                 signature = "Abdullah -Al- Momen Mollah"
                 signature_designation = "Manager, HR & Admin"
-            elif transfer.employee.unit == 'Prime Cosmetics Limited':
-                unit_ref = 'PCL' 
+                
+            elif transfer.employee.unit.name == 'Prime Cosmetics Limited':
                 signature = "Abdullah -Al- Momen Mollah"
                 signature_designation = "Manager, HR & Admin"
-            elif transfer.employee.unit == 'Consumer Division':
-                unit_ref = 'CONS'
+                
+            else:
                 signature = "Khaiyam Khan"
                 signature_designation = "Senior Manager, HR & Admin"
 
-            reference = f"T.K./{unit_ref}/HR/TFR/{transfer.reference_number:02d}/{transfer.issue_date.month:02d}/{timezone.now().year}"            
+            reference = f"T.K./{transfer.employee.unit.short_name}/HR/TFR/{transfer.reference_number:02d}/{transfer.issue_date.month:02d}/{timezone.now().year}"            
            
             transfer_data = {
                 "ref": reference,
@@ -522,7 +498,7 @@ def generate_transfer_letter(request):
                 "name":transfer.employee.name,
                 "designation": transfer.employee.designation,
                 "new_designation": transfer.new_designation,
-                "unit": transfer.employee.unit,
+                "unit": transfer.employee.unit.name,
                 "current_location": transfer.current_job_location,
                 "current_type": transfer.current_location_type,
                 "current_region/zone": transfer.current_under_region_zone,
@@ -569,12 +545,12 @@ def generate_posting_letter(request):
                 unit_ref = 'PCL'
                 signature_designation = "Abdullah -Al- Momen Mollah"
                 signature_designation = "Manager, HR & Admin"   
-            elif posting.employee.unit == 'Consumer Division':
+            else:
                 unit_ref = 'CONS'
                 signature = "Khaiyam Khan"
                 signature_designation = "Senior Manager, HR & Admin"
         
-            reference = f"T.K./{unit_ref}/HR/PO/{posting.reference_number:02d}/{posting.issue_date.month:02d}/{timezone.now().year}"            
+            reference = f"T.K./{posting.employee.unit.short_name}/HR/PO/{posting.reference_number:02d}/{posting.issue_date.month:02d}/{timezone.now().year}"            
            
             posting_data = {
                 "ref": reference,
@@ -582,7 +558,7 @@ def generate_posting_letter(request):
                 "EID": posting.employee.EID,
                 "name":posting.employee.name,
                 "designation": posting.employee.designation,
-                "unit": posting.employee.unit,
+                "unit": posting.employee.unit.name,
                 "new_location": posting.new_job_location,
                 "new_type": posting.new_location_type,
                 "new_region/zone": posting.new_under_region_zone,
@@ -639,40 +615,28 @@ def generate_appointment_letter(request):
         appointment_list = SalaryInfo.objects.filter(id__in=employee_ids)
         
         for appointment in appointment_list:
+            
             if appointment.employee.unit == 'Prime Pusti Limited':
-                unit_ref = "PPL"
-                location = "9th"
                 policy = "Samuda Group"
             elif appointment.employee.unit == 'Prime Cosmetics Limited':
-                unit_ref = 'PCL'
-                location = '9th'
                 policy = "Samuda Group"   
-            elif appointment.employee.unit == 'Consumer Division':
-                unit_ref = 'CONS'
-                location = '5th'
-                policy = "T.K. Group"
-            elif appointment.employee.unit == "T.K. Food Products Distribution Limited":
-                unit_ref = 'TKFPDL'
-                location = '5th'
-                policy = "T.K. Group"
             else:
                 policy = "T.K. Group"
-                
+
+            reference = f"T.K./{appointment.employee.unit.short_name}/HR/APPT/{appointment.reference_number:02d}/{appointment.issue_date.month:02d}/{timezone.now().year}"            
             
-        
-            reference = f"T.K./{unit_ref}/HR/APPT/{appointment.reference_number:02d}/{appointment.issue_date.month:02d}/{timezone.now().year}"            
             appointment_data = {
                 "ref": reference,
                 "issue_date": appointment.issue_date,
                 "EID": appointment.employee.EID,
                 "name":appointment.employee.name,
                 "designation": appointment.employee.designation,
-                "unit": appointment.employee.unit,
+                "unit": appointment.employee.unit.name,
                 "permanent_vill":appointment.employee.details.permanent_vill,
                 "permanent_PO":appointment.employee.details.permanent_po,
                 "permanent_PS":appointment.employee.details.permanent_ps,
                 "permanent_dist":appointment.employee.details.permanent_dist,
-                'floor_location':location,
+                'floor_location':appointment.employee.unit.floor_location,
                 "policy":policy,
                 'location':appointment.place_of_posting,
                 "DOJ": appointment.employee.DOJ,
@@ -687,7 +651,7 @@ def generate_appointment_letter(request):
                 "CC5": appointment.CC5,
                 "CC6": appointment.CC6,
                 "CC7": appointment.CC7,
-                
+  
             }
             buffer = BytesIO()
             appointment_letter(appointment_data, pdf_file=buffer)
@@ -755,7 +719,11 @@ import datetime
 import json
 import uuid
 from django.contrib import messages
-from datetime import timedelta 
+from datetime import timedelta
+from openpyxl import Workbook
+from openpyxl.styles import Font, Alignment, Border, Side, PatternFill
+from openpyxl.utils import get_column_letter
+ 
 
 def candidateReport(request):
     if request.method == "POST":
@@ -829,49 +797,72 @@ def candidateReport(request):
         form = CandidateDetailsForm()
 
     return render(request, template_name="documents/candidateDetails.html", context={'form': form})
+ 
         
-
 class Exporter:
+
     def ExcelExporter(self, headers, body):
         output = BytesIO()
-        wb = xlsxwriter.Workbook(output, {"in_memory": True})
-        ws = wb.add_worksheet("Candidate Report")
+        wb = Workbook()
+        ws = wb.active
+        ws.title = "Candidate Report"
 
-        # Define a cell format with borders
-        border_format = wb.add_format({
-            "border": 1,
-            "text_wrap": True,
-            "font": "Times New Roman"
-        })
+        # Define border style
+        thin_border = Border(left=Side(style="thin"), right=Side(style="thin"), top=Side(style="thin"), bottom=Side(style="thin"))
 
-        # Define a header format with bold text and borders
-        header_format = wb.add_format({
-            "bold": True,
-            "border": 1,
-            "bg_color": "#D7E4BC",
-            "font": "Times New Roman"
-        })
+        # Define header font and fill
+        header_font = Font(bold=True, name="Times New Roman")
+        cell_font = Font(bold=False, name="Times New Roman")
+        header_fill = PatternFill("solid", fgColor="D7E4BC")
+        
+        # Define alignment and text wrap
+        text_alignment = Alignment(wrap_text=True, vertical="center", horizontal="left")
+        header_alignment = Alignment(wrap_text=True, vertical="center", horizontal="center")
 
         # Write the custom title
-        ws.merge_range(0, 0, 0, len(headers) - 1, "T.K. Group", header_format)
+        ws.merge_cells(start_row=1, start_column=1, end_row=1, end_column=len(headers))
+        title_cell = ws.cell(row=1, column=1)
+        title_cell.value = "T.K. Group"
+        title_cell.font = header_font
+        title_cell.alignment = header_alignment
+
+        
+        ws.merge_cells(start_row=2, start_column=1, end_row=2, end_column=len(headers))
+        title_cell = ws.cell(row=2, column=1)
+        title_cell.value = "Candidate List"
+        title_cell.font = header_font
+        title_cell.alignment = header_alignment
+
 
         # Write headers with formatting
-        for col_num, header in enumerate(headers):
-            ws.write(1, col_num, header, header_format)
+        for col_num, header in enumerate(headers, start=1):
+            cell = ws.cell(row=3, column=col_num)
+            cell.value = header
+            cell.font = header_font
+            cell.alignment = text_alignment
+            cell.fill = header_fill
+            cell.border = thin_border
         
         # Write data with border formatting
-        for row_num, data_row in enumerate(body, start=2):
-            for col_num, data in enumerate(data_row):
+        for row_num, data_row in enumerate(body, start=4):
+            for col_num, data in enumerate(data_row, start=1):
                 if isinstance(data, (datetime.datetime, uuid.UUID)):
                     data = str(data)
                 if isinstance(data, (dict, list)):
                     data = json.dumps(data)
-                ws.write(row_num, col_num, data, border_format)
+                cell = ws.cell(row=row_num, column=col_num)
+                cell.value = data
+                cell.font = cell_font
+                cell.alignment = text_alignment
+                cell.border = thin_border
 
         # Auto fit columns
-        for col_num in range(len(headers)):
-            max_width = max(len(str(row[col_num])) for row in body) + 2
-            ws.set_column(col_num, col_num, max_width)
+        for col_num in range(1, len(headers) + 1):
+            max_length = max(len(str(ws.cell(row=row, column=col_num).value)) for row in range(1, len(body) + 3))
+            ws.column_dimensions[get_column_letter(col_num)].width = max_length + 2
 
-        wb.close()
+        # Save the workbook to the output
+        wb.save(output)
+        output.seek(0)
         return output
+

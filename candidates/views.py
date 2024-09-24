@@ -404,6 +404,7 @@ class OfferListView(ListView):
     model = Offer
     template_name = 'candidates/offer-list.html'
     context_object_name = 'offers'
+    paginate_by = 12
     
     def get_queryset(self):
         queryset = super().get_queryset()    

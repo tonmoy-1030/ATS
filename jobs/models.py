@@ -4,15 +4,18 @@ from django.core.exceptions import ValidationError
 from candidates.models import Offer
 
 
+class BusinessUnit(models.Model):
+    name = models.CharField(max_length=255, unique=True)
+    short_name = models.CharField(max_length=20, unique=True)
+    floor_location = models.CharField(max_length=60)
+    factory = models.CharField(max_length=255, blank=True, null=True)
+
+    def __str__(self):
+        return f"{self.name}"
+
 
 class Job(models.Model):
-    BUSINESS_UNIT = [
-        ('Consumer Division', 'Consumer Division'),
-        ('T.K. Food Products Distribution Limited', 'T.K. Food Products Distribution Limited'),
-        ('Prime Pusti Limited', 'Prime Pusti Limited'),
-        ('Prime Cosmetics Limited', 'Prime Cosmetics Limited'),
-        ('Pusti Glory', 'Pusti Glory'),
-    ]
+
 
     JOB_TYPES = [
         ('Replacement', 'Replacement'),
@@ -21,9 +24,7 @@ class Job(models.Model):
     
     job_title = models.CharField(max_length=255, null=False)
     department = models.CharField(max_length=255, null=False)
-    
-    unit = models.CharField(max_length=255, choices=BUSINESS_UNIT, null=False, blank=False)
-
+    unit = models.ForeignKey(BusinessUnit, models.CASCADE,  null=True, blank=True)
     job_location = models.CharField(max_length=255, null=False, blank=True)
     posting_date = models.DateField(null=False)
     types = models.CharField(max_length=255, choices=JOB_TYPES, null=False)
@@ -43,8 +44,7 @@ class Job(models.Model):
         super().save(*args, **kwargs)
 
     def __str__(self):
-        return f"{self.id}, {self.unit}, {self.department}, {self.job_title}, {self.job_location}"
-
+        return f"{self.id}, {self.unit.name}, {self.department}, {self.job_title}, {self.job_location}"
 
 
     

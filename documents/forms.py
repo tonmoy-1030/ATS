@@ -23,8 +23,8 @@ class EmployeeFilter(django_filters.FilterSet):
         self.filters['unit'].extra['choices'] = self.get_unit_choices()
 
     def get_unit_choices(self):
-        unique_units = Employee.objects.values_list('unit', flat=True).distinct()
-        choices = [(unit, unit) for unit in unique_units]
+        unique_units = Employee.objects.values_list('unit__id', 'unit__name').distinct()
+        choices = [(unit_id, unit_name) for (unit_id, unit_name) in unique_units]
         return choices
 
     class Meta:
@@ -54,8 +54,8 @@ class JobOfferFilter(django_filters.FilterSet):
         
         
     def get_unit_choices(self):
-        unique_units = Employee.objects.values_list('unit', flat=True).distinct()
-        choices = [(unit, unit) for unit in unique_units]
+        unique_units = Employee.objects.values_list('unit__id', 'unit__name').distinct()
+        choices = [(unit_id, unit_name) for (unit_id, unit_name) in unique_units]
         return choices
     
     class Meta:
@@ -86,8 +86,8 @@ class EmployeeConfirmationFilter(django_filters.FilterSet):
         self.filters['unit'].extra['choices'] = self.get_unit_choices()
 
     def get_unit_choices(self):
-        unique_units = Employee.objects.values_list('unit', flat=True).distinct()
-        choices = [(unit, unit) for unit in unique_units]
+        unique_units = Employee.objects.values_list('unit__id', 'unit__name').distinct()
+        choices = [(unit_id, unit_name) for (unit_id, unit_name) in unique_units]
         return choices
 
 
@@ -111,8 +111,8 @@ class EmployeeConfirmationLetterFilter(django_filters.FilterSet):
         self.filters['unit'].extra['choices'] = self.get_unit_choices()
 
     def get_unit_choices(self):
-        unique_units = Employee.objects.values_list('unit', flat=True).distinct()
-        choices = [(unit, unit) for unit in unique_units]
+        unique_units = Employee.objects.values_list('unit__id', 'unit__name').distinct()
+        choices = [(unit_id, unit_name) for (unit_id, unit_name) in unique_units]
         return choices
 
 
@@ -135,8 +135,8 @@ class TransferLetterFilter(django_filters.FilterSet):
         self.filters['unit'].extra['choices'] = self.get_unit_choices()
 
     def get_unit_choices(self):
-        unique_units = Employee.objects.values_list('unit', flat=True).distinct()
-        choices = [(unit, unit) for unit in unique_units]
+        unique_units = Employee.objects.values_list('unit__id', 'unit__name').distinct()
+        choices = [(unit_id, unit_name) for (unit_id, unit_name) in unique_units]
         return choices
 
     class Meta:
@@ -160,8 +160,8 @@ class PostingLetterFilter(django_filters.FilterSet):
         self.filters['unit'].extra['choices'] = self.get_unit_choices()
 
     def get_unit_choices(self):
-        unique_units = Employee.objects.values_list('unit', flat=True).distinct()
-        choices = [(unit, unit) for unit in unique_units]
+        unique_units = Employee.objects.values_list('unit__id', 'unit__name').distinct()
+        choices = [(unit_id, unit_name) for (unit_id, unit_name) in unique_units]
         return choices
 
 
@@ -186,8 +186,8 @@ class AppointmentLetterFilter(django_filters.FilterSet):
         self.filters['unit'].extra['choices'] = self.get_unit_choices()
 
     def get_unit_choices(self):
-        unique_units = Employee.objects.values_list('unit', flat=True).distinct()
-        choices = [(unit, unit) for unit in unique_units]
+        unique_units = Employee.objects.values_list('unit__id', 'unit__name').distinct()
+        choices = [(unit_id, unit_name) for (unit_id, unit_name) in unique_units]
         return choices
     
     class Meta:

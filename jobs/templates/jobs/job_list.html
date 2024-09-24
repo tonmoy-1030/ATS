@@ -1,38 +1,109 @@
-{%extends "jobs/base.html"%}
-{%block content%}
-<legend class="text-center">Headcount Requisition List</legend>
-<table class="table table-bordered">
-    <thead>
-        <th>Date</th>
-        <th>position</th>
-        <th>Department</th>
-        <th>Unit</th>
-        <th>Job Locations</th>
-        <th>Types</th>
-        <th>No of Position</th>
-        <th>Filled Position</th>
-        <th>Status</th>
-    </thead>
-    <tbody>
-        {% for requisition in requisitions %}
 
-        <tr>
-            <td><a href="{% url 'jobs:job_details' requisition.id %}">{{requisition.posting_date}}</a></td>
-            <td>{{requisition.job_title}}</td>
-            <td>{{requisition.department}}</td>
-            <td>{{requisition.unit}}</td>
-            <td>{{requisition.job_location}}</td>
-            <td>{{requisition.types}}</td>
-            <td class="text-center">{{requisition.no_of_position}}</td>
-            <td class="text-center">{{requisition.filled_positions}}</td>
-            {% if requisition.open_status %}
-                <td class="text-success">Open</td>
-            {% else %}
-                <td class="text-danger">Close</td>
-            {% endif %}
-        </tr>
-        {% endfor %}
-    </tbody>
-</table>
+{% extends "jobs/base.html" %}
+{% block content %}
+{% load crispy_forms_tags %}
+{% block style%}
+<style>
+    .form-group>div {
+        display: flex;
+        align-items: center;
+    }
 
-{%endblock%}
+    .form-group>div>div {
+        margin-right: 10px;
+        /* Adjust the spacing as needed */
+    }
+</style>
+{% endblock %}
+<div class="container-fluid">
+    <div class="row">
+        <!-- Sidebar Column -->
+        <!-- Form Column -->
+        <div class="col"> <!-- Adjusted column width to 8 -->
+
+            <div class="table-responsive">
+                <legend class="text-center">Head Count Requisition</legend>
+                <form method="get" class="form-inline">
+                    {{ filter.form | crispy }}
+                    <button type="submit" class="btn btn-primary mt-4"><i class="bi bi-search"></i> Search</button>
+                </form>
+                <hr>
+                {% if requisitions %}
+                <table class="table table-bordered table-sm">
+                    <thead class="text-center align-middle">
+                        <th>Date</th>
+                        <th>position</th>
+                        <th>Department</th>
+                        <th>Unit</th>
+                        <th>Job Locations</th>
+                        <th>Types</th>
+                        <th>No of Position</th>
+                        <th>Filled Position</th>
+                        <th>Status</th>
+                    </thead>
+                    <tbody>
+                        {% for requisition in requisitions %}
+                
+                        <tr>
+                            <td><a href="{% url 'jobs:job_details' requisition.id %}">{{requisition.posting_date}}</a></td>
+                            <td>{{requisition.job_title}}</td>
+                            <td>{{requisition.department}}</td>
+                            <td>{{requisition.unit.name}}</td>
+                            <td>{{requisition.job_location}}</td>
+                            <td>{{requisition.types}}</td>
+                            <td class="text-center">{{requisition.no_of_position}}</td>
+                            <td class="text-center">{{requisition.filled_positions}}</td>
+                            {% if requisition.open_status %}
+                                <td class="text-success">Open</td>
+                            {% else %}
+                                <td class="text-danger">Close</td>
+                            {% endif %}
+                        </tr>
+                        {% endfor %}
+                    </tbody>
+                </table>
+                {% else %}
+                    <h1 class="text-center text-danger">Not found</h1>
+
+                {% endif %}
+            </div>
+
+            <div class="pagination justify-content-center">
+                <nav aria-label="Page navigation">
+                    <ul class="pagination">
+                        {% if page_obj.has_previous %}
+                        <li class="page-item">
+                            <a class="page-link"
+                                href="?{% if request.GET %}{{ request.GET.urlencode|safe }}&{% endif %}page=1">First</a>
+                        </li>
+                        <li class="page-item">
+                            <a class="page-link"
+                                href="?{% if request.GET %}{{ request.GET.urlencode|safe }}&{% endif %}page={{ page_obj.previous_page_number }}">Previous</a>
+                        </li>
+                        {% endif %}
+
+                        <li class="page-item disabled">
+                            <a class="page-link">Page {{ page_obj.number }} of {{ page_obj.paginator.num_pages }}</a>
+                        </li>
+
+                        {% if page_obj.has_next %}
+                        <li class="page-item">
+                            <a class="page-link"
+                                href="?{% if request.GET %}{{ request.GET.urlencode|safe }}&{% endif %}page={{ page_obj.next_page_number }}">Next</a>
+                        </li>
+                        <li class="page-item">
+                            <a class="page-link"
+                                href="?{% if request.GET %}{{ request.GET.urlencode|safe }}&{% endif %}page={{ page_obj.paginator.num_pages }}">Last</a>
+                        </li>
+                        {% endif %}
+                    </ul>
+                </nav>
+            </div>
+            
+        </div>
+
+    </div>
+</div>
+
+
+{% endblock %}

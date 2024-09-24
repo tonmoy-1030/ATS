@@ -7,7 +7,9 @@ from candidates.models import Candidate, Offer
 from django.urls import reverse
 from django.db.models import Count, Subquery
 from django.http import HttpResponse, JsonResponse
-from .forms import RequisitionForm, InterviewFilter, FinalInterviewFilter, ScheduleForm, UpdateScheduleForm, UpdateFinalScheduleForm
+from .forms import (RequisitionForm, InterviewFilter, FinalInterviewFilter,
+                    ScheduleForm, UpdateScheduleForm, UpdateFinalScheduleForm,
+                    HCRFFilter)
 from django.utils import timezone
 from employees.models import Employee
 from collections import defaultdict
@@ -99,7 +101,18 @@ class HeadCountListView(ListView):
     model = Job
     template_name = 'jobs/job_list.html'    
     context_object_name = 'requisitions'
-    ordering = ['-open_status', 'posting_date']
+    # ordering = ['-open_status', 'posting_date']
+    paginate_by = 15
+    
+    def get_queryset(self):
+        queryset = super().get_queryset()
+        self.filterset = HCRFFilter(self.request.GET, queryset=queryset)
+        return self.filterset.qs.distinct().order_by('-open_status', 'posting_date')
+    
+    def get_context_data(self, **kwargs):
+        context = super().get_context_data(**kwargs)
+        context['filter'] = self.filterset
+        return context
     
 
 class HeadcountCreateview(SuccessMessageMixin, CreateView):
@@ -145,6 +158,7 @@ class InitialInterviewList(ListView):
     model = InterviewSchedule
     template_name = 'jobs/intialinterviewList.html'
     context_object_name ='schedules'
+    paginate_by = 11
 
     def get_queryset(self):
         queryset = super().get_queryset()
@@ -161,6 +175,7 @@ class FinalInitialInterviewList(ListView):
     model = FinalInterviewSchedule
     template_name = 'jobs/finalinterviewList.html'
     context_object_name ='schedules'
+    paginate_by = 11
 
     def get_queryset(self):
         queryset = super().get_queryset()

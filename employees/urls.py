@@ -10,7 +10,7 @@ from .views import (
                     employee_search, transfer_order, posting_order,
                     separate_upload_file,
                     EmployeeProfile,
-                    EmployeeSalaryInfo
+                    EmployeeSalaryInfo, EmployeeDeleteView
                 
                     )
 
@@ -21,6 +21,7 @@ urlpatterns = [
     path('employee/profile/<int:pk>', EmployeeProfile.as_view(), name='employee_profile' ),
     path('employee/upload/csv',upload_file , name='import_employee_csv' ),
     path('employees/create', EmployeeCreateView.as_view(), name='employee-create'),
+    path('employees/<int:pk>/delete', EmployeeDeleteView.as_view(), name='employee-delete'),
     path('employees/sample', sample_employee_upload_file, name='sample_employee'),
     path('employees/seperation', EmployeeSeparationCreateView.as_view(), name='employee-seperation'),
     path('seperation/update/<int:id>', EmployeeSeperationUpdateView.as_view(), name='seperation-update'),

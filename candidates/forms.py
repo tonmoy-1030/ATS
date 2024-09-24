@@ -122,8 +122,8 @@ class JobOfferFilter(django_filters.FilterSet):
                                                 )  
     
     def get_unit_choices(self):
-        unique_units = Job.objects.values_list('unit', flat=True).distinct()
-        choices = [(unit, unit) for unit in unique_units]
+        unique_units = Job.objects.values_list('unit__id','unit__name').distinct()
+        choices = [(unit_id, unit_name) for unit_id, unit_name in unique_units]
         return choices
     
     class Meta:

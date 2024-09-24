@@ -42,18 +42,48 @@
                 <tbody>
                     {% for employee in employee_list %}
                     <tr>
-                        <td>{{ employee.EID }}</td>
+                        <td><a href="{% url 'employees:employee_profile' employee.pk %}">{{ employee.EID }}</a></td>
                         <td>{{ employee.name }}</td>
                         <td>{{ employee.designation }}</td>
                         <td>{{ employee.department }}</td>
                         <td>{{ employee.mobile_no }}</td>
                         <td>{{ employee.email }}</td>
-                        <td>{{ employee.unit }}</td>
+                        <td>{{ employee.unit.short_name }}</td>
                         <td class="text-center">
-                            <a class="btn btn-outline-primary btn-sm"
-                                href="{% url 'employees:employee-update' employee.pk %}">Update</a>
-                            <a class="btn btn-outline-primary btn-sm"
-                                href="{% url 'employees:employee_profile' employee.pk %}">Details</a>
+                            <a class="text-primary me-2 h6"
+                                href="{% url 'employees:employee-update' employee.pk %}"><i class="bi bi-pencil-square"></i></a>
+
+                            <a href="#" class="text-danger h6" data-bs-toggle="modal"
+                                data-bs-target="#employeeDelete"><i class="bi bi-trash"></i></a>
+
+                            <!-- Modal -->
+
+                            <div class="modal" id="employeeDelete" tabindex="-1"
+                                aria-labelledby="employeeDeletelabel" aria-hidden="true">
+                                <div class="modal-dialog modal-dialog-centered modal-md">
+                                    <div class="modal-content">
+                                        <div class="modal-header">
+                                            <h1 class="modal-title fs-5" id="employeeDeletelabel">Delete?
+                                            </h1>
+                                            <button type="button" class="btn-close" data-bs-dismiss="modal"
+                                                aria-label="Close"></button>
+                                        </div>
+                                        <div class="modal-body">
+                                            <h6>Are you sure you want to delete "{{ employee.name }}"?</h6>
+                                        </div>
+                                        <div class="modal-footer">
+                                            <button type="button" class="btn btn-secondary"
+                                                data-bs-dismiss="modal">Close</button>
+                                            <form class="d-inline-block" method="post"
+                                                action="{% url 'employees:employee-delete' employee.id %}">
+                                                {% csrf_token %}
+                                                <input class="btn btn-danger" type="submit" value="Confirm">
+                                            </form>
+                                        </div>
+                                    </div>
+                                </div>
+                            </div>
+<!-- end modal -->
                         </td>
                     </tr>
                     {% endfor %}

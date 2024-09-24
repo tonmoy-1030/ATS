@@ -1,5 +1,5 @@
 from django.db import models
-from jobs.models import Job
+from jobs.models import Job, BusinessUnit
 from django.db.models.signals import post_save, pre_delete
 from django.dispatch import receiver
 from dateutil.relativedelta import relativedelta
@@ -91,7 +91,7 @@ class Employee(models.Model):
     job_location = models.CharField(max_length=255, null=False, blank=False, default="")
     mobile_no = models.CharField(max_length=60, null=False, blank=False, verbose_name='Mobile Number')
     email = models.EmailField(max_length=60, null=False, blank=False)
-    unit = models.CharField(max_length=60,choices=BUSINESS_UNIT, blank=False, null=False)
+    unit = models.ForeignKey( BusinessUnit, on_delete=models.CASCADE, blank=False, null=False)
     confirmation_date = models.DateField(blank=False, null=False)
     active_status = models.BooleanField(default=True)
     candidate = models.OneToOneField("candidates.candidate", on_delete=models.CASCADE, null=True, blank=True)

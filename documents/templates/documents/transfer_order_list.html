@@ -45,6 +45,7 @@
                                     <th>Designation</th>
                                     <th>Current Location</th>
                                     <th>New Location</th>
+                                    <th>Unit</th>
                                     <th>Effective Date</th>
                                 </tr>
                             </thead>
@@ -61,6 +62,7 @@
                                     <td>{{ transfer.employee.designation }}</td>
                                     <td>{{ transfer.current_job_location }}</td>
                                     <td>{{ transfer.new_job_location }}</td>
+                                    <td>{{transfer.employee.unit.short_name}}</td>
                                     <td>{{transfer.effective_date}}</td>
                                 </tr>
 

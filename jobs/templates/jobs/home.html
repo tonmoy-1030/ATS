@@ -32,7 +32,7 @@
                     {% for schedule in schedules %}
                     <tr class="text-nowrap">
                         <!-- many to many relationship of job in interview schedule -->
-                        <td>{{schedule.job.first.unit}}</td>
+                        <td>{{schedule.job.first.unit.short_name}}</td>
                         <td><a
                                 href="{% url 'jobs:interview_details' schedule.id %}">{{schedule.job.first.job_title}}</a>
                         </td>
@@ -43,7 +43,7 @@
 
                     {% for final_schedule in final_schedules %}
                     <tr class="text-nowrap">
-                        <td>{{final_schedule.job.first.unit}}</td>
+                        <td>{{final_schedule.job.first.unit.short_name}}</td>
                         <td><a
                                 href="{% url 'jobs:final_interview_details' final_schedule.id %}">{{final_schedule.job.first.job_title}}</a>
                         </td>
@@ -80,7 +80,7 @@
                     <tr class="unit-row bg-light">
                         <td colspan="5" class="p-2">
                             <a href="javascript:void(0);" class="unit-toggle text-primary" data-unit="{{ unit|slugify }}"><strong>
-                                <i class="bi bi-plus-square"></i> {{ unit }}
+                                <i class="bi bi-plus-square"></i> {{ unit.name }}
                             </strong></a>
                         </td>
                         <td class="text-center">
@@ -140,7 +140,7 @@
                     <tr class="joining-unit-row bg-light">
                         <td colspan="4" class="p-2">
                             <a href="javascript:void(0);" class="joining-unit-toggle text-primary" data-unit="{{ joining_unit|slugify }}"><strong>
-                                <i class="bi bi-plus-square"></i> {{ joining_unit }}
+                                <i class="bi bi-plus-square"></i> {{ joining_unit.name }}
                             </strong></a>
                         </td>
                         <td class="text-center">

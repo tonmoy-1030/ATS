@@ -2,17 +2,25 @@
 {% block content %}
 
 {% load crispy_forms_tags %}
+{% block style%}
+<style>
+    .form-group>div {
+        display: flex;
+        align-items: center;
+    }
+
+    .form-group>div>div {
+        margin-right: 10px;
+        /* Adjust the spacing as needed */
+    }
+</style>
+{% endblock %}
 
 <div class="container">
     <div class=" d-flex align-items-center justify-content-center">
-        <form method="get" class="row">
-            <div class="col-12">
-                <label for="" class="form-label">Unit:</label>
-                {{ filterset.form.unit }}
-                <label for="" class="form-label">Date:</label>
-                {{ filterset.form.interview_date }}
-                <button class="btn btn-primary btn-sm" type="submit"><i class="bi bi-search"></i> Search</button>
-            </div>
+        <form method="get" class="form-inline">
+            {{ filterset.form | crispy }}
+            <button type="submit" class="btn btn-primary mt-4"><i class="bi bi-search"></i> Search</button>
         </form>
     </div>
     <div class="container-fluid mt-2">
@@ -49,6 +57,37 @@
             No interview schedules available.
         </div>
         {% endif %}
+    </div>
+    <div class="pagination justify-content-center">
+        <nav aria-label="Page navigation">
+            <ul class="pagination">
+                {% if page_obj.has_previous %}
+                <li class="page-item">
+                    <a class="page-link"
+                        href="?{% if request.GET %}{{ request.GET.urlencode|safe }}&{% endif %}page=1">First</a>
+                </li>
+                <li class="page-item">
+                    <a class="page-link"
+                        href="?{% if request.GET %}{{ request.GET.urlencode|safe }}&{% endif %}page={{ page_obj.previous_page_number }}">Previous</a>
+                </li>
+                {% endif %}
+
+                <li class="page-item disabled">
+                    <a class="page-link">Page {{ page_obj.number }} of {{ page_obj.paginator.num_pages }}</a>
+                </li>
+
+                {% if page_obj.has_next %}
+                <li class="page-item">
+                    <a class="page-link"
+                        href="?{% if request.GET %}{{ request.GET.urlencode|safe }}&{% endif %}page={{ page_obj.next_page_number }}">Next</a>
+                </li>
+                <li class="page-item">
+                    <a class="page-link"
+                        href="?{% if request.GET %}{{ request.GET.urlencode|safe }}&{% endif %}page={{ page_obj.paginator.num_pages }}">Last</a>
+                </li>
+                {% endif %}
+            </ul>
+        </nav>
     </div>
 </div>
 {% endblock %}

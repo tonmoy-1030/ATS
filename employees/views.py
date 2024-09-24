@@ -2,7 +2,7 @@ from django.shortcuts import render, redirect
 from django.http import HttpResponseRedirect, HttpResponse,JsonResponse
 from django.urls import reverse
 from django.contrib.messages.views import SuccessMessageMixin
-from django.views.generic import ListView, CreateView, UpdateView, DetailView
+from django.views.generic import ListView, CreateView, UpdateView, DetailView, DeleteView
 from .models import (Employee, SeperationStatus, 
                      EmployeeDetails,EmployeeConfirmation,
                      TransferOrder, PostingOrder, SalaryInfo)
@@ -20,6 +20,7 @@ from .utls.google_form_Employees import NewEmployeeData
 from django.contrib import messages
 from django.forms import modelformset_factory
 from django.contrib.auth.mixins import UserPassesTestMixin
+from django.utils import timezone
 
 
 
@@ -88,7 +89,7 @@ def import_employees(file):
                 return HttpResponse("Please check the CSV file again")
         
 
-from django.utils import timezone
+
 class EmployeeCreateView(SuccessMessageMixin, CreateView):
     model = Employee
     form_class = EmployeeEntryForm
@@ -120,6 +121,7 @@ class EmployeeUpdateView(SuccessMessageMixin, UpdateView):
     success_message = "Employee information updated Successfully"
 
 
+
 def determine_pattern(unit):
     if unit == 'Prime Pusti Limited':
         return 'PPL-P{0:03d}'
@@ -138,7 +140,7 @@ def get_candidate_data(request):
     for pattern in exclude_patterns:
         exclude_condition |= Q(EID__startswith=pattern)
         
-    matching_eids = Employee.objects.filter(unit__icontains=candidate.offer.job.unit).exclude(exclude_condition).values_list('EID', flat=True)
+    matching_eids = Employee.objects.filter(unit=candidate.offer.job.unit).exclude(exclude_condition).values_list('EID', flat=True)
 
 
     numeric_parts = []
@@ -150,7 +152,7 @@ def get_candidate_data(request):
     max_numeric_part = max(numeric_parts) if numeric_parts else None
 
     if max_numeric_part is not None:
-        unit_pattern = determine_pattern(candidate.offer.job.unit)
+        unit_pattern = determine_pattern(candidate.offer.job.unit.name)
         new_eid = (unit_pattern.format(max_numeric_part + 1))
 
     else:
@@ -163,7 +165,7 @@ def get_candidate_data(request):
         'email': candidate.email,
         'DOJ': candidate.offer.joining_date.strftime('%Y-%m-%d'),
         'personal_cell': candidate.mobile,
-        'unit': candidate.offer.job.unit,
+        'unit': candidate.offer.job.unit.id,
         'job': candidate.offer.job.id,
         'candidate': candidate.pk,
     }
@@ -181,7 +183,7 @@ def upload_file(request):
     return render(request, "employees/upload.html", {"form": form})
     
 
-def sample_employee_upload_file(reques):
+def sample_employee_upload_file(request):
     response = HttpResponse(
         content_type='text/csv',
         headers = {"Content-Dispositon": "'attachment; 'filename'='sample.csv'"}
@@ -189,11 +191,17 @@ def sample_employee_upload_file(reques):
     writter = csv.writer(response)
     header_row = ['EID','Name','Designation','Department','DOJ', 'Mobile_no','Email','Unit']  
     writter.writerow(header_row)
-    row = ['2000006','Md. Ashraful Hossain Nury','Manager', 'Brand','2005-01-03','0','test@tkgroupbd.com','Consumer']
+    row = ['2000006','Md. Ashraful Hossain Nury','Manager', 'Brand','2005-01-03','0','test@tkgroupbd.com','Consumer Division']
     writter.writerow(row)
     
     return response
 
+
+class EmployeeDeleteView(DeleteView):
+    model = Employee
+    template_name = 'employees/employees.html'
+    context_object_name = 'employee_list'
+    success_url = "/employees"
 
 class EmployeeSeparationCreateView(CreateView):
     model = SeperationStatus
