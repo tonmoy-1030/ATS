@@ -2,7 +2,7 @@
 {% block content %}
 
 <div class="container mt-5">
-  <div class="card w-50 mx-auto">
+  <div class="card  mx-auto">
     <div class="card-body">
       <h5 class="card-title"><strong>Job Title: </strong>{{ object.job.first.job_title }}</h5>
       <p class="card-text"><strong> Interview Stage: </strong>{{ object.interview_type }}</p>
@@ -17,7 +17,7 @@
   </div>
 </div>
 <div class="container mt-3">
-  <div class="card w-50 mx-auto">
+  <div class="card mx-auto">
     <div class="card-body">
       <div class="btn-group " role="group">
         <a href="{% url 'candidates:candidate_new' pk=object.id %}" class="btn btn-warning "><i
@@ -79,28 +79,23 @@
             {% endif %}
             <td>{{candidate.initial_interview_status}}</td>
             <td>{{candidate.interview_schedule.interview_date | date:"M d, Y"}}</td>
-            <td colspan="2" class="text-nowrap">
-              <a href="#" class="text-danger h6 me-2" data-bs-toggle="modal" data-bs-target="#candidateDelete"><i
-                  class="bi bi-trash"></i></a>
+            <td colspan="2" class="text-nowrap text-center">
+                <a href="#" class="text-danger h6 me-2" data-bs-toggle="modal" data-bs-target="#candidateDelete{{ candidate.id }}"><i
+                    class="bi bi-trash"></i></a>
 
-              <!-- Modal -->
-
-              <div class="modal" id="candidateDelete" tabindex="-1" aria-labelledby="candidateDeletelabel"
-                aria-hidden="true">
+                <!-- Modal -->
+              <div class="modal" id="candidateDelete{{ candidate.id }}" tabindex="-1" aria-labelledby="candidateDeletelabel{{ candidate.id }}" aria-hidden="true">
                 <div class="modal-dialog modal-dialog-centered modal-md">
                   <div class="modal-content">
                     <div class="modal-header">
-                      <h1 class="modal-title fs-5" id="candidateDeletelabel">Delete?
-                      </h1>
-                      <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
+                      <h1 class="modal-title fs-5" id="candidateDeletelabel{{ candidate.id }}">Delete?</h1>
                     </div>
                     <div class="modal-body">
                       <h6>Are you sure you want to delete "{{ candidate.name }}"?</h6>
                     </div>
                     <div class="modal-footer">
                       <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Close</button>
-                      <form class="d-inline-block" method="post"
-                        action="{% url 'candidates:candidate_delete' candidate.id %}">
+                      <form class="d-inline-block" method="post" action="{% url 'candidates:candidate_delete' candidate.id %}">
                         {% csrf_token %}
                         <input class="btn btn-danger" type="submit" value="Confirm">
                       </form>
@@ -108,11 +103,10 @@
                   </div>
                 </div>
               </div>
+              <!-- End Modal -->
 
-              <!-- end modal -->
-
-              <a class="h6 text-primary" href="{% url 'candidates:candidate_update' candidate.id %}"><i
-                  class="bi bi-pencil-square"></i></a>
+                <a class="h6 text-primary" href="{% url 'candidates:candidate_update' candidate.id %}"><i
+                    class="bi bi-pencil-square"></i></a>
             </td>
           </tr>
           {% endfor %}

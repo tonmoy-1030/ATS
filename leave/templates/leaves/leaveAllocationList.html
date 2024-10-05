@@ -53,17 +53,17 @@
                             <td class="text-center">{{allocation.leave_balance}}</td>
                             <td class="text-center"><a href="{% url 'leave:allocationDelete' allocation.id %}"
                                     class="text-danger h6 me-2" data-bs-toggle="modal"
-                                    data-bs-target="#leaveAllocationUpdate"><i class="bi bi-trash"></i></a>
+                                    data-bs-target="#leaveAllocationUpdate{{ allocation.id }}"><i class="bi bi-trash"></i></a>
 
                                 <!-- modal -->
 
 
-                                <div class="modal" id="leaveAllocationUpdate" tabindex="-1"
-                                    aria-labelledby="leaveAllocationUpdatelabel" aria-hidden="true">
+                                <div class="modal" id="leaveAllocationUpdate{{ allocation.id }}" tabindex="-1"
+                                    aria-labelledby="leaveAllocationUpdatelabel{{ allocation.id }}" aria-hidden="true">
                                     <div class="modal-dialog modal-dialog-centered modal-md">
                                         <div class="modal-content">
                                             <div class="modal-header">
-                                                <h1 class="modal-title fs-5" id="leaveAllocationUpdatelabel">Delete?
+                                                <h1 class="modal-title fs-5" id="leaveAllocationUpdatelabel{{ allocation.id }}">Delete?
                                                 </h1>
                                                 <button type="button" class="btn-close" data-bs-dismiss="modal"
                                                     aria-label="Close"></button>

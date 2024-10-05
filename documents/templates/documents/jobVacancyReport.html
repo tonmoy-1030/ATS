@@ -1,19 +1,24 @@
 {% extends "jobs/base.html" %}
 {% block content %}
 {% load crispy_forms_tags %}
-
-<div class="container mt-5" style="max-width: 600px;">
-    <legend class="text-center mb-4">Candidate List</legend>
-    <form method="post" class="form-group">
-        {% csrf_token %}
-        {{ form|crispy }}
-
-        <button type="submit" class="btn btn-primary mt-4">
-            <i class="bi bi-filetype-xlsx"></i> Download
-        </button>
-    </form>
+<div class="container-fluid">
+    <div class="row">
+        <div  class="col-md-3">
+            {% include 'documents/reportManuBar.html' %}
+        </div>
+    <div class="container mt-5" style="max-width: 600px;">
+        <legend class="text-center mb-4">Job Vacancy Report</legend>
+        <form method="post" class="form-group" target="_blank">
+            {% csrf_token %}
+            {{ form|crispy }}
+            
+            <button type="submit" class="btn btn-primary mt-4">
+                <i class="bi bi-arrow-down-circle"></i> Download
+            </button>
+        </form>
+    </div>
 </div>
-
+</div>
 {% endblock %}
 
 {% block extra_scripts %}
@@ -23,8 +28,8 @@
 <link href="https://cdnjs.cloudflare.com/ajax/libs/select2/4.0.13/css/select2.min.css" rel="stylesheet" />
 
 <script>
-    
-    $(document).ready(function() {
+
+    $(document).ready(function () {
         $('#id_unit').select2(); // Initialize Select2 on the select element with id 'id_unit'
     });
 </script>
@@ -36,48 +41,48 @@
             const select2Containers = document.querySelectorAll('.select2-container--default .select2-selection--multiple .select2-selection__choice');
             const select2ContainersSingle = document.querySelectorAll('.select2-container--default .select2-selection--multiple');
             const select2DropDown = document.querySelectorAll('.select2-dropdown');
-            
+
             select2ContainersSingle.forEach(container => {
                 if (isDarkTheme) {
-                    container.style.backgroundColor = '#00000000'; 
-                    container.style.color = 'white';    
+                    container.style.backgroundColor = '#00000000';
+                    container.style.color = 'white';
                 } else {
                     container.style.backgroundColor = '';
-                    container.style.color = '';         
+                    container.style.color = '';
                 }
             });
 
             select2Containers.forEach(container => {
                 if (isDarkTheme) {
                     container.style.backgroundColor = '#00000000';
-                    container.style.color = 'white';    
+                    container.style.color = 'white';
                 } else {
                     container.style.backgroundColor = '';
-                    container.style.color = '';        
+                    container.style.color = '';
                 }
             });
-            
+
             select2DropDown.forEach(container => {
                 if (isDarkTheme) {
-                    container.style.backgroundColor = '#212529'; 
-                    container.style.color = 'rgba(255, 255, 255, 0.8)'; 
+                    container.style.backgroundColor = '#212529';
+                    container.style.color = 'rgba(255, 255, 255, 0.8)';
                 } else {
                     container.style.backgroundColor = 'white';
-                    container.style.color = 'black';         
+                    container.style.color = 'black';
                 }
             });
         }
-    
-    
+
+
         // Function to periodically check for theme changes
         function checkThemePeriodically() {
             updateSelect2Styles();  // Update styles initially
             setTimeout(checkThemePeriodically, 5);  // Recheck every 5ms
         }
-    
+
         // Start the periodic check
         checkThemePeriodically();
-        
+
     });
 
 </script>

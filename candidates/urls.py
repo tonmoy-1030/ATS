@@ -1,6 +1,6 @@
 from django.urls import path
 from .views import (initial_update_candidates, Final_update_candidates, 
-                    CandidateDtailsUpdate, candidate_csv_download)
+                    CandidateDetailsUpdate, candidate_csv_download)
 
 from .views import (FileFieldFormView, 
                     CandidateUpdateView,
@@ -35,7 +35,7 @@ urlpatterns = [
     path('offer/<int:pk>/delete', OfferDeleteview.as_view(), name='offer-delete'),
     path('interview/<int:pk>/candidates/update/', initial_update_candidates, name='initial_canidadates_update'),
     path('final/<int:pk>/candidates/update/', Final_update_candidates, name='final_canidadates_update'),
-    path('update-candidate-details/',CandidateDtailsUpdate , name='update_candidate_details'),
+    path('update-candidate-details/',CandidateDetailsUpdate , name='update_candidate_details'),
     path('candidate_details/', CandidateDetailsListView.as_view(), name='candidates_details'),
     path('candidate_details_csv/', candidate_csv_download, name='candidates_details_csv'),
     path('offer-list/', OfferListView.as_view(), name='offer-list'),

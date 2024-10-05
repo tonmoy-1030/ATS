@@ -226,7 +226,7 @@ class SeparatedEMPJsonView(View):
             '''
 
         query= f'''
-        SELECT e.unit AS Unit,
+        SELECT jobs_businessunit.short_name AS Unit,
         COUNT(e.id) AS 'No. of Employees',
         CASE
             WHEN DATEDIFF(employees_seperationstatus.resign_date, e.DOJ) / 365.0 < 0.25 THEN 'Less than 3 months'
@@ -240,10 +240,11 @@ class SeparatedEMPJsonView(View):
         END AS Duration_Category
             FROM employees_employee e
             JOIN employees_seperationstatus ON e.id = employees_seperationstatus.employee_id
+            JOIN jobs_businessunit ON e.unit_id = jobs_businessunit.id
             {where}
-            GROUP BY e.unit,
+            GROUP BY jobs_businessunit.short_name,
                     Duration_Category
-            ORDER BY e.unit,
+            ORDER BY jobs_businessunit.short_name,
                     Duration_Category;
                 '''
         with connection.cursor() as cursor:

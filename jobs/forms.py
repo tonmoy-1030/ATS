@@ -109,7 +109,7 @@ class ScheduleForm(forms.Form):
     def __init__(self, *args, **kwargs):
         super().__init__(*args, **kwargs)
         self.fields['unit'].choices += [
-            (unit, unit) for unit in Job.objects.values_list('unit', flat=True).distinct()
+            (unit_id, unit_name) for (unit_id, unit_name) in Job.objects.values_list('unit__id', 'unit__name').distinct()
         ]
         if 'unit' in self.data:
             try:
@@ -145,7 +145,7 @@ class UpdateScheduleForm(forms.ModelForm):
         super().__init__(*args, **kwargs)
 
         self.fields['unit'].choices += [
-            (unit, unit) for unit in Job.objects.values_list('unit', flat=True).distinct()
+            (unit_id, unit_name) for (unit_id, unit_name) in Job.objects.values_list('unit__id', 'unit__name').distinct()
         ]
 
         if self.instance.pk:

@@ -291,6 +291,22 @@
                     </ul>
                 </li>
 
+                <!-- Report -->
+                <li class="sidebar-item">
+                    <a href="#" class="sidebar-link collapsed has-dropdown" data-bs-toggle="collapse"
+                        data-bs-target="#report" aria-expanded="false" aria-controls="report">
+                        <i class="bi bi-stack"></i>
+                        <span>Report</span>
+                    </a>
+                    <ul id="report" class="sidebar-dropdown list-unstyled collapse" data-bs-parent="#sidebar">
+                        <li class="sidebar-item">
+                            <a href="{% url 'documents:Candidate_report' %}"
+                                class="sidebar-link"><i class="bi bi-check-circle-fill"></i>Report</a>
+                        </li>
+                    </ul>
+                </li>
+                <!-- end report -->
+
                 <!-- Process -->
                 <li class="sidebar-item">
                     <a href="#" class="sidebar-link collapsed has-dropdown" data-bs-toggle="collapse"
@@ -310,6 +326,8 @@
                     </ul>
                 </li>
                 <!-- end process -->
+                 
+                 
             </ul>
 
             <div class="sidebar-footer">

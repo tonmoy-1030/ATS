@@ -54,16 +54,16 @@
                             <td class="text-center ">
                                 
                                 <a href="#" class="text-danger h6 me-2" data-bs-toggle="modal"
-                                    data-bs-target="#leaveApplicationUpdate"><i class="bi bi-trash"></i></a>
+                                    data-bs-target="#leaveApplicationDelete{{ leave.id }}"><i class="bi bi-trash"></i></a>
 
                                 <!-- Modal -->
 
-                                <div class="modal" id="leaveApplicationUpdate" tabindex="-1"
-                                    aria-labelledby="leaveApplicationUpdatelabel" aria-hidden="true">
+                                <div class="modal" id="leaveApplicationDelete{{ leave.id }}" tabindex="-1"
+                                    aria-labelledby="leaveApplicationDeletelabel{{ leave.id }}" aria-hidden="true">
                                     <div class="modal-dialog modal-dialog-centered modal-md">
                                         <div class="modal-content">
                                             <div class="modal-header">
-                                                <h1 class="modal-title fs-5" id="leaveApplicationDeletelabel">Delete?
+                                                <h1 class="modal-title fs-5" id="leaveApplicationDeletelabel{{ leave.id }}">Delete?
                                                 </h1>
                                                 <button type="button" class="btn-close" data-bs-dismiss="modal"
                                                     aria-label="Close"></button>

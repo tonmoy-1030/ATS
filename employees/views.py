@@ -10,6 +10,7 @@ from .forms import (UploadFileForm, SeperationForm,
                     EmployeeEntryForm, EmployeeFilter, 
                     TransferOrderForm, EmployeeConfirmationForm, 
                     PostingOrderForm, SalaryInfoForm)
+from django.contrib.auth.decorators import user_passes_test
 from django.db.models import Q
 from datetime import datetime, timedelta
 import csv, os, re
@@ -19,7 +20,7 @@ from candidates.models import Candidate
 from .utls.google_form_Employees import NewEmployeeData
 from django.contrib import messages
 from django.forms import modelformset_factory
-from django.contrib.auth.mixins import UserPassesTestMixin
+from django.contrib.auth.mixins import UserPassesTestMixin, LoginRequiredMixin
 from django.utils import timezone
 
 
@@ -432,18 +433,19 @@ class EmployeeProfile(DetailView):
         context = super().get_context_data(**kwargs)
         context['employees'] = Employee.objects.all()
         return context
+    
 
-   
-class EmployeeSalaryInfo(UserPassesTestMixin, CreateView):
+# Employee List for Appointment Letter   
+class EmployeeSalaryInfo(LoginRequiredMixin, UserPassesTestMixin, CreateView):
     model = SalaryInfo
     form_class = SalaryInfoForm
     template_name = "employees/salary_info.html"
     
+    login_url= '/login'
+    redirect_field_name = 'next'
+    
     def test_func(self):
         return self.request.user.is_staff
-
-    def handle_no_permission(self):
-         return redirect(reverse('admin:login'))
     
     def get_success_url(self):
         return reverse("employees:salary_info")

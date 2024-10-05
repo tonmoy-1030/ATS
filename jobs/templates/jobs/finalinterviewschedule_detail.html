@@ -2,7 +2,7 @@
 
 {% block content %}
   <div class="container mt-5">
-    <div class="card w-50 mx-auto">
+    <div class="card mx-auto">
       <div class="card-body">
         <h5 class="card-title"><strong>Job Title: </strong>{{ object.job.first.job_title }}</h5>
         <p class="card-text">Interview Stage: {{ object.interview_type }}</p>
@@ -17,7 +17,7 @@
     </div>
   </div>
   <div class="container mt-3">
-    <div class="card w-50 mx-auto">
+    <div class="card  mx-auto">
       <div class="card-body">
         <div class="btn-group">
           <a href="{% url 'jobs:shortlisted' pk=object.id %}" class="btn btn-warning "><i class="bi bi-building-add"></i> Select Shortlisted Candidate</a>

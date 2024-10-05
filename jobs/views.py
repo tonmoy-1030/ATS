@@ -1,7 +1,7 @@
 
 from django.shortcuts import render, redirect, get_object_or_404
 from django.contrib.messages.views import SuccessMessageMixin
-from .models import Job, InterviewSchedule, FinalInterviewSchedule
+from .models import Job, InterviewSchedule, FinalInterviewSchedule, BusinessUnit
 from django.views.generic import DetailView, CreateView, UpdateView, ListView
 from candidates.models import Candidate, Offer
 from django.urls import reverse
@@ -14,9 +14,16 @@ from django.utils import timezone
 from employees.models import Employee
 from collections import defaultdict
 from django.contrib import messages
+from django.contrib.auth.decorators import login_required
+from django.utils.decorators import method_decorator
+
+# Logout Page
+
+def logoutPage(request):
+    return render(request, "jobs/logout.html")
 
 # job
-class home(ListView):
+class home( ListView):
     model = Job
     template_name = 'jobs/home.html'
     offer_model = Offer    
@@ -75,11 +82,13 @@ class home(ListView):
         final_schedules = FinalInterviewSchedule.objects.filter(interview_date__gte=timezone.now().date()).order_by('-interview_date')
         
         for key, value in employee_counts_dict.items():
-            yearly_labels.append(key)
+            unit = BusinessUnit.objects.get(id=key)            
+            yearly_labels.append(unit.short_name)
             yearly_data.append(value)
             
         for key, value in employee_counts_monthly_dict.items():
-            monthly_labels.append(key)
+            unit = BusinessUnit.objects.get(id=key)  
+            monthly_labels.append(unit.short_name)
             monthly_data.append(value) 
 
         context['grouped_requisitions'] = dict(grouped_requisitions)
@@ -338,7 +347,7 @@ def load_jobs(request):
         job_dict = {
             "job_id":job.id,
             "designation": job.job_title,
-            "unit": job.unit,
+            "unit": job.unit.name,
             "location": job.job_location
         }
         job_list.append(job_dict)

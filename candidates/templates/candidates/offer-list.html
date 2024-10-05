@@ -46,7 +46,7 @@
             {% for offer in offers %}
             <tr>
                 <td class="text-center">{{ forloop.counter }}</td>
-                <td><a href="{% url 'candidates:offer-update' offer.id %}">{{ offer.candidate.name }}</a></td>
+                <td><a href="{% url 'candidates:offer-update' offer.id %}?next={{ request.path }}">{{ offer.candidate.name }}</a></td>
                 <td>{{ offer.candidate.mobile }}</td>
                 <td>{{ offer.offered_designation }}</td>
                 <td>{{ offer.job.unit }}</td>

@@ -25,7 +25,7 @@ SECRET_KEY = 'django-insecure-s)p!4bhfq7b$w=grg8oc&=+bjl3vyj&$9ppqsrjw_qe(aso8k@
 # SECURITY WARNING: don't run with debug turned on in production!
 DEBUG = True
 
-ALLOWED_HOSTS = []
+ALLOWED_HOSTS = ['*']
 
 
 # Application definition
@@ -63,7 +63,7 @@ MIDDLEWARE = [
     'django.contrib.messages.middleware.MessageMiddleware',
     'django.middleware.clickjacking.XFrameOptionsMiddleware',
     'django_plotly_dash.middleware.BaseMiddleware',
-    'ats.middleware.NoCacheMiddleware'
+    # 'ats.middleware.NoCacheMiddleware'
 ]
 
 ROOT_URLCONF = 'ats.urls'
@@ -172,4 +172,6 @@ CHANNEL_LAYERS = {
 SESSION_ENGINE = 'django.contrib.sessions.backends.db'
 SESSION_ENGINE = 'django.contrib.sessions.backends.cache'
 SESSION_CACHE_ALIAS = 'default'
+LOGIN_REDIRECT_URL = 'jobs:home'
+LOGOUT_REDIRECT_URL = 'jobs:login'
 

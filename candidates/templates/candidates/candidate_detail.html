@@ -53,7 +53,7 @@
         {% if object.details %}
         <h3 class="text-center mt-2">Candidate Details:</h3>
         <div class="row">
-            <div class="col-4 mt-2">
+            <div class="col-md-4 mt-2">
                 <div class="card mt-3">
                     <div class="card-header">
                         <h6 class="card-title">Personal Information:</h6>
@@ -70,7 +70,7 @@
                     </div>
                 </div>
             </div>
-            <div class="col-4 mt-2">
+            <div class="col-md-4 mt-2">
                 <div class="card mt-3">
                     <div class="card-header">
                         <h6 class="card-title">Eduction Qualification:</h6>
@@ -81,14 +81,14 @@
                             <li class="list-group-item"><strong>Degree Name:</strong> {{ object.details.degree_name }}
                             </li>
                             <li class="list-group-item"><strong>Subject:</strong> {{object.details.subject_highest_degree}}</li>
-                            <li class="list-group-item"><strong>Inistitution:</strong> {{ object.details.institution_highest_degree }}</li>
+                            <li class="list-group-item"><strong>Institution:</strong> {{ object.details.institution_highest_degree }}</li>
                             <li class="list-group-item"><strong>Passing Year:</strong> {{object.details.passing_year_highest_degree }}</li>
-                            <li class="list-group-item"><strong>GPA/CGPA/Devision:</strong> {{object.details.division_or_gpa_highest_degree }}</li>
+                            <li class="list-group-item"><strong>GPA/CGPA/Division:</strong> {{object.details.division_or_gpa_highest_degree }}</li>
                         </ul>
                     </div>
                 </div>
             </div>
-            <div class="col-4 mt-2">
+            <div class="col-md-4 mt-2">
                 <div class="card mt-3">
                     <div class="card-header">
                         <h6 class="card-title">Experience:</h6>

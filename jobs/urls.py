@@ -1,5 +1,6 @@
 from django.urls import path
 from . import views
+from django.contrib.auth import views as auth_view
 from .views import (JobDetailView,
                     JobUpdateView, 
                     ScheduleDetailview,
@@ -17,6 +18,9 @@ app_name = 'jobs'
 
 urlpatterns = [
     path('', home.as_view(), name='home'),
+    path('login/', auth_view.LoginView.as_view(template_name='jobs/login.html'), name='login'),
+    path('logout_page/', views.logoutPage, name='logout_page'),    
+    path('logout/', auth_view.LogoutView.as_view(template_name='jobs/logout.html'), name='logout'),
     path('headcount/all', HeadCountListView.as_view(), name='headcount-list'),
     path('headcount/new',HeadcountCreateview.as_view(), name='create-headcount'),
     path('headcount/<int:pk>/',JobDetailView.as_view(), name='job_details'),

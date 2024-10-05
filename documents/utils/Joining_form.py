@@ -18,7 +18,7 @@ def create_joining_form(employee_data, pdf_file):
     styles["Normal"].fontName = "Times-Roman"
     styles["Normal"].fontSize  = 11
     title_style.fontName = "Times-Roman"
-    title_style.fontsize = 14
+    title_style.fontSize = 14
     normal_style.alignment = 4 
 
     header = [

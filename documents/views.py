@@ -9,7 +9,7 @@ from django.views.generic import ListView
 from django.utils import timezone
 from .utils.utils import interview_assessment, create_offer_letter
 from io import BytesIO
-from datetime import datetime
+from datetime import timedelta
 from PyPDF2 import PdfMerger
 import os
 from django.shortcuts import HttpResponse
@@ -23,11 +23,22 @@ from .utils.transfer_posting_order import transfer_letter, posting_letter
 from .utils.number2text import format_number, convert_to_words
 from .forms import (EmployeeFilter, EmployeeConfirmationFilter,
                     EmployeeConfirmationLetterFilter, PostingLetterFilter,
-                    TransferLetterFilter, AppointmentLetterFilter, JobOfferFilter)
+                    TransferLetterFilter, AppointmentLetterFilter, JobOfferFilter, CandidateDetailsForm, JobReportForm)
 from django.core.paginator import Paginator, EmptyPage, PageNotAnInteger
 from .utils.envelope import create_envelope
 from django.db import connection
 from io import BytesIO
+from django.http import HttpResponse
+from django.shortcuts import render
+from django.db import connection
+from django.contrib import messages
+from .exporter.exporter import Exporter
+from reportlab.lib.pagesizes import landscape, A4, letter
+from reportlab.platypus import SimpleDocTemplate, Table, TableStyle, Paragraph, Spacer
+from reportlab.lib.units import inch
+from reportlab.lib.styles import getSampleStyleSheet, ParagraphStyle
+from reportlab.lib import colors
+import pandas as pd
 
 
 
@@ -583,7 +594,7 @@ def generate_posting_letter(request):
 def is_admin(user):
     return user.is_authenticated and user.is_staff
 
-@user_passes_test(is_admin)
+@user_passes_test(is_admin, login_url='/login', redirect_field_name='next')
 # Employee List for Appointment Letter
 def appointment_letter_list(request):
     
@@ -651,7 +662,7 @@ def generate_appointment_letter(request):
                 "CC5": appointment.CC5,
                 "CC6": appointment.CC6,
                 "CC7": appointment.CC7,
-  
+
             }
             buffer = BytesIO()
             appointment_letter(appointment_data, pdf_file=buffer)
@@ -708,21 +719,6 @@ def envelopePrinting(request):
     response['Content-Disposition'] = 'inline; filename="envelope_.pdf"'
     return response
 
-
-from django.http import HttpResponse
-from django.shortcuts import render
-from django.db import connection
-from .forms import CandidateDetailsForm
-from io import BytesIO
-import xlsxwriter
-import datetime
-import json
-import uuid
-from django.contrib import messages
-from datetime import timedelta
-from openpyxl import Workbook
-from openpyxl.styles import Font, Alignment, Border, Side, PatternFill
-from openpyxl.utils import get_column_letter
  
 
 def candidateReport(request):
@@ -753,27 +749,31 @@ def candidateReport(request):
             to_date_str = (to_date + timedelta(days=1)).strftime('%Y-%m-%d')
             
             query = f"""
-            SELECT DISTINCT
-            cc.name AS Name,
-            cc.mobile AS Mobile,
-            cc.email,
-            DATE(js1.interview_date) AS Interview_Date,
-            jobs_job.job_title AS Job_Title,
-            jobs_job.unit AS Unit
-        FROM
-            jobs_interviewschedule js1
-                JOIN
-            candidates_candidate cc ON js1.id = cc.interview_schedule_id
-                JOIN
-            jobs_interviewschedule_job jsj ON js1.id = jsj.interviewschedule_id
-                JOIN
-            jobs_job ON jsj.job_id = jobs_job.id
+                    SELECT 
+                        ROW_NUMBER() OVER (ORDER BY jobs_businessunit.name DESC, jobs_job.job_title DESC) AS SL,
+                        cc.name AS Name,
+                        cc.mobile AS Mobile,
+                        DATE(js1.interview_date) AS Interview_Date,
+                        jobs_job.job_title AS Job_Title,
+                        jobs_businessunit.short_name AS Unit,
+                        Null as 'Arrival Time',
+                        Null as Signature
+                    FROM
+                        jobs_interviewschedule js1
+                            JOIN
+                        candidates_candidate cc ON js1.id = cc.interview_schedule_id
+                            JOIN
+                        jobs_interviewschedule_job jsj ON js1.id = jsj.interviewschedule_id
+                            JOIN
+                        jobs_job ON jsj.job_id = jobs_job.id
+                            JOIN
+                        jobs_businessunit on jobs_job.unit_id = jobs_businessunit.id
 
-        WHERE
-            js1.interview_date BETWEEN '{from_date_str}' AND '{to_date_str}' and jobs_job.unit in {unit}
-        order by 
-        jobs_job.unit desc,
-        jobs_job.job_title desc;       
+                    WHERE
+                        js1.interview_date BETWEEN '{from_date_str}' AND '{to_date_str}' and jobs_businessunit.id in {unit}
+                    order by 
+                    jobs_businessunit.name desc,
+                    jobs_job.job_title desc;       
             """
 
             with connection.cursor() as cursor:
@@ -783,7 +783,7 @@ def candidateReport(request):
                 if results !=():
                     headers = [d[0] for d in description]
                     
-                    output = Exporter().ExcelExporter(headers=headers, body=results)
+                    output = Exporter().ExcelExporter(title='Candidate list' , headers=headers, body=results)
                     output.seek(0)
 
                     response = HttpResponse(output, content_type="application/vnd.ms-excel")
@@ -796,73 +796,275 @@ def candidateReport(request):
     else:
         form = CandidateDetailsForm()
 
-    return render(request, template_name="documents/candidateDetails.html", context={'form': form})
+    return render(request, template_name="documents/reportCandidateDetails.html", context={'form': form})
  
         
-class Exporter:
+@user_passes_test(is_admin, login_url='/login', redirect_field_name='next')
 
-    def ExcelExporter(self, headers, body):
-        output = BytesIO()
-        wb = Workbook()
-        ws = wb.active
-        ws.title = "Candidate Report"
+def employeeList(request):
+    
+    query = '''
+        SELECT DISTINCT employees_employee.eid,
+                employees_employee.name,
+                employees_employee.designation,
+                employees_employee.department,
+                employees_employee.DOJ,
+                candidates_candidatesdetails.date_of_birth,
+                employees_employee.mobile_no,
+                employees_employee.email,
+                candidates_candidatesdetails.blood_group,
+                employees_salaryinfo.salary,
+                employees_salaryinfo.report_to,
+                jobs_businessunit.name,
+                candidates_candidatesdetails.nid,
+                employees_employeedetails.tin,
+                employees_employeedetails.father_name,
+                employees_employeedetails.mother_name,
+                candidates_candidatesdetails.permanent_vill,
+                candidates_candidatesdetails.permanent_po,
+                candidates_candidatesdetails.permanent_ps,
+                candidates_candidatesdetails.permanent_dist,
+                employees_employeedetails.nominee_name,
+                employees_employeedetails.nominee_father_name,
+                employees_employeedetails.nominee_mohter_name,
+                employees_employeedetails.nominee_vill,
+                employees_employeedetails.nominee_po,
+                employees_employeedetails.nominee_ps,
+                employees_employeedetails.nominee_dist,
+                employees_employeedetails.nominee_mobile_no,
+                employees_employeedetails.relation_with_employee,
+                employees_employeedetails.nominee_nid,
+                employees_employeedetails.highest_degree,
+  employees_employeedetails.profile_picture
+FROM employees_employee
+JOIN candidates_candidatesdetails ON employees_employee.candidate_id = candidates_candidatesdetails.candidate_id
+JOIN employees_employeedetails ON employees_employee.id = employees_employeedetails.employee_id
+JOIN employees_salaryinfo ON employees_employee.id = employees_salaryinfo.employee_id
+join jobs_businessunit on employees_employee.unit_id = jobs_businessunit.id;
+    '''
+    with connection.cursor() as cursor:
+        cursor.execute(query)
+        results = cursor.fetchall()
+        description = cursor.description
+        if results != ():
+            headers = [d[0] for d in description]
+            output = Exporter().ExcelExporter(title='Employee List', headers=headers, body=results)
+            output.seek(0)
+            response = HttpResponse(output, content_type="application/vnd.ms-excel")
+            response['content-Disposition'] = 'attachment; filename="Employee_Details.xlsx"'
+            return response
+        else:
+            messages.warning(request, 'Empty List')
 
-        # Define border style
-        thin_border = Border(left=Side(style="thin"), right=Side(style="thin"), top=Side(style="thin"), bottom=Side(style="thin"))
 
-        # Define header font and fill
-        header_font = Font(bold=True, name="Times New Roman")
-        cell_font = Font(bold=False, name="Times New Roman")
-        header_fill = PatternFill("solid", fgColor="D7E4BC")
-        
-        # Define alignment and text wrap
-        text_alignment = Alignment(wrap_text=True, vertical="center", horizontal="left")
-        header_alignment = Alignment(wrap_text=True, vertical="center", horizontal="center")
+# Job Opening Report
 
-        # Write the custom title
-        ws.merge_cells(start_row=1, start_column=1, end_row=1, end_column=len(headers))
-        title_cell = ws.cell(row=1, column=1)
-        title_cell.value = "T.K. Group"
-        title_cell.font = header_font
-        title_cell.alignment = header_alignment
+def generate_jobs_pdf(request):
+    if request.method == "POST":
+        form = JobReportForm(request.POST)
+        if form.is_valid():
+            # Retrieve the units from the form
+            unit = form.cleaned_data.get('unit')
+            print(unit)
+            
+            # Convert unit to tuple to handle single and multiple units
+            if len(unit) > 1:
+                unit = tuple(unit)
+            else:
+                for i in unit:
+                    unit = i
+                unit = f'("{unit}")'
+            
 
-        
-        ws.merge_cells(start_row=2, start_column=1, end_row=2, end_column=len(headers))
-        title_cell = ws.cell(row=2, column=1)
-        title_cell.value = "Candidate List"
-        title_cell.font = header_font
-        title_cell.alignment = header_alignment
+            # Prepare the query, dynamically inserting the units
+            query = f'''
+                SELECT j.posting_date AS Requisition_Date,
+                    j.job_title AS POSITION,
+                    j.department AS department,
+                    j.job_location AS Location,
+                    bu.short_name AS Unit,
+                    DATEDIFF(CURDATE(), j.posting_date) AS "Lead Time",
+                    j.no_of_position AS Total_Positions,
+                    COUNT(o.id) AS Filled_Positions,
+                    (j.no_of_position - COUNT(o.id)) AS "Vacant Positions"
+                FROM jobs_job j
+                JOIN jobs_businessunit bu ON j.unit_id = bu.id
+                LEFT JOIN candidates_offer o ON o.job_id = j.id AND o.offer_status = 'Accepted'
+                WHERE j.open_status = TRUE
+                AND j.unit_id IN {unit}
+                GROUP BY bu.short_name, j.posting_date, j.job_title, j.job_location, j.no_of_position, j.department
+                ORDER BY bu.short_name, j.posting_date;
+            '''
+
+            # Execute the query and fetch the results
+            with connection.cursor() as cursor:
+                cursor.execute(query)
+                result = cursor.fetchall()
+                description = cursor.description
+                headers = [d[0] for d in description]
+
+                df = pd.DataFrame(result, columns=headers)
+
+                # Create the pivot table
+                df_pivot = pd.pivot_table(
+                    df,
+                    values='Vacant Positions',
+                    index=['Unit', 'department', 'POSITION', 'Location', 'Lead Time'],
+                    aggfunc='sum',
+                    margins=True,
+                    margins_name='Total',
+                    fill_value=0
+                )
+
+                # Reset index and convert to list for PDF table
+                sorted_df_pivot = df_pivot.sort_index()
+                pivot_table = sorted_df_pivot.reset_index().values.tolist()
+
+                # Prepare the table headers
+                column_list = sorted_df_pivot.columns.to_list()
+                column_list.insert(0, "Unit")
+                column_list.insert(1, "Department")
+                column_list.insert(2, "Position")
+                column_list.insert(3, 'Location')
+                column_list.insert(4, 'Lead Time (In Days)')
+
+                pivot_table = [column_list] + pivot_table
+
+                styles = getSampleStyleSheet()
+                dept_summary_elements = []
+
+                # Title style
+                title_style = ParagraphStyle(
+                    name='TitleStyle',
+                    fontName="Times-Bold",
+                    fontSize=18,
+                    leading=20,
+                    textColor=colors.black,
+                    alignment=1,  # Center alignment
+                )
+                title = "<br/>Vacancy Report"
+                dept_summary_elements.append(Paragraph(title, title_style))
+                dept_summary_elements.append(Spacer(1, 15))
+
+                # Convert text to paragraphs for word wrapping (for body rows)
+                styleN = ParagraphStyle(
+                    name='styleN',
+                    fontSize=11,
+                    leading=12,
+                    fontName='Times-Roman',
+                    textColor=colors.black
+                )
+
+                headerStyleN = ParagraphStyle(
+                    name='styleN',
+                    fontSize=11,
+                    leading=12,
+                    fontName='Times-Bold',
+                    textColor=colors.black,
+                    alignment=1
+                )
+
+                # Separate the header from the rest of the data
+                header = pivot_table[0]  # First row (header)
+                data = pivot_table[1:]  # The rest of the data
+
+                # Wrap the data rows
+                header_wrapped = [Paragraph(str(cell), headerStyleN) for cell in header]
+
+                data_wrapped = [
+                    [Paragraph(cell, styleN) if isinstance(cell, str) else cell for cell in row]
+                    for row in data
+                ]
+
+                # Rebuild the table with the header and wrapped data
+                final_table = [header_wrapped] + data_wrapped
+
+                # Define the table and column widths
+                dept_summary_table = Table(
+                    final_table,
+                    colWidths=[.8 * inch, 1.3 * inch, 1.8 * inch, 2.3 * inch, 0.9 * inch, 1 * inch]
+                )
+
+                # Get the span styles
+                span_styles = auto_span_units_and_departments(pivot_table)
+
+                # Define the table style, including bold for header
+                dept_summary_table.setStyle(TableStyle([
+                    ('TEXTCOLOR', (0, 0), (-1, 0), colors.black),
+                    ('BACKGROUND', (0, 0), (-1, 0), colors.lightblue),  # Header background color
+                    ('ALIGN', (0, 0), (-1, -1), 'CENTER'),
+                    ('VALIGN', (0, 0), (-1, -1), 'MIDDLE'),
+                    ('FONTNAME', (0, 0), (-1, 0), 'Times-Bold'),  # Bold font for the header
+                    ('FONTNAME', (0, 1), (-1, -1), 'Times-Roman'),  # Normal font for body rows
+                    ('FONTSIZE', (0, 0), (-1, 0), 12),  # Slightly larger font for header
+                    ('FONTSIZE', (0, 1), (-1, -1), 11),  # Regular font size for body rows
+                    ('BOTTOMPADDING', (0, 0), (-1, 0), 10),
+                    ('TOPPADDING', (0, 0), (-1, 0), 6),
+                    ('GRID', (0, 0), (-1, -1), 0.75, colors.black),
+                    ('BACKGROUND', (0, -1), (-1, -1), colors.lightgrey),
+                    ('VALIGN', (0, 0), (-1, -1), 'MIDDLE'),
+                    ('ALIGN', (2, 0), (3, -1), 'LEFT'),
+                    ('SPAN', (0, -1), (4, -1)),
+                ] + span_styles))
+
+                # Add table to the elements
+                
+                dept_summary_elements.append(dept_summary_table)
+
+                # Generate PDF with updated layout
+                buffer = BytesIO()
+                doc = SimpleDocTemplate(buffer, pagesize=A4, rightMargin=20, leftMargin=20, topMargin=40, bottomMargin=40)
+                doc.title = "Vacancy Report"
+                doc.build(dept_summary_elements, onFirstPage=onFirstPage)
+
+                # Send PDF as HTTP response
+                buffer.seek(0)
+                response = HttpResponse(buffer, content_type='application/pdf')
+                response['Content-Disposition'] = 'inline; filename="Vacancy_Report.pdf"'
+                return response
+        else:
+            messages.warning(request, "No units selected or form validation failed.")
+            form = JobReportForm()
+    else:
+        form = JobReportForm()
+
+    return render(request, "documents/jobVacancyReport.html", {'form': form})
 
 
-        # Write headers with formatting
-        for col_num, header in enumerate(headers, start=1):
-            cell = ws.cell(row=3, column=col_num)
-            cell.value = header
-            cell.font = header_font
-            cell.alignment = text_alignment
-            cell.fill = header_fill
-            cell.border = thin_border
-        
-        # Write data with border formatting
-        for row_num, data_row in enumerate(body, start=4):
-            for col_num, data in enumerate(data_row, start=1):
-                if isinstance(data, (datetime.datetime, uuid.UUID)):
-                    data = str(data)
-                if isinstance(data, (dict, list)):
-                    data = json.dumps(data)
-                cell = ws.cell(row=row_num, column=col_num)
-                cell.value = data
-                cell.font = cell_font
-                cell.alignment = text_alignment
-                cell.border = thin_border
 
-        # Auto fit columns
-        for col_num in range(1, len(headers) + 1):
-            max_length = max(len(str(ws.cell(row=row, column=col_num).value)) for row in range(1, len(body) + 3))
-            ws.column_dimensions[get_column_letter(col_num)].width = max_length + 2
+def onFirstPage(canvas, doc):
+    settings_dir = os.path.dirname(__file__)
+    project_root = os.path.abspath(os.path.dirname(settings_dir))
+    logo_path = os.path.join(project_root, 'logo.png')
+    
+    # Add logo to the first page
+    canvas.drawImage(logo_path, 270, 780, width=35.62, height=45.32, mask='auto')
 
-        # Save the workbook to the output
-        wb.save(output)
-        output.seek(0)
-        return output
+
+def auto_span_units_and_departments(pivot_table):
+    unit_span_styles = []
+    department_span_styles = []
+    
+    unit_col = [row[0] for row in pivot_table[1:]]  # Exclude header
+    department_col = [row[1] for row in pivot_table[1:]]  # Exclude header
+
+    start_unit_idx = 1
+    start_dept_idx = 1
+    
+    # For unit spans
+    for i in range(1, len(unit_col)):
+        if unit_col[i] != unit_col[i - 1]:
+            unit_span_styles.append(('SPAN', (0, start_unit_idx), (0, i)))  # Span Unit column
+            start_unit_idx = i + 1
+    unit_span_styles.append(('SPAN', (0, start_unit_idx), (0, len(unit_col))))  # Span last group for Unit
+
+    # For department spans (nested under Unit)
+    for i in range(1, len(department_col)):
+        if department_col[i] != department_col[i - 1] or unit_col[i] != unit_col[i - 1]:
+            department_span_styles.append(('SPAN', (1, start_dept_idx), (1, i)))  # Span Department column
+            start_dept_idx = i + 1
+    department_span_styles.append(('SPAN', (1, start_dept_idx), (1, len(department_col))))  # Span last group for Dept
+
+    return unit_span_styles + department_span_styles
+
 

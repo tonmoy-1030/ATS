@@ -2,7 +2,7 @@
 
 {% block content %}
   <div class="container mt-5">
-    <div class="card w-50 mx-auto">
+    <div class="card mx-auto">
       <div class="card-body">
         <h5 class="card-title"><strong>Job Title: </strong>{{ object.job_title }}</h5>
         <p class="card-text">Requisition Date: {{ object.posting_date | date:"M d, Y" }}</p>
@@ -53,7 +53,7 @@
     </div>
   </div>
   <div class="container mt-3">
-    <div class="card w-50 mx-auto">
+    <div class="card mx-auto">
       <div class="card-body">
         <a href="{% url 'jobs:job_update' object.id %}" class="btn btn-secondary">Update</a>
       </div>

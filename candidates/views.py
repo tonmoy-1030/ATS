@@ -392,7 +392,12 @@ class JobOfferUpdateView(UpdateView):
         return redirect(self.get_success_url())
     
     def get_success_url(self):
-        return reverse('jobs:final_interview_details', kwargs={'pk': self.object.candidate.final_interview.id})
+        # Try to get 'next' parameter from the GET request
+        next_url = self.request.GET.get('next')
+        # If 'next' exists, redirect to it, otherwise redirect to a default fallback
+        if next_url:
+            return next_url
+        return reverse('default_fallback')
    
 class OfferDeleteview(DeleteView):
     model = Offer
@@ -428,7 +433,7 @@ class OfferListView(ListView):
         
 
 
-def CandidateDtailsUpdate(request):
+def CandidateDetailsUpdate(request):
     # Define field IDs or keys from your Google Form responses
     FIELD_IDS = {
         'name':'7d9ec32d',

@@ -4,6 +4,7 @@ from employees.models import Employee, EmployeeConfirmation, TransferOrder, Post
 from django_select2 import forms as s2forms
 from django import forms
 from candidates.models import Offer
+from jobs.models import BusinessUnit
 
 
 
@@ -196,14 +197,10 @@ class AppointmentLetterFilter(django_filters.FilterSet):
         
 
 class CandidateDetailsForm(forms.Form):
-    BUSINESS_UNIT = [
-        ('Consumer Division', 'Consumer'),
-        ('T.K. Food Products Distribution Limited', 'T.K. Food'),
-        ('Prime Pusti Limited', 'PPL'),
-        ('Prime Cosmetics Limited', 'PCL'),
-        ('Pusti Glory', 'Glory'),
-    ]
-    unit = forms.MultipleChoiceField(choices=BUSINESS_UNIT, widget=forms.SelectMultiple(attrs={'class': 'form-select', 'id': 'id_unit'}))
+    businessUnit = BusinessUnit.objects.all()
+    unitList = [(unit.id, unit.short_name) for unit in businessUnit] 
+
+    unit = forms.MultipleChoiceField(choices=unitList, widget=forms.SelectMultiple(attrs={'class': 'form-select', 'id': 'id_unit'}))
     from_date = forms.DateField(
         widget=forms.DateInput(attrs={'class': 'form-control', 'type': 'date'}),
         label="From Date"
@@ -212,4 +209,11 @@ class CandidateDetailsForm(forms.Form):
         widget=forms.DateInput(attrs={'class': 'form-control', 'type': 'date'}),
         label="To Date"
     )
-    
+
+
+class JobReportForm(forms.Form):
+    businessUnit = BusinessUnit.objects.all()
+    unitList = [(unit.id, unit.short_name) for unit in businessUnit] 
+
+    unit = forms.MultipleChoiceField(choices=unitList, widget=forms.SelectMultiple(attrs={'class': 'form-select', 'id': 'id_unit'}))
+   

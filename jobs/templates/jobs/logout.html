@@ -1,0 +1,15 @@
+{%extends "jobs/base.html"%}
+{%block content%}
+{% load crispy_forms_tags %}
+<div class="container" style="max-width: 600px;">
+    <form action="{% url 'jobs:logout' %}" method="post">
+        {% csrf_token %}
+        <fieldset>
+            <legend class="text-center">Login</legend>
+            Are You want to Logout?
+        </fieldset>
+        <button class="btn btn-primary btn-sm mt-2" type="submit"> Submit</button>
+    </form>
+</div>
+
+{%endblock%}

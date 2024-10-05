@@ -8,7 +8,7 @@
     {% if offer_exists %}
     <p>An offer has already been made for this candidate. Do you want to update or delete ?</p> 
     <div class="d-inline-block">
-        <a class="btn btn-outline-danger btn-sm" href="{% url 'candidates:offer-update' offer_exists.id %}">Update</a> or
+        <a class="btn btn-outline-danger btn-sm" href="{% url 'candidates:offer-update' offer_exists.id %}?next={{ request.path }}">Update</a> or
         <form id="delete-form-{{ offer_exists.id }}" class="d-inline-block" method="post" action="{% url 'candidates:offer-delete' offer_exists.id %}">
             {% csrf_token %}
             <button type="button" class="btn btn-outline-danger btn-sm delete-button"
