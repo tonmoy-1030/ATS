@@ -36,7 +36,7 @@ $RECYCLE.BIN/
 */migrations/__pycache__/
 */migrations/*.pyc
 
-credentials.json
+employees/utls/credentials.json
 employees/utls/token.json
 candidates/utls/candidates_token.json
-candidates/utls/candidates.json
+candidates/utls/credentials.json
