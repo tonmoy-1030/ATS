@@ -44,3 +44,4 @@ employees/utls/google_form_Employees.py
 candidates/utls/google_form_Candidates.py
 
 *.json
+.git
