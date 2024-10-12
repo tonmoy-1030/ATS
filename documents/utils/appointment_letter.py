@@ -22,9 +22,9 @@ def appointment_letter(appointment_info, pdf_file):
                                 <b>{appointment_info['name']}</b><br/>                                                                         		
                                 Vill: {appointment_info['permanent_vill']} P.O: {appointment_info['permanent_PO']}<br/> 
                                 P.S: {appointment_info['permanent_PS']} Dist: {appointment_info['permanent_dist']}<br/> <br/>
-                                <b><u>Appointment - {appointment_info['designation']} for {appointment_info['unit']}</u></b><br/><br/>
+                                <b><u>Appointment - {appointment_info['designation']} {appointment_info['unit']}</u></b><br/><br/>
                                 <b>Dear Mr. {appointment_info['name']},</b><br/>
-                                We are pleased to appoint you as <b>{appointment_info['designation']}</b> in <b>{appointment_info['unit']},</b>
+                                We are pleased to appoint you as <b>{appointment_info['designation']}</b> {appointment_info['unit']} ,
                                 T.K. Bhaban ({appointment_info['floor_location']} Floor), 13 Kawran Bazar, Dhaka -1215 under the following terms:
 
                                """,
@@ -232,9 +232,9 @@ def OnLaterPager(canvas, doc, appointment_info):
                                 <b>{appointment_info['name']}</b><br/>                                                                         		
                                 Vill: {appointment_info['permanent_vill']} P.O: {appointment_info['permanent_PO']}<br/> 
                                 P.S: {appointment_info['permanent_PS']} Dist: {appointment_info['permanent_dist']}<br/> <br/>
-                                <b><u>Appointment - {appointment_info['designation']} for {appointment_info['unit']}</u></b><br/><br/>
+                                <b><u>Appointment - {appointment_info['designation']} {appointment_info['unit']}</u></b><br/><br/>
                                 <b>Dear Mr. {appointment_info['name']},</b><br/>
-                                We are pleased to appoint you as <b>{appointment_info['designation']}</b> in <b>{appointment_info['unit']},</b>
+                                We are pleased to appoint you as <b>{appointment_info['designation']}</b> {appointment_info['unit']},
                                 T.K. Bhaban ({appointment_info['floor_location']} Floor), 13 Kawran Bazar, Dhaka -1215 under the following terms:
 
                                """,
@@ -247,9 +247,14 @@ def OnLaterPager(canvas, doc, appointment_info):
     front_text_frame = Frame(x1=1*inch, y1=6.8*inch, width=6.5*inch, height=2.8*inch, showBoundary=0)
     front_text_frame.addFromList(flowables, canv=canvas)
     
+    if appointment_info['director_signature'] == None:
+        director_signature_ = ""
+    else:
+        director_signature_ = f"{appointment_info['director_signature']} .........................."
+    
     # Director Signature
     director_signature = Frame(x1=4*inch, y1=8.7*inch, width=3.5*inch, height=.5*inch, showBoundary=0)
-    director_signature.addFromList([Paragraph(f"{appointment_info['director_signature']} ..............................", normal_style)], canvas)
+    director_signature.addFromList([Paragraph(f"{director_signature_}", normal_style)], canvas)
 
         
     # 1. Designation

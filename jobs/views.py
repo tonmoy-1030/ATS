@@ -1,4 +1,5 @@
 
+from typing import Any
 from django.shortcuts import render, redirect, get_object_or_404
 from django.contrib.messages.views import SuccessMessageMixin
 from .models import Job, InterviewSchedule, FinalInterviewSchedule, BusinessUnit
@@ -80,6 +81,9 @@ class home( ListView):
         employee_counts_monthly_dict = {employee['unit']: employee['count'] for employee in employees_joined_current_month}
         schedules = InterviewSchedule.objects.filter(interview_date__gte=timezone.now().date()).order_by('-interview_date')
         final_schedules = FinalInterviewSchedule.objects.filter(interview_date__gte=timezone.now().date()).order_by('-interview_date')
+        Total_employee_yearly = Employee.objects.filter(DOJ__year=timezone.now().year).count()
+        Total_employee_monthly = Employee.objects.filter(DOJ__gte=current_month_start).count()
+
         
         for key, value in employee_counts_dict.items():
             unit = BusinessUnit.objects.get(id=key)            
@@ -103,8 +107,67 @@ class home( ListView):
         context['monthly_data'] = monthly_data
         context['schedules'] = schedules
         context['final_schedules'] = final_schedules
+        context['Total_employee_monthly'] = Total_employee_monthly
+        context['Total_employee_yearly'] = Total_employee_yearly
         return context
  
+
+class expands_requisition(ListView):
+    model = Job
+    template_name = 'jobs/expend_requisition.html'
+    
+    def get_context_data(self, **kwargs):
+        context = super().get_context_data(**kwargs)
+        requisitions = Job.objects.filter(open_status=True)
+        grouped_requisitions = defaultdict(list)
+        unit_sums = []
+
+        unit_sums_dict = {}
+
+        for req in requisitions:
+            grouped_requisitions[req.unit].append(req)
+            if req.unit not in unit_sums_dict:
+                unit_sums_dict[req.unit] = {'unit': req.unit, 'total_positions': 0, 'total_filled': 0}
+            unit_sums_dict[req.unit]['total_positions'] += req.no_of_position
+            unit_sums_dict[req.unit]['total_filled'] += req.filled_positions()
+        
+        for unit, sums in unit_sums_dict.items():
+            unit_sums.append(sums)
+
+        context['grouped_requisitions'] = dict(grouped_requisitions)
+        context['unit_sums'] = unit_sums
+        
+        return context
+ 
+    
+class expands_joining_list(ListView):
+    model = Job
+    template_name = 'jobs/expend_joining_list.html'
+    
+    def get_context_data(self, **kwargs):
+        context = super().get_context_data(**kwargs)
+        upcoming_joining = Offer.objects.filter(offer_status='Accepted', joining_date__gte = timezone.now(), candidate__employee__isnull=True).order_by("joining_date", 'candidate__job__unit').distinct()
+        grouped_joining = defaultdict(list)
+        joining_unit_sum = []
+        joining_unit_sum_dict = {}
+        
+        for position in upcoming_joining:
+            grouped_joining[position.job.unit].append(position)
+            
+            if position.job.unit not in joining_unit_sum_dict:
+                joining_unit_sum_dict[position.job.unit] = {'unit':position.job.unit, 'total_number': 0}
+            joining_unit_sum_dict[position.job.unit]['total_number'] = Offer.objects.filter(job__unit=position.job.unit, offer_status='Accepted', joining_date__gte = timezone.now(), candidate__employee__isnull=True).distinct().count()
+            
+        for unit, sums in joining_unit_sum_dict.items():
+            joining_unit_sum.append(sums)
+
+        context['grouped_joining'] = dict(grouped_joining)
+        context['joining_unit_sum'] = joining_unit_sum
+        
+        return context
+    
+
+    
         
 class HeadCountListView(ListView):
     model = Job
@@ -244,7 +307,7 @@ class ShortListedCandidate(ListView):
     def get_queryset(self):
         interview_schedule = get_object_or_404(FinalInterviewSchedule, pk=self.kwargs['pk'])
         jobs = interview_schedule.job.all()        
-        return Candidate.objects.filter(job__in=jobs,
+        return Candidate.objects.filter(interview_schedule__job__in=jobs,
                                         initial_interview_status='Forwarding for the next Interivew') \
                                         .exclude(final_interview__isnull=False).distinct()
     

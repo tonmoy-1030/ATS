@@ -31,11 +31,12 @@ urlpatterns = [
     path('employee/appointment_list/', appointment_letter_list, name='appointment_letter_list'),
     path('employee/appointment_letter/', generate_appointment_letter, name='appointment_letter'),
     path('employees/envelope-list/', employee_list_envelope, name='envelope_list'),
-    path('employees/envelope-list/print/', envelopePrinting, name='envelope_print'),
+    path('employees/envelope-print/', envelopePrinting, name='envelope_print'),
+    path('employees/name-tag-list/', views.employee_list_name_tag, name='name_tag_list'),
+    path('employees/name-tag-list/print/', views.nameTagPrinting, name='name_tag_print'),
     path('report/Candidate_report/', candidateReport, name='Candidate_report'),
     path('report/employee_list/', employeeList, name='employee_download'),
     path('export/jobs/pdf/', views.generate_jobs_pdf, name='export_jobs_pdf'),
-    
     
 ]
 

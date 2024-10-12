@@ -91,8 +91,8 @@ class Education(models.Model):
     institution_highest_degree = models.CharField(max_length=100, blank=True)
     passing_year_highest_degree = models.CharField(max_length=100, null=True, blank=True)
     division_or_gpa_highest_degree = models.CharField(max_length=100, blank=True)
-    professional_degree = models.CharField(max_length=100, blank=True)
-    subject_professional_degree = models.CharField(max_length=100, blank=True)
+    professional_degree = models.CharField(max_length=255, blank=True)
+    subject_professional_degree = models.CharField(max_length=255, blank=True)
     institution_professional_degree = models.CharField(max_length=100, blank=True)
     passing_year_professional_degree = models.CharField(max_length=100, null=True, blank=True)
 

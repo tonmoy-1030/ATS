@@ -1,0 +1,88 @@
+{% extends "jobs/base.html" %}
+{% block title %} Vacancy {% endblock %}
+{%block content%}
+
+<div class="table-responsive mx-auto" style="max-width: 80%; overflow-y: auto;">
+    {% if grouped_requisitions %}
+    <legend class="text-center">Vacant Positions</legend>
+    <table class="table table-bordered table-hover table-sm">
+        <thead class="thead-dark text-center align-middle">
+            <tr>
+                <th></th>
+                <th class="text-nowrap">Date</th>
+                <th class="text-nowrap">Position</th>
+                <th class="text-nowrap">Department</th>
+                <th>Location</th>
+                <th>No of Position</th>
+                <th>Filled Position</th>
+            </tr>
+        </thead>
+        <tbody>
+            {% for unit, reqs in grouped_requisitions.items %}
+            <tr class="unit-row bg-light">
+                <td colspan="5" class="p-2">
+                    <a href="javascript:void(0);" class="unit-toggle text-primary" data-unit="{{ unit|slugify }}"><strong>
+                        <i class="bi bi-plus-square"></i> {{ unit.name }}
+                    </strong></a>
+                </td>
+                <td class="text-center">
+                    <strong>
+                        {% for sum in unit_sums %}
+                            {% if sum.unit == unit %}
+                                {{ sum.total_positions|default:"0" }}
+                            {% endif %}
+                        {% endfor %}
+                    </strong>
+                </td>
+                <td class="text-center">
+                    <strong>
+                        {% for sum in unit_sums %}
+                            {% if sum.unit == unit %}
+                                {{ sum.total_filled|default:"0" }}
+                            {% endif %}
+                        {% endfor %}
+                    </strong>
+                </td>
+            </tr>
+            {% for req in reqs %}
+            <tr class="unit-details unit-{{ unit|slugify }}">    
+                <td><a  href="{% url 'jobs:job_details' req.id %}"><i class="bi bi-view-stacked"></i></a></td>
+                <td class="text-nowrap">{{ req.posting_date }}</td>
+                <td class="text-nowrap">{{ req.job_title }}</td>
+                <td class="text-center">{{ req.department }}</td>
+                <td>{{ req.job_location }}</td>
+                <td class="text-center">{{ req.no_of_position }}</td>
+                <td class="text-center">{{ req.filled_positions|default:"0" }}</td>
+            </tr>
+            {% endfor %}
+           
+            {% endfor %}
+        </tbody>
+    </table>
+    {% else %}
+    <legend class="text-center">No Vacant Position</legend>
+    {% endif %}
+</div>
+{%endblock%}
+
+{% block extra_scripts %}
+
+
+<script>
+    $(document).ready(function () {
+        $('.unit-toggle').click(function () {
+            var unit = $(this).data('unit');
+            var icon = $(this).find('i');
+
+            $('.unit-' + unit).toggle(); 
+
+            if (icon.hasClass('bi-plus-square')) {
+                icon.removeClass('bi-plus-square').addClass('bi-dash-square');
+            } else {
+                icon.removeClass('bi-dash-square').addClass('bi-plus-square');
+            }
+        });
+    });
+</script>
+
+{%endblock%}

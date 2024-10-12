@@ -331,10 +331,28 @@
             </ul>
 
             <div class="sidebar-footer">
-                <a href="#" class="sidebar-link">
-                    <i class="lni lni-auth"></i>
-                    <span>Tonmoy</span>
-                </a>
+                <li class="sidebar-item">
+                    <a href="#" class="sidebar-link collapsed has-dropdown" data-bs-toggle="collapse"
+                        data-bs-target="#account" aria-expanded="false" aria-controls="account">
+                        <i class="bi bi-person-fill" width="32" height="32"></i>
+                        <span>{{user.first_name}}</span>
+                    </a>
+                    <ul id="account" class="sidebar-dropdown list-unstyled collapse" data-bs-parent="#sidebar">
+                        <li class="sidebar-item">
+                            {% if user.is_authenticated %}
+                            <form action="{% url 'jobs:logout' %}" method="post" style="display: inline;">
+                                {% csrf_token %}
+                                <button class="btn sidebar-link" type="submit" style="padding-left: 30px;">
+                                    <i class="bi bi-box-arrow-right"></i> Logout
+                                </button>
+                            </form>
+                            {% else %}
+                            <a href="{% url 'jobs:login' %}"
+                                class="sidebar-link"><i class="bi bi-box-arrow-in-left"></i>Login</a>
+                            {% endif %}
+                        </li>
+                    </ul>
+                </li>
             </div>
         </aside>
         <!-- main-content -->

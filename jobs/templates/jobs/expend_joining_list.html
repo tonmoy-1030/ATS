@@ -1,0 +1,72 @@
+{% extends "jobs/base.html" %}
+{% block title %} Upcoming joining {% endblock %}
+{%block content%}
+
+<div class="table-responsive mx-auto" style="max-width: 80%; overflow-y: auto;">
+        {% if grouped_joining %}
+        <legend class="text-center">Upcoming Joining</legend>
+        <table class="table table-bordered table-hover">
+            <thead class="thead-dark text-center align-middle">
+                <tr>
+                    <th>SL</th>
+                    <th class="text-nowrap">Name</th>
+                    <th class="text-nowrap">Position</th>
+                    <th class="text-nowrap">Department</th>
+                    <th class="doj_changed">DOJ</th>
+                </tr>
+            </thead>
+            <tbody>
+                {% for joining_unit, joinings in grouped_joining.items %}
+                <tr class="joining-unit-row bg-light">
+                    <td colspan="4" class="p-2">
+                        <a href="javascript:void(0);" class="joining-unit-toggle text-primary" data-unit="{{ joining_unit|slugify }}"><strong>
+                            <i class="bi bi-plus-square"></i> {{ joining_unit.name }}
+                        </strong></a>
+                    </td>
+                    <td class="text-center">
+                        <strong>
+                            {% for sum in joining_unit_sum %}
+                                {% if sum.unit == joining_unit %}
+                                    {{ sum.total_number|default:"0" }}
+                                {% endif %}
+                            {% endfor %}
+                        </strong>
+                    </td>
+                </tr>
+                {% for offer in joinings %}
+                <tr class="joining-unit-details joining-unit-{{ joining_unit|slugify }}">
+                    <td class="text-center">{{forloop.counter}}</td>
+                    <td><a
+                            href="{% url 'candidates:candidate-detail' offer.candidate.id %}">{{offer.candidate.name}}</a>
+                    </td>
+                    <td>{{offer.offered_designation}}</td>
+                    <td class="text-center">{{offer.job.department}}</td>
+                    <td>{{offer.joining_date}}</td>
+                </tr>
+                {% endfor %}
+               
+                {% endfor %}
+            </tbody>
+        </table>
+        {% else %}
+        <legend class="text-center">No Vacant Position</legend>
+        {% endif %}
+    </div>
+{%endblock%}
+
+{% block extra_scripts %}
+
+
+<script>
+    $(document).ready(function () {
+        $('.joining-unit-toggle').click(function () {
+            var unit = $(this).data('unit');
+            var icon = $(this).find('i');
+            var header = $('.doj_changed');
+
+            $('.joining-unit-' + unit).toggle(); 
+        });
+    });
+</script>
+
+{%endblock%}

@@ -25,7 +25,7 @@ from .forms import (EmployeeFilter, EmployeeConfirmationFilter,
                     EmployeeConfirmationLetterFilter, PostingLetterFilter,
                     TransferLetterFilter, AppointmentLetterFilter, JobOfferFilter, CandidateDetailsForm, JobReportForm)
 from django.core.paginator import Paginator, EmptyPage, PageNotAnInteger
-from .utils.envelope import create_envelope
+from .utils.envelope import create_envelope, createNameTag
 from django.db import connection
 from io import BytesIO
 from django.http import HttpResponse
@@ -200,7 +200,7 @@ def offer_letter_generator(request):
             'name': offer.candidate.name,
             'designation': offer.offered_designation,
             'joining_date': offer.joining_date,
-            'unit': offer.job.unit.name,
+            'unit': offer.job.unit.factory,
             'vill': offer.candidate.details.permanent_vill,
             'po': offer.candidate.details.permanent_po,
             'ps': offer.candidate.details.permanent_ps,
@@ -594,7 +594,7 @@ def generate_posting_letter(request):
 def is_admin(user):
     return user.is_authenticated and user.is_staff
 
-@user_passes_test(is_admin, login_url='/login', redirect_field_name='next')
+@user_passes_test(is_admin, login_url='/accounts/login', redirect_field_name='next')
 # Employee List for Appointment Letter
 def appointment_letter_list(request):
     
@@ -627,13 +627,17 @@ def generate_appointment_letter(request):
         
         for appointment in appointment_list:
             
-            if appointment.employee.unit == 'Prime Pusti Limited':
+            if appointment.employee.unit.id == 3:
                 policy = "Samuda Group"
-            elif appointment.employee.unit == 'Prime Cosmetics Limited':
+            elif appointment.employee.unit.id == 4:
                 policy = "Samuda Group"   
             else:
                 policy = "T.K. Group"
 
+            if appointment.employee.unit.name == appointment.employee.unit.factory:
+                unit = f"in {appointment.employee.unit.name}"
+            else: 
+                unit = f"for {appointment.employee.unit.name} in {appointment.employee.unit.factory}" 
             reference = f"T.K./{appointment.employee.unit.short_name}/HR/APPT/{appointment.reference_number:02d}/{appointment.issue_date.month:02d}/{timezone.now().year}"            
             
             appointment_data = {
@@ -642,7 +646,7 @@ def generate_appointment_letter(request):
                 "EID": appointment.employee.EID,
                 "name":appointment.employee.name,
                 "designation": appointment.employee.designation,
-                "unit": appointment.employee.unit.name,
+                "unit": unit,
                 "permanent_vill":appointment.employee.details.permanent_vill,
                 "permanent_PO":appointment.employee.details.permanent_po,
                 "permanent_PS":appointment.employee.details.permanent_ps,
@@ -719,7 +723,50 @@ def envelopePrinting(request):
     response['Content-Disposition'] = 'inline; filename="envelope_.pdf"'
     return response
 
- 
+def employee_list_name_tag(request):
+    employee_filter = EmployeeFilter(request.GET, queryset=Employee.objects.all().order_by('id')) 
+    
+    paginator = Paginator(employee_filter.qs, 10)  
+    page_number = request.GET.get('page')
+    try:
+        page_obj = paginator.page(page_number)
+    except PageNotAnInteger:
+        page_obj = paginator.page(1)
+    except EmptyPage:
+        page_obj = paginator.page(paginator.num_pages)
+    
+    return render(request, 'documents/employee_name_tag_form.html', {'filter': employee_filter, 'page_obj': page_obj})
+
+
+def nameTagPrinting(request):
+    merged_buffer = BytesIO()
+    merger = PdfMerger()
+    buffer = BytesIO()
+
+
+    if request.method == "POST":
+        employee_ids = request.POST.getlist('employees_list')
+        employee_list = Employee.objects.filter(id__in=employee_ids)
+        
+        for employee in employee_list:
+            employee_data = {
+                
+                "EID": employee.EID,
+                "name":employee.name,
+                "designation": employee.designation,
+                'doj':employee.DOJ
+            }
+            
+            buffer = BytesIO()
+            createNameTag(file_path=buffer, employee_info=employee_data)
+            buffer.seek(0)
+            merger.append(buffer)
+            
+    merger.write(merged_buffer)
+    merged_buffer.seek(0)
+    response = HttpResponse(merged_buffer, content_type='application/pdf')
+    response['Content-Disposition'] = 'inline; filename="envelope_.pdf"'
+    return response
 
 def candidateReport(request):
     if request.method == "POST":

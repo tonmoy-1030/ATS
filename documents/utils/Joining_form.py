@@ -175,7 +175,7 @@ def onlaterpage(canvas, doc,employee_data):
     
     nameF.addFromList([Paragraph(f"<b>Full Name: {employee_data['name']}</b>", body_normal_style)], canvas)
     
-    # Fathers Informaiton
+    # Fathers Information
     FnameF.addFromList([Paragraph(f"""
                                   <b>Father's Name: {employee_data['father_name']}</b><br/><br/> 
                                   Profession: <br/><br/>
@@ -185,7 +185,7 @@ def onlaterpage(canvas, doc,employee_data):
                                   (Attached the photocopy of NID)
                                 
                                   """, body_normal_style)], canvas)
-    # Mothers Informaiton
+    # Mothers Information
     MnameF.addFromList([Paragraph(f"""
                                   <b>Mother's Name: {employee_data['mother_name']}</b><br/><br/> 
                                   Profession: <br/><br/>

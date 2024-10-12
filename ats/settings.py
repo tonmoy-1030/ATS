@@ -63,7 +63,7 @@ MIDDLEWARE = [
     'django.contrib.messages.middleware.MessageMiddleware',
     'django.middleware.clickjacking.XFrameOptionsMiddleware',
     'django_plotly_dash.middleware.BaseMiddleware',
-    # 'ats.middleware.NoCacheMiddleware'
+    # 'ats.middleware.LoginRequiredMiddleware'
 ]
 
 ROOT_URLCONF = 'ats.urls'

@@ -441,7 +441,7 @@ class EmployeeSalaryInfo(LoginRequiredMixin, UserPassesTestMixin, CreateView):
     form_class = SalaryInfoForm
     template_name = "employees/salary_info.html"
     
-    login_url= '/login'
+    login_url= '/accounts/login'
     redirect_field_name = 'next'
     
     def test_func(self):

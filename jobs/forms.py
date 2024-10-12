@@ -121,8 +121,9 @@ class ScheduleForm(forms.Form):
             self.fields['jobs'].queryset = Job.objects.none()
                 
 class UpdateScheduleForm(forms.ModelForm):
+    
     unit = forms.ChoiceField(
-        choices=[("", "Select a unit")],
+        choices=[],
         widget=forms.Select(attrs={'class': 'form-select', 'id': 'id_unit', "placeholder":"Select Unit"})
     )
     job = forms.ModelMultipleChoiceField(
@@ -144,18 +145,17 @@ class UpdateScheduleForm(forms.ModelForm):
     def __init__(self, *args, **kwargs):
         super().__init__(*args, **kwargs)
 
-        self.fields['unit'].choices += [
-            (unit_id, unit_name) for (unit_id, unit_name) in Job.objects.values_list('unit__id', 'unit__name').distinct()
+        self.fields['unit'].choices = [
+            (interview.job.first().unit.id, interview.job.first().unit.short_name) for interview in InterviewSchedule.objects.filter(id=self.instance.pk)
         ]
 
         if self.instance.pk:
             initial_jobs = self.instance.job.all()
             unit = initial_jobs.first().unit if initial_jobs.exists() else None
             if unit:
-                self.fields['unit'].initial = unit 
-                self.fields['job'].queryset = Job.objects.filter(unit=unit, open_status=True) | initial_jobs
+                self.fields['job'].queryset = (Job.objects.filter(unit=unit, open_status=True) | initial_jobs).distinct()
             else:
-                self.fields['job'].queryset = initial_jobs
+                self.fields['job'].queryset = initial_jobs.distinct()
         elif 'unit' in self.data:
             try:
                 unit = self.data.get('unit')
@@ -171,7 +171,7 @@ class UpdateScheduleForm(forms.ModelForm):
             
 class UpdateFinalScheduleForm(forms.ModelForm):
     unit = forms.ChoiceField(
-        choices=[("", "Select a unit")],
+        choices=[],
         widget=forms.Select(attrs={'class': 'form-select', 'id': 'id_unit', "placeholder":"Select Unit"})
     )
     job = forms.ModelMultipleChoiceField(
@@ -194,17 +194,16 @@ class UpdateFinalScheduleForm(forms.ModelForm):
         super().__init__(*args, **kwargs)
 
         self.fields['unit'].choices += [
-            (unit, unit) for unit in Job.objects.values_list('unit', flat=True).distinct()
+            (interview.job.first().unit.id, interview.job.first().unit.short_name) for interview in FinalInterviewSchedule.objects.filter(id=self.instance.pk)
         ]
 
         if self.instance.pk:
             initial_jobs = self.instance.job.all()
             unit = initial_jobs.first().unit if initial_jobs.exists() else None
             if unit:
-                self.fields['unit'].initial = unit 
-                self.fields['job'].queryset = Job.objects.filter(unit=unit, open_status=True) | initial_jobs
+                self.fields['job'].queryset = (Job.objects.filter(unit=unit, open_status=True) | initial_jobs).distinct()
             else:
-                self.fields['job'].queryset = initial_jobs
+                self.fields['job'].queryset = initial_jobs.distinct()
         elif 'unit' in self.data:
             try:
                 unit = self.data.get('unit')

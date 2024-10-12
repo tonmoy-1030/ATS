@@ -18,8 +18,7 @@ app_name = 'jobs'
 
 urlpatterns = [
     path('', home.as_view(), name='home'),
-    path('login/', auth_view.LoginView.as_view(template_name='jobs/login.html'), name='login'),
-    path('logout_page/', views.logoutPage, name='logout_page'),    
+    path('accounts/login/', auth_view.LoginView.as_view(template_name='jobs/login.html'), name='login'),    
     path('logout/', auth_view.LogoutView.as_view(template_name='jobs/logout.html'), name='logout'),
     path('headcount/all', HeadCountListView.as_view(), name='headcount-list'),
     path('headcount/new',HeadcountCreateview.as_view(), name='create-headcount'),
@@ -36,5 +35,8 @@ urlpatterns = [
     path('initial/schedule/<int:pk>', ScheduleUpdateView.as_view(), name='update_schedule'),
     path('final/schedule/<int:pk>', FinalScheduleUpdateView.as_view(), name='update_final_schedule'),
     path('ajax/load-jobs/', views.load_jobs, name='ajax_load_jobs'),
+    path('job/expend/vacancy', views.expands_requisition.as_view(), name='expend_requisition'),
+    path('job/expend/joining', views.expands_joining_list.as_view(), name='expend_joining'),
+    
 
 ]   
