@@ -18,7 +18,6 @@ class TextConverter:
         extracted_text = []
         reader = PdfReader(path)
         for page in reader.pages:
-            print(page.extract_text())
             non_empty_lines = TextConverter._split_and_filter_lines(page.extract_text())
             extracted_text.extend(non_empty_lines)
         return extracted_text
