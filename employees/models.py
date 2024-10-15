@@ -215,7 +215,7 @@ class TransferOrder(models.Model):
 
     class Meta:
         constraints = [
-            models.UniqueConstraint(fields=['employee', 'issue_date'], name='unique_entry')
+            models.UniqueConstraint(fields=['employee', 'issue_date'], name='unique_transfer_entry')
         ]
     
     def __str__(self):
@@ -267,7 +267,7 @@ class PostingOrder(models.Model):
 
     class Meta:
         constraints = [
-            models.UniqueConstraint(fields=['employee', 'issue_date'], name='unique_entry')
+            models.UniqueConstraint(fields=['employee', 'issue_date'], name='unique_posting_entry')
         ]
     
     def __str__(self):
