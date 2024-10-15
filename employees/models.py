@@ -210,9 +210,14 @@ class TransferOrder(models.Model):
     new_under_region_zone_type = models.CharField(max_length=100, choices=NEW_LOCATION_CHOICES, null=False, blank=True)
     new_designation = models.CharField(max_length=100, null=True, blank=True)
     report_to = models.CharField(max_length=255, null=False)
-    effective_date = models.DateField(null=False)
+    effective_date = models.DateField(null=False, blank=False)
     reference_number = models.IntegerField(blank=True, null=True)
 
+    class Meta:
+        constraints = [
+            models.UniqueConstraint(fields=['employee', 'issue_date'], name='unique_entry')
+        ]
+    
     def __str__(self):
         return f"{self.employee.EID}-{self.employee.name}"  
     
@@ -257,9 +262,14 @@ class PostingOrder(models.Model):
     new_under_region_zone = models.CharField(max_length=100, null=True, blank=True)
     new_under_region_zone_type = models.CharField(max_length=100, choices=NEW_LOCATION_CHOICES, null=True, blank=True)
     report_to = models.CharField(max_length=255, null=False)
-    effective_date = models.DateField(null=True, blank=True)
+    effective_date = models.DateField(null=False, blank=False)
     reference_number = models.IntegerField(blank=True, null=True)
 
+    class Meta:
+        constraints = [
+            models.UniqueConstraint(fields=['employee', 'issue_date'], name='unique_entry')
+        ]
+    
     def __str__(self):
         return f"{self.employee.EID}-{self.employee.name}"  
     
