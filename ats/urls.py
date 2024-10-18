@@ -24,6 +24,7 @@ urlpatterns = [
     path('', include('documents.urls', namespace='documents')),
     path('', include('employees.urls', namespace='employees')),
     path('', include('dashboard.urls', namespace='dashboard')),
+    path('', include('report.urls', namespace='report')),
     path('', include('leave.urls', namespace='leave')),
     path("select2/", include("django_select2.urls")),
     path('explorer/', include('explorer.urls')),
