@@ -31,6 +31,9 @@ import logging
 import time
 from requests.exceptions import RequestException
 from employees.models import Employee
+from .utls.google_sheet_Candidates import candidateDate
+from datetime import datetime            
+
 
 TextConverter = TextConverter()
 DataExtraction = DataExtraction()
@@ -430,103 +433,105 @@ class OfferListView(ListView):
         
         context['employee_offer_ids'] = employee_offer_ids
         return context
-        
-
 
 def CandidateDetailsUpdate(request):
     # Define field IDs or keys from your Google Form responses
     FIELD_IDS = {
-        'name':'7d9ec32d',
-        'BLOOD_GROUP': '26d72e71',
-        'DOB': '3f4e91ca',
-        'MARITIAL_STATUS': '12902ce9',
-        'CURRENT_DESIGNATION': '015bb620',
-        'CURRENT_ORGANIZATION': '5952f19c',
-        'TOTAL_EXPERIENCE': '4238900e',
-        'PRESENT_VILL': '67cf7b83',
-        'PRESENT_PO': '09d3b458',
-        'PRESENT_PS': '0a60312d',
-        'PRESENT_DISTRICT': '29a22617',
-        'PERMANENT_VILL': '5f565dc3',
-        'PERMANENT_PO': '00361481',
-        'PERMANENT_PS': '7ae28ff2',
-        'PERMANENT_DISTRICT': '0e2f9ae0',
-        'HIGHEST_DEGREE': '5fecbdb0',
-        'DEGREE_NAME': '570d00c1',
-        'SUBJECT': '595dbb5d',
-        'PASSING_YEAR': '7b1cba84',
-        'INISTITUTION': '24be9190',
-        'CGPA': '75657773',
-        'ANY_PROFESSIONAL_DEGREE': '33272ec1',
-        'PROFESSIONAL_DEGREE': '00ad05c1',
-        'PROFESSIONAL_SUBJECT': '2fa08dc0',
-        'PROFESSIONAL_INISTITUTION': '03044b81',
-        'PROFESSIONAL_PASSING_YEAR': '46723c06',
-        'NID': '68983dc3',
-        'religion': '4a70d0c4', 
-        'email':  '47fbaf0f',
+        'name': 'Name',
+        'BLOOD_GROUP': 'Blood Group',
+        'DOB': 'Date of Birth',
+        'MARITIAL_STATUS': 'Marital Status',
+        'CURRENT_DESIGNATION': 'Current Designation',
+        'CURRENT_ORGANIZATION': 'Current Organization',
+        'TOTAL_EXPERIENCE': 'Total Experience',
+        'PRESENT_VILL': 'Present Vill',
+        'PRESENT_PO': 'P.O',
+        'PRESENT_PS': 'P.S',
+        'PRESENT_DISTRICT': 'Present District',
+        'PERMANENT_VILL': 'Permanent Vill',
+        'PERMANENT_PO': 'P.O',
+        'PERMANENT_PS': 'P.S',
+        'PERMANENT_DISTRICT': 'Permanent District',
+        'HIGHEST_DEGREE': 'Highest Degree',
+        'DEGREE_NAME': 'Degree Name',
+        'SUBJECT': 'Subject',
+        'PASSING_YEAR': 'Passing Year',
+        'INISTITUTION': 'Institution',
+        'CGPA': 'Division/GPA',
+        'ANY_PROFESSIONAL_DEGREE': 'Do you have any Professional Degree?',
+        'PROFESSIONAL_DEGREE': 'Professional Degree',
+        'PROFESSIONAL_SUBJECT': 'Subject',
+        'PROFESSIONAL_INISTITUTION': 'Institution',
+        'PROFESSIONAL_PASSING_YEAR': 'Passing Year',
+        'NID': 'NID No.',
+        'religion': 'Religion',
+        'email': 'Email'
     }
 
-    form_id = "1p1PLHd3_ywCkAYKVT9_b0pP4Mp1GWnTmKnCqZEV8Rwc"
-
-    service = get_authenticated_service()
-    responses = get_form_responses(service, form_id)
-
     alert_messages = []
+    candidate_data = candidateDate()  # Fetch data from Google Sheet
+    if candidate_data:
 
-    if responses:
+        for mobile, details in candidate_data.items():
+            try:
+                candidate = Candidate.objects.filter(mobile=mobile).last()
 
-        processed_responses = process_responses(responses)
-        for candidate_detail_list in processed_responses:
-            for mobile, details in candidate_detail_list.items():
-                try:
-                    candidate = Candidate.objects.filter(mobile=mobile).last()
-                    if candidate:
-                        if not hasattr(candidate, 'details'):
-                            CandidatesDetails.objects.create(candidate=candidate)
-                        
-                        # Update CandidatesDetails object with form responses
-                        details_obj = candidate.details
-                        candidate.email = details.get(FIELD_IDS['email'], "")
-                        details_obj.present_vill = details.get(FIELD_IDS['PRESENT_VILL'], "")
-                        details_obj.present_po = details.get(FIELD_IDS['PRESENT_PO'], "")
-                        details_obj.present_ps = details.get(FIELD_IDS['PRESENT_PS'], "")
-                        details_obj.present_dist = details.get(FIELD_IDS['PRESENT_DISTRICT'], "")
-                        details_obj.permanent_vill = details.get(FIELD_IDS['PERMANENT_VILL'], "")
-                        details_obj.permanent_po = details.get(FIELD_IDS['PERMANENT_PO'], "")
-                        details_obj.permanent_ps = details.get(FIELD_IDS['PERMANENT_PS'], "")
-                        details_obj.permanent_dist = details.get(FIELD_IDS['PERMANENT_DISTRICT'], "")
-                        details_obj.date_of_birth = details.get(FIELD_IDS['DOB'], "")
-                        details_obj.blood_group = details.get(FIELD_IDS['BLOOD_GROUP'], "")
-                        details_obj.marital_status = details.get(FIELD_IDS['MARITIAL_STATUS'], "")
-                        details_obj.current_designation = details.get(FIELD_IDS['CURRENT_DESIGNATION'], "")
-                        details_obj.current_organization = details.get(FIELD_IDS['CURRENT_ORGANIZATION'], "")
-                        details_obj.total_experience = details.get(FIELD_IDS['TOTAL_EXPERIENCE'], "")
-                        details_obj.highest_degree = details.get(FIELD_IDS['HIGHEST_DEGREE'], "")
-                        details_obj.degree_name = details.get(FIELD_IDS['DEGREE_NAME'], "")
-                        details_obj.subject_highest_degree = details.get(FIELD_IDS['SUBJECT'], "")
-                        details_obj.passing_year_highest_degree = details.get(FIELD_IDS['PASSING_YEAR'], "")
-                        details_obj.institution_highest_degree = details.get(FIELD_IDS['INISTITUTION'], "")
-                        details_obj.division_or_gpa_highest_degree = details.get(FIELD_IDS['CGPA'], "")
-                        details_obj.professional_degree = details.get(FIELD_IDS['PROFESSIONAL_DEGREE'], "")
-                        details_obj.subject_professional_degree = details.get(FIELD_IDS['PROFESSIONAL_SUBJECT'], "")
-                        details_obj.institution_professional_degree = details.get(FIELD_IDS['PROFESSIONAL_INISTITUTION'], "")
-                        details_obj.passing_year_professional_degree = details.get(FIELD_IDS['PROFESSIONAL_PASSING_YEAR'], "")
-                        details_obj.nid = details.get(FIELD_IDS['NID'], "")
-                        details_obj.religion = details.get(FIELD_IDS['religion'], "")
-                        candidate.email = details.get(FIELD_IDS['email'], "")
-                        details_obj.save()
-                        candidate.save()
-                    
-                        # alert_messages.append(f"Details updated for candidate with mobile number {mobile}")
+                if candidate:
+                    if not hasattr(candidate, 'details'):
+                        CandidatesDetails.objects.create(candidate=candidate)
+
+                    # Parse Date of Birth with the correct format (MM/DD/YYYY)
+                    dob_str = details.get(FIELD_IDS['DOB'], "")
+                    if dob_str:
+                        try:
+                            # Assuming the date format is MM/DD/YYYY
+                            dob = datetime.strptime(dob_str, "%m/%d/%Y").date()
+                        except ValueError:
+                            alert_messages.append(f"Invalid date format for {mobile}: {dob_str}")
+                            continue
                     else:
-                        alert_messages.append(f"Candidate with mobile number {mobile}-{ details.get(FIELD_IDS['name'], "")} not found.")
-                
-                except Candidate.DoesNotExist:
-                    alert_messages.append(f"Candidate with mobile number {mobile}-{ details.get(FIELD_IDS['name'], "")} not found.")
-                except Exception as e:
-                    alert_messages.append(f"Error processing details for {mobile}: {e}")
-    
+                        dob = None
+
+                    # Update CandidateDetails object with form responses
+                    details_obj = candidate.details
+                    candidate.email = details.get(FIELD_IDS['email'], "")
+                    details_obj.present_vill = details.get(FIELD_IDS['PRESENT_VILL'], "")
+                    details_obj.present_po = details.get(FIELD_IDS['PRESENT_PO'], "")
+                    details_obj.present_ps = details.get(FIELD_IDS['PRESENT_PS'], "")
+                    details_obj.present_dist = details.get(FIELD_IDS['PRESENT_DISTRICT'], "")
+                    details_obj.permanent_vill = details.get(FIELD_IDS['PERMANENT_VILL'], "")
+                    details_obj.permanent_po = details.get(FIELD_IDS['PERMANENT_PO'], "")
+                    details_obj.permanent_ps = details.get(FIELD_IDS['PERMANENT_PS'], "")
+                    details_obj.permanent_dist = details.get(FIELD_IDS['PERMANENT_DISTRICT'], "")
+                    details_obj.date_of_birth = dob
+                    details_obj.blood_group = details.get(FIELD_IDS['BLOOD_GROUP'], "")
+                    details_obj.marital_status = details.get(FIELD_IDS['MARITIAL_STATUS'], "")
+                    details_obj.current_designation = details.get(FIELD_IDS['CURRENT_DESIGNATION'], "")
+                    details_obj.current_organization = details.get(FIELD_IDS['CURRENT_ORGANIZATION'], "")
+                    details_obj.total_experience = details.get(FIELD_IDS['TOTAL_EXPERIENCE'], "")
+                    details_obj.highest_degree = details.get(FIELD_IDS['HIGHEST_DEGREE'], "")
+                    details_obj.degree_name = details.get(FIELD_IDS['DEGREE_NAME'], "")
+                    details_obj.subject_highest_degree = details.get(FIELD_IDS['SUBJECT'], "")
+                    details_obj.passing_year_highest_degree = details.get(FIELD_IDS['PASSING_YEAR'], "")
+                    details_obj.institution_highest_degree = details.get(FIELD_IDS['INISTITUTION'], "")
+                    details_obj.division_or_gpa_highest_degree = details.get(FIELD_IDS['CGPA'], "")
+                    details_obj.professional_degree = details.get(FIELD_IDS['PROFESSIONAL_DEGREE'], "")
+                    details_obj.subject_professional_degree = details.get(FIELD_IDS['PROFESSIONAL_SUBJECT'], "")
+                    details_obj.institution_professional_degree = details.get(FIELD_IDS['PROFESSIONAL_INISTITUTION'], "")
+                    details_obj.passing_year_professional_degree = details.get(FIELD_IDS['PROFESSIONAL_PASSING_YEAR'], "")
+                    details_obj.nid = details.get(FIELD_IDS['NID'], "")
+                    details_obj.religion = details.get(FIELD_IDS['religion'], "")
+                    details_obj.save()
+                    candidate.save()
+
+                else:
+                    alert_messages.append(f"Candidate with mobile number {mobile}-{details.get(FIELD_IDS['name'], '')} not found.")
+        
+            except Candidate.DoesNotExist:
+                alert_messages.append(f"Candidate with mobile number {mobile}-{details.get(FIELD_IDS['name'], '')} not found.")
+            except Exception as e:
+                alert_messages.append(f"Error processing details for {mobile}: {e}")
+
     else:
         alert_messages.append("No responses found from the form.")
 
@@ -534,6 +539,7 @@ def CandidateDetailsUpdate(request):
         alert_messages.append("All Candidate details updated successfully.")
 
     return JsonResponse({'alert_messages': alert_messages})
+
 
 
 class CandidateDetailsListView(ListView):

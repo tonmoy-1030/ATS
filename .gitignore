@@ -38,11 +38,13 @@ $RECYCLE.BIN/
 
 employees/utls/credentials.json
 employees/utls/token.json
-candidates/utls/candidates_token.json
+candidates/utls/token.json
 candidates/utls/credentials.json
 employees/utls/google_form_Employees.py
 candidates/utls/google_form_Candidates.py
+candidates/utls/google_sheet_Candidates.py
+
 
 # Jasper report
-.setting
-.project
+report/resources/.settings/
+report/resources/.project/
