@@ -376,7 +376,7 @@ def confirm_appraisal_form(request):
                 "name":employee.name,
                 "designation": employee.designation,
                 "department": employee.department,
-                "unit": employee.unit.name,
+                "unit": employee.unit.short_name,
                 "location": employee.job_location,
                 "joining_date": employee.DOJ,
                 "confirmation_date": employee.confirmation_date,
@@ -404,13 +404,7 @@ def generate_confirmation_letter(request):
         employee_list = EmployeeConfirmation.objects.filter(id__in=employee_ids)
         
         for employee in employee_list:
-            # Determine unit reference
-            unit_ref = {
-                'Prime Pusti Limited': 'PPL',
-                'Prime Cosmetics Limited': 'PCL',
-                'Consumer Division': 'CONS'
-            }.get(employee.employee.unit, 'UNKNOWN')
-            
+                        
             # Determine status reference
             st = "CON" if employee.status == "Confirmation" else "EXT"
             
@@ -488,18 +482,7 @@ def generate_transfer_letter(request):
         transfer_list = TransferOrder.objects.filter(id__in=employee_ids)
         
         for transfer in transfer_list:
-            if transfer.employee.unit.name == 'Prime Pusti Limited':
-                signature = "Abdullah -Al- Momen Mollah"
-                signature_designation = "Manager, HR & Admin"
-                
-            elif transfer.employee.unit.name == 'Prime Cosmetics Limited':
-                signature = "Abdullah -Al- Momen Mollah"
-                signature_designation = "Manager, HR & Admin"
-                
-            else:
-                signature = "Khaiyam Khan"
-                signature_designation = "Senior Manager, HR & Admin"
-
+            
             reference = f"T.K./{transfer.employee.unit.short_name}/HR/TFR/{transfer.reference_number:02d}/{transfer.issue_date.month:02d}/{timezone.now().year}"            
            
             transfer_data = {
@@ -521,8 +504,8 @@ def generate_transfer_letter(request):
                 "new_designation": transfer.new_designation,
                 "report_to": transfer.report_to,
                 "effective_date": transfer.effective_date,
-                "signature": signature,
-                "signature_designation":signature_designation
+                "signature": transfer.employee.unit.responsible_hr_manager_name,
+                "signature_designation":transfer.employee.unit.responsible_hr_manager_designation
                 
             }
             
@@ -548,18 +531,6 @@ def generate_posting_letter(request):
         posting_list = PostingOrder.objects.filter(id__in=employee_ids)
         
         for posting in posting_list:
-            if posting.employee.unit == 'Prime Pusti Limited':
-                unit_ref = "PPL"
-                signature = "Abdullah -Al- Momen Mollah"
-                signature_designation = "Manager, HR & Admin"
-            elif posting.employee.unit == 'Prime Cosmetics Limited':
-                unit_ref = 'PCL'
-                signature_designation = "Abdullah -Al- Momen Mollah"
-                signature_designation = "Manager, HR & Admin"   
-            else:
-                unit_ref = 'CONS'
-                signature = "Khaiyam Khan"
-                signature_designation = "Senior Manager, HR & Admin"
         
             reference = f"T.K./{posting.employee.unit.short_name}/HR/PO/{posting.reference_number:02d}/{posting.issue_date.month:02d}/{timezone.now().year}"            
            
@@ -576,8 +547,8 @@ def generate_posting_letter(request):
                 "new_region/zone_type": posting.new_under_region_zone_type,
                 "report_to": posting.report_to,
                 "effective_date": posting.effective_date,
-                "signature": signature,
-                "signature_designation": signature_designation
+                "signature": posting.employee.unit.responsible_hr_manager_name,
+                "signature_designation": posting.employee.unit.responsible_hr_manager_designation
                 
             }
             buffer = BytesIO()
@@ -627,17 +598,20 @@ def generate_appointment_letter(request):
         
         for appointment in appointment_list:
             
+            # Determine Policy
             if appointment.employee.unit.id == 3:
                 policy = "Samuda Group"
             elif appointment.employee.unit.id == 4:
                 policy = "Samuda Group"   
             else:
                 policy = "T.K. Group"
-
+                
+            # For Appointment Letter Template    
             if appointment.employee.unit.name == appointment.employee.unit.factory:
                 unit = f"in {appointment.employee.unit.name}"
             else: 
-                unit = f"for {appointment.employee.unit.name} in {appointment.employee.unit.factory}" 
+                unit = f"for {appointment.employee.unit.name} in {appointment.employee.unit.factory}"
+                 
             reference = f"T.K./{appointment.employee.unit.short_name}/HR/APPT/{appointment.reference_number:02d}/{appointment.issue_date.month:02d}/{timezone.now().year}"            
             
             appointment_data = {
@@ -658,7 +632,7 @@ def generate_appointment_letter(request):
                 "salary": format_number(appointment.salary),
                 "in_word": convert_to_words(appointment.salary),
                 "report_to": appointment.report_to,
-                "director_signature": appointment.director_signature,
+                "director_signature": appointment.employee.unit.business_director,
                 "CC1": appointment.CC1,
                 "CC2": appointment.CC2,
                 "CC3": appointment.CC3,
@@ -666,8 +640,8 @@ def generate_appointment_letter(request):
                 "CC5": appointment.CC5,
                 "CC6": appointment.CC6,
                 "CC7": appointment.CC7,
-
             }
+            
             buffer = BytesIO()
             appointment_letter(appointment_data, pdf_file=buffer)
             buffer.seek(0)
@@ -781,7 +755,6 @@ def candidateReport(request):
                 for i in unit:
                     unit = i
                 unit = f'("{unit}")'
-            
             
             
             # Ensure from_date and to_date are not None

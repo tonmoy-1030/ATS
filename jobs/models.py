@@ -8,7 +8,7 @@ class BusinessUnit(models.Model):
     
     BUSINESS_DIRECTOR = [
         ('Business Director (G-1)', 'Business Director (G-1)'),
-        ('Business Director (G-2)', 'Business Director (G-1)'),
+        ('Business Director (G-2)', 'Business Director (G-2)'),
     ]
     
     name = models.CharField(max_length=255, unique=True)
