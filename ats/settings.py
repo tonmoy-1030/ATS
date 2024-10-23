@@ -31,10 +31,10 @@ ALLOWED_HOSTS = ['*']
 # Application definition
 
 INSTALLED_APPS = [
+    'jobs.apps.JobsConfig',
     'leave.apps.LeaveConfig',
     'employees.apps.EmployeesConfig',
     'candidates.apps.CandidatesConfig',
-    'jobs.apps.JobsConfig',
     'report.apps.ReportConfig',
     'documents.apps.DocumentsConfig',
     'django.contrib.admin',
