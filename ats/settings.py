@@ -20,10 +20,10 @@ BASE_DIR = Path(__file__).resolve().parent.parent
 # See https://docs.djangoproject.com/en/5.0/howto/deployment/checklist/
 
 # SECURITY WARNING: keep the secret key used in production secret!
-SECRET_KEY = os.environ.get('ATS_KEY')
+SECRET_KEY = "64e54a781b2c1043c3e87e9c58a1e31e56d2c16e58eb804ca0acf8d711cd0d4b"
 
 # SECURITY WARNING: don't run with debug turned on in production!
-DEBUG = True
+DEBUG = False
 
 ALLOWED_HOSTS = ['*']
 
@@ -64,6 +64,8 @@ MIDDLEWARE = [
     'django.contrib.messages.middleware.MessageMiddleware',
     'django.middleware.clickjacking.XFrameOptionsMiddleware',
     'django_plotly_dash.middleware.BaseMiddleware',
+    "whitenoise.middleware.WhiteNoiseMiddleware",  
+    # 'django.contrib.staticfiles',
     # 'ats.middleware.LoginRequiredMiddleware'
 ]
 
@@ -95,12 +97,19 @@ WSGI_APPLICATION = 'ats.wsgi.application'
 DATABASES = {
     'default': {
         'ENGINE': 'django.db.backends.mysql',
-        'NAME': 'atsdb',
+        'NAME': 'new_atsdb',
         'USER': 'root',
         'PASSWORD': 'Tonmoy1030',
         'HOST':'localhost',
         'PORT':'3306',
     }
+}
+
+STORAGES = {
+# ...
+"staticfiles": {
+    "BACKEND": "whitenoise.storage.CompressedStaticFilesStorage",
+},
 }
 
 
@@ -140,6 +149,7 @@ USE_TZ = True
 # https://docs.djangoproject.com/en/5.0/howto/static-files/
 
 STATIC_URL = 'static/'
+STATIC_ROOT = BASE_DIR / 'staticfiles'
 
 # Default primary key field type
 # https://docs.djangoproject.com/en/5.0/ref/settings/#default-auto-field

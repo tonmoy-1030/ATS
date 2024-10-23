@@ -76,23 +76,38 @@ ORDER BY
 		<band splitType="Stretch"/>
 	</background>
 	<title>
-		<band height="61" splitType="Stretch">
-			<property name="com.jaspersoft.studio.layout" value="com.jaspersoft.studio.editor.layout.VerticalRowLayout"/>
+		<band height="76" splitType="Stretch">
+			<property name="com.jaspersoft.studio.layout" value="com.jaspersoft.studio.editor.layout.FreeLayout"/>
 			<property name="com.jaspersoft.studio.unit.height" value="px"/>
 			<staticText>
-				<reportElement x="0" y="0" width="555" height="31" uuid="0323c7c9-d21b-43f1-88a5-8dd6d7ad6061"/>
+				<reportElement x="157" y="0" width="240" height="40" uuid="0323c7c9-d21b-43f1-88a5-8dd6d7ad6061"/>
 				<textElement textAlignment="Center" verticalAlignment="Middle">
 					<font fontName="Times New Roman" size="13" isBold="true" pdfFontName="Times-Bold" isPdfEmbedded="true"/>
 				</textElement>
 				<text><![CDATA[T.K. Group]]></text>
 			</staticText>
 			<textField>
-				<reportElement x="0" y="31" width="555" height="30" uuid="a530796c-a1fb-4d68-8499-b64c4bc8c7b7"/>
+				<reportElement positionType="FixRelativeToBottom" x="157" y="26" width="240" height="40" uuid="a530796c-a1fb-4d68-8499-b64c4bc8c7b7"/>
 				<textElement textAlignment="Center" verticalAlignment="Middle">
 					<font fontName="Times New Roman" size="14" isBold="true" pdfFontName="Times-Bold" isPdfEmbedded="true"/>
 				</textElement>
 				<textFieldExpression><![CDATA[$F{title_name}]]></textFieldExpression>
 			</textField>
+			<textField>
+				<reportElement x="460" y="32" width="100" height="30" uuid="c6e59779-cf85-4cc1-9026-e2ad86784113"/>
+				<textElement textAlignment="Center" verticalAlignment="Middle">
+					<font fontName="Times New Roman" size="14" isBold="true" pdfFontName="Times-Bold" isPdfEmbedded="true"/>
+				</textElement>
+				<textFieldExpression><![CDATA[new SimpleDateFormat("dd-MMM-yy").format($F{First_Interview_Date})
+]]></textFieldExpression>
+			</textField>
+			<staticText>
+				<reportElement x="419" y="27" width="73" height="40" uuid="2736b778-351a-4377-aaa9-5b7875f40430"/>
+				<textElement textAlignment="Center" verticalAlignment="Middle">
+					<font fontName="Times New Roman" size="14" isBold="true" pdfFontName="Times-Bold" isPdfEmbedded="true"/>
+				</textElement>
+				<text><![CDATA[Date:]]></text>
+			</staticText>
 		</band>
 	</title>
 	<columnHeader>
