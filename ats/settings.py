@@ -97,7 +97,7 @@ WSGI_APPLICATION = 'ats.wsgi.application'
 DATABASES = {
     'default': {
         'ENGINE': 'django.db.backends.mysql',
-        'NAME': 'new_atsdb',
+        'NAME': 'atsdb',
         'USER': 'root',
         'PASSWORD': 'Tonmoy1030',
         'HOST':'localhost',

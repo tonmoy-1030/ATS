@@ -5,10 +5,19 @@ from candidates.models import Offer
 
 
 class BusinessUnit(models.Model):
+    
+    BUSINESS_DIRECTOR = [
+        ('Business Director (G-1)', 'Business Director (G-1)'),
+        ('Business Director (G-2)', 'Business Director (G-1)'),
+    ]
+    
     name = models.CharField(max_length=255, unique=True)
     short_name = models.CharField(max_length=20, unique=True)
     floor_location = models.CharField(max_length=60)
     factory = models.CharField(max_length=255, blank=True, null=True)
+    responsible_hr_manager_name = models.CharField(max_length=255, blank=True, null=True)
+    responsible_hr_manager_designation = models.CharField(max_length=255, blank=True, null=True)
+    business_director = models.CharField(max_length=255,choices= BUSINESS_DIRECTOR, blank=True, null=True)
 
     def __str__(self):
         return f"{self.name}"
