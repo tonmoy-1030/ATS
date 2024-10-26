@@ -505,7 +505,8 @@ def generate_transfer_letter(request):
                 "report_to": transfer.report_to,
                 "effective_date": transfer.effective_date,
                 "signature": transfer.employee.unit.responsible_hr_manager_name,
-                "signature_designation":transfer.employee.unit.responsible_hr_manager_designation
+                "signature_designation":transfer.employee.unit.responsible_hr_manager_designation,
+                "business_director":transfer.employee.unit.business_director
                 
             }
             
@@ -548,7 +549,8 @@ def generate_posting_letter(request):
                 "report_to": posting.report_to,
                 "effective_date": posting.effective_date,
                 "signature": posting.employee.unit.responsible_hr_manager_name,
-                "signature_designation": posting.employee.unit.responsible_hr_manager_designation
+                "signature_designation": posting.employee.unit.responsible_hr_manager_designation,
+                "business_director":posting.employee.unit.business_director
                 
             }
             buffer = BytesIO()
