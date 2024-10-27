@@ -90,6 +90,7 @@ def import_employees(file):
                 return HttpResponse("Please check the CSV file again")
         
 
+from jobs.models import BusinessUnit
 
 class EmployeeCreateView(SuccessMessageMixin, CreateView):
     model = Employee
@@ -97,6 +98,7 @@ class EmployeeCreateView(SuccessMessageMixin, CreateView):
     
     def get_context_data(self, **kwargs):
         context = super().get_context_data(**kwargs)
+        business_unit = BusinessUnit.objects.all()
         offered_candidates = Candidate.objects.filter(
                 offer__offer_status='Accepted'
             ).exclude(
@@ -104,7 +106,7 @@ class EmployeeCreateView(SuccessMessageMixin, CreateView):
             ).exclude(
                 offer__joining_date__lte=timezone.now().date() - timedelta (2)
             )
-        context['offered_candidates'] = offered_candidates
+        context['offered_candidates'] = business_unit
         return context
     
     def get_success_url(self):
@@ -449,3 +451,24 @@ class EmployeeSalaryInfo(LoginRequiredMixin, UserPassesTestMixin, CreateView):
     
     def get_success_url(self):
         return reverse("employees:salary_info")
+    
+    
+def unit_based_employee_search(request):
+     
+    try:
+        term = request.GET.get('unit_id', "")
+        offered_candidates = Candidate.objects.filter(
+        offer__job__unit__id=term,
+        offer__offer_status='Accepted'
+        ).exclude(
+            employee__isnull=False
+        ).exclude(
+            offer__joining_date__lte=timezone.now().date() - timedelta(days=2)
+        )
+
+        results = [{'id': candidate.id, 'name': candidate.name} for candidate in offered_candidates]
+        results = results
+    except:
+        results = {}
+
+    return JsonResponse({'results': results})

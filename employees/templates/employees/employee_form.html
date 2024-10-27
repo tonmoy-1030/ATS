@@ -12,14 +12,23 @@
             <div style="max-width: 600px;">
                 <legend class="text-center">Employee Entry Form</legend>
                 <form id="candidateform">
-                    <label for="candidate">Selected Candidate:</label>
-
-                    <select class="form-select" name="candidate" id="candidate">
-                        <option selected disabled>Choose Selected Candidate</option>
-                        {% for candidate in offered_candidates %}
-                        <option value="{{ candidate.id }}">{{ candidate.name }}</option>
-                        {% endfor %}
-                    </select>
+                    <div class="form-group row">
+                        <div class="form-group col-md-6 mt-4 mb-2">
+                            <label for="unit">Unit</label>
+                            <select class="form-select" name="unit" id="unit">
+                                <option selected disabled>Choose Selected Candidate</option>
+                                {% for candidate in offered_candidates %}
+                                <option value="{{ candidate.id }}">{{ candidate.name }}</option>
+                                {% endfor %}
+                            </select>
+                        </div>
+                        <div class="form-group col-md-6 mt-4 mb-2">
+                            <label for="candidate">Candidate</label>
+                            <select class="form-select" name="candidate" id="candidate">
+                                <option selected disabled>Choose Selected Candidate</option>
+                            </select>
+                        </div>
+                    </div>
                 </form>
                 <form action="" method="post">
                     {% csrf_token %}
@@ -74,26 +83,65 @@
 
 <script>
     $(document).ready(function () {
+        // When the unit dropdown changes
+        $('#unit').change(function () {
+            var unit_id = $(this).val();
+            
+            $.ajax({
+                url: '/employees/unit/search',
+                type: 'GET',
+                data: { 'unit_id': unit_id },
+                success: function (data) {
+                    // Clear existing options in the candidate dropdown
+                    $('#candidate').empty();
+                    
+                    // Add a placeholder option
+                    $('#candidate').append($('<option>').val('').text('Select Candidate'));
+                    
+                    // Populate the candidate dropdown
+                    $.each(data.results, function (index, item) {
+                        $('#candidate').append($('<option>').val(item.id).text(item.name));
+                    });
+                    
+                    // Clear candidate-related fields
+                    $('#id_name, #id_EID, #id_designation, #id_department, #id_DOJ, #id_mobile_no, #id_email, #id_unit, #id_candidate, #id_job').val('');
+                },
+                error: function (xhr, status, error) {
+                    console.log("Error: " + error);
+                }
+            });
+        });
+
+        // When the candidate dropdown changes
         $('#candidate').change(function () {
             var candidateId = $(this).val();
-            $.ajax({
-                url: '/get_candidate_data/',
-                type: 'GET',
-                data: { 'candidate_id': candidateId },
-                success: function (data) {
-                    $('#id_name').val(data.name);
-                    $('#id_EID').val(data.EID);
-                    $('#id_designation').val(data.designation);
-                    $('#id_department').val(data.department);
-                    $('#id_DOJ').val(data.DOJ);
-                    $('#id_mobile_no').val(data.personal_cell);
-                    $('#id_email').val(data.email);
-                    $('#id_unit').val(data.unit);
-                    $('#id_candidate').val(data.candidate);
-                    $('#id_job').val(data.job);
-
-                },
-            });
+            
+            if (candidateId) {
+                $.ajax({
+                    url: '/get_candidate_data/',
+                    type: 'GET',
+                    data: { 'candidate_id': candidateId },
+                    success: function (data) {
+                        // Populate fields with candidate data
+                        $('#id_name').val(data.name);
+                        $('#id_EID').val(data.EID);
+                        $('#id_designation').val(data.designation);
+                        $('#id_department').val(data.department);
+                        $('#id_DOJ').val(data.DOJ);
+                        $('#id_mobile_no').val(data.personal_cell);
+                        $('#id_email').val(data.email);
+                        $('#id_unit').val(data.unit);
+                        $('#id_candidate').val(data.candidate);
+                        $('#id_job').val(data.job);
+                    },
+                    error: function (xhr, status, error) {
+                        console.log("Error: " + error);
+                    }
+                });
+            } else {
+                // Clear candidate-related fields if no candidate is selected
+                $('#id_name, #id_EID, #id_designation, #id_department, #id_DOJ, #id_mobile_no, #id_email, #id_unit, #id_candidate, #id_job').val('');
+            }
         });
     });
 </script>

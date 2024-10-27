@@ -10,7 +10,8 @@ from .views import (
                     employee_search, transfer_order, posting_order,
                     separate_upload_file,
                     EmployeeProfile,
-                    EmployeeSalaryInfo, EmployeeDeleteView
+                    EmployeeSalaryInfo, EmployeeDeleteView, 
+                    unit_based_employee_search
                 
                     )
 
@@ -23,8 +24,8 @@ urlpatterns = [
     path('employees/create', EmployeeCreateView.as_view(), name='employee-create'),
     path('employees/<int:pk>/delete', EmployeeDeleteView.as_view(), name='employee-delete'),
     path('employees/sample', sample_employee_upload_file, name='sample_employee'),
-    path('employees/seperation', EmployeeSeparationCreateView.as_view(), name='employee-seperation'),
-    path('seperation/update/<int:id>', EmployeeSeperationUpdateView.as_view(), name='seperation-update'),
+    path('employees/separation', EmployeeSeparationCreateView.as_view(), name='employee-seperation'),
+    path('separation/update/<int:id>', EmployeeSeperationUpdateView.as_view(), name='seperation-update'),
     path('employees/update/<int:pk>', EmployeeUpdateView.as_view(), name='employee-update'),
     path('get_candidate_data/', get_candidate_data, name='get_candidate_data'),
     path('employee_details/', employee_details, name='emp-details'),
@@ -34,4 +35,5 @@ urlpatterns = [
     path('employee/posting_order', posting_order, name='employee-posting'),
     path('separate/upload/csv',separate_upload_file , name='import_separate_csv' ),
     path('employee/salary',EmployeeSalaryInfo.as_view() , name='salary_info' ),
+    path('employees/unit/search', unit_based_employee_search),
 ]
