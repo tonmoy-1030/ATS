@@ -22,7 +22,7 @@ from django.contrib import messages
 from django.forms import modelformset_factory
 from django.contrib.auth.mixins import UserPassesTestMixin, LoginRequiredMixin
 from django.utils import timezone
-
+from jobs.models import BusinessUnit
 
 
 
@@ -57,6 +57,7 @@ def import_employees(file):
     with open(temp_file_path, 'r') as file:
         reader = csv.DictReader(file)
         for row in reader:
+            print(row)
             try:
                 DOJ_str = row['DOJ']
                 DOJ = datetime.strptime(DOJ_str, '%Y-%m-%d').date()
@@ -73,7 +74,7 @@ def import_employees(file):
                         'DOJ': DOJ,
                         'mobile_no': row['Mobile_no'],
                         'email': row['Email'],
-                        'unit': row['Unit'],
+                        'unit': BusinessUnit.objects.filter(id=row['Unit']).first()
                     }
                 )
                 # If the employee already exists, update the existing record
@@ -84,13 +85,12 @@ def import_employees(file):
                     employee.DOJ = DOJ
                     employee.mobile_no = row['Mobile_no']
                     employee.email = row['Email']
-                    employee.unit = row['Unit']
+                    employee.unit = BusinessUnit.objects.filter(id=row['Unit']).first()
                     employee.save()
             except IntegrityError:
                 return HttpResponse("Please check the CSV file again")
         
 
-from jobs.models import BusinessUnit
 
 class EmployeeCreateView(SuccessMessageMixin, CreateView):
     model = Employee
@@ -99,14 +99,7 @@ class EmployeeCreateView(SuccessMessageMixin, CreateView):
     def get_context_data(self, **kwargs):
         context = super().get_context_data(**kwargs)
         business_unit = BusinessUnit.objects.all()
-        offered_candidates = Candidate.objects.filter(
-                offer__offer_status='Accepted'
-            ).exclude(
-                employee__isnull=False
-            ).exclude(
-                offer__joining_date__lte=timezone.now().date() - timedelta (2)
-            )
-        context['offered_candidates'] = business_unit
+        context['business_units'] = business_unit
         return context
     
     def get_success_url(self):
@@ -194,7 +187,7 @@ def sample_employee_upload_file(request):
     writter = csv.writer(response)
     header_row = ['EID','Name','Designation','Department','DOJ', 'Mobile_no','Email','Unit']  
     writter.writerow(header_row)
-    row = ['2000006','Md. Ashraful Hossain Nury','Manager', 'Brand','2005-01-03','0','test@tkgroupbd.com','Consumer Division']
+    row = ['2000006','Md. Ashraful Hossain Nury','Manager', 'Brand','2005-01-03','0','test@tkgroupbd.com', 'unit_ID']
     writter.writerow(row)
     
     return response
@@ -367,7 +360,7 @@ def employee_details(request):
 
 
 def employee_confirmation(request):
-    EmployeeConfirmationFormSet = modelformset_factory(EmployeeConfirmation, form=EmployeeConfirmationForm, extra=7)
+    EmployeeConfirmationFormSet = modelformset_factory(EmployeeConfirmation, form=EmployeeConfirmationForm, extra=1)
     
     if request.method == 'POST':
         formset = EmployeeConfirmationFormSet(request.POST)

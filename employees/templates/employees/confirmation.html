@@ -3,17 +3,17 @@
 {% load crispy_forms_tags %}
 <div class="container-fluid">
     <div class="d-inline-flex">
-        <a class="btn btn-outline-primary mb-2" href="{% url 'employees:employee-create' %}"><i
-                class="bi bi-skip-backward-circle"></i></a>
+        <a class="btn btn-outline-primary mb-2" href="{% url 'employees:employee-create' %}">
+            <i class="bi bi-skip-backward-circle"></i>
+        </a>
     </div>
-    <form method="post">
+    <form method="post" id="form-container">
         {% csrf_token %}
 
         <table class="table table-bordered text-center">
             {{ formset.management_form }}
             <thead>
                 <tr>
-                    <th>SL</th>
                     <th>EID</th>
                     <th>Name</th>
                     <th>New Designation</th>
@@ -23,10 +23,9 @@
                     <th>Remarks</th>
                 </tr>
             </thead>
-            <tbody>
+            <tbody id="confirmation_forms">
                 {% for form in formset %}
-                <tr>
-                    <td>{{ forloop.counter }}</td>
+                <tr class="confirmation_form">
                     <td>
                         {{ form.eid }}
                         {{ form.eid.errors }}
@@ -63,13 +62,27 @@
                 {% endfor %}
             </tbody>
         </table>
+        <button id="add-form" type="button" class="btn btn-secondary">Add</button>
         <button class="btn btn-primary" type="submit">Save</button>
     </form>
 </div>
+
 <script src="https://code.jquery.com/jquery-3.6.0.min.js"></script>
 <script type="text/javascript">
     $(document).ready(function () {
-        $('input[name^="form-"][name$="-eid"]').on('input', function () {
+        // Initial AJAX setup for existing forms
+        setupAjaxForEid();
+
+        // Event listener to add new form
+        $('#add-form').on('click', function (e) {
+            e.preventDefault();
+            addForm();
+        });
+    });
+
+    // Function to set up AJAX call for EID field on all forms
+    function setupAjaxForEid() {
+        $('input[name^="form-"][name$="-eid"]').off('input').on('input', function () {
             var index = $(this).attr('name').match(/form-(\d+)-eid/)[1];
             var query = $(this).val();
             var nameField = $('input[name="form-' + index + '-name"]');
@@ -79,32 +92,50 @@
             if (query.length >= 2) {
                 $.ajax({
                     url: '/employees/search',
-                    data: {
-                        'eid': query
-                    },
+                    data: { 'eid': query },
                     success: function (data) {
                         if (data.results && data.results.name) {
                             nameField.val(data.results.name);
-                            employeeField.val(data.results.employee).trigger('change'); // Trigger change event for select field
+                            employeeField.val(data.results.employee).trigger('change');
                             designationField.val(data.results.designation);
                         } else {
                             nameField.val('');
-                            employeeField.val('').trigger('change'); // Clear and trigger change event
+                            employeeField.val('').trigger('change');
                             designationField.val('');
                         }
                     },
                     error: function (xhr, status, error) {
                         nameField.val('');
-                        employeeField.val('').trigger('change'); // Clear and trigger change event
+                        employeeField.val('').trigger('change');
                         designationField.val('');
                     }
                 });
             } else {
                 nameField.val('');
-                employeeField.val('').trigger('change'); // Clear and trigger change event
+                employeeField.val('').trigger('change');
                 designationField.val('');
             }
         });
-    });
+    }
+
+    // Function to add a new form row
+    function addForm() {
+        var formCount = parseInt($('#id_form-TOTAL_FORMS').val());
+        var newForm = $('.confirmation_form:first').clone(true);
+
+        // Update form attributes
+        newForm.find(':input').each(function () {
+            var name = $(this).attr('name').replace(/form-(\d+)-/, 'form-' + formCount + '-');
+            var id = 'id_' + name;
+            $(this).attr({ 'name': name, 'id': id }).val('');
+        });
+
+        // Append new form and update total form count
+        $('#confirmation_forms').append(newForm);
+        $('#id_form-TOTAL_FORMS').val(formCount + 1);
+
+        // Reapply AJAX setup for new EID input
+        setupAjaxForEid();
+    }
 </script>
 {% endblock %}

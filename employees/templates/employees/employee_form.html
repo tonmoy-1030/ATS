@@ -16,9 +16,9 @@
                         <div class="form-group col-md-6 mt-4 mb-2">
                             <label for="unit">Unit</label>
                             <select class="form-select" name="unit" id="unit">
-                                <option selected disabled>Choose Selected Candidate</option>
-                                {% for candidate in offered_candidates %}
-                                <option value="{{ candidate.id }}">{{ candidate.name }}</option>
+                                <option selected disabled>Choose unit</option>
+                                {% for unit in business_units %}
+                                <option value="{{ unit.id }}">{{ unit.short_name }}</option>
                                 {% endfor %}
                             </select>
                         </div>
