@@ -275,6 +275,8 @@ def separate_upload_file(request):
 
 
 #update Employee Details
+import requests
+from django.core.files.base import ContentFile
 
 def employee_details(request):
     alert_messages = []
@@ -335,8 +337,18 @@ def employee_details(request):
                     
                     file_id = details.get('Upload Your Passport Size Photo(Formal Photo)', "").split('id=')[-1]
                     file_url =  f'https://drive.usercontent.google.com/download?id={file_id}&export=view&authuser=0'
-            
+
+                    
                     employee.details.profile_picture = file_url
+                    if not employee.details.profile_image:
+                        response = requests.get(file_url)
+                        if response.status_code == 200:
+                            image_name = f"{employee.EID}-{employee.name}.jpg"
+                            employee.details.profile_image.save(image_name, ContentFile(response.content), save=True)
+                            employee.details.save() 
+                        else:
+                            print(f"{employee.name}-Failed to retrieve image, status code: {response.status_code}")
+
                     employee.email = employee.candidate.email
                     employee.save()
                     

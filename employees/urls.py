@@ -1,4 +1,6 @@
 from django.urls import path
+from django.conf import settings
+from django.conf.urls.static import static
 from .views import (
                     EmployeeListView, EmployeeCreateView,
                     upload_file, sample_employee_upload_file, 
@@ -36,4 +38,4 @@ urlpatterns = [
     path('separate/upload/csv',separate_upload_file , name='import_separate_csv' ),
     path('employee/salary',EmployeeSalaryInfo.as_view() , name='salary_info' ),
     path('employees/unit/search', unit_based_employee_search),
-]
+] + static(settings.MEDIA_URL, document_root=settings.MEDIA_ROOT)

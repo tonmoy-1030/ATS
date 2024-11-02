@@ -3,13 +3,21 @@
 {% block content %}
 <div class="container">
     <div class="card">
-        <div class="card-header">
-            <h2>{{ object.name }}</h2>
-            <p>vill: {{object.details.present_vill}}, PO:{{object.details.present_po}},  PS:{{object.details.present_ps}}, Dist:{{object.details.present_dist}}</p>
-            <p>{{ object.mobile_no }}</p>
-            <p>{{ object.email }}</p>
+        <div class="card-header d-flex align-items-center">
+            {% if object.details.profile_image %}
+                <img src="{{ object.details.profile_image.url }}" alt="No image available" width="200" height="200" style="border-radius: 60%; margin-right: 20px;">
+            {% else %}
+                <img src="" alt="No image available" width="200" height="200" style="border-radius: 60%; margin-right: 20px; border: 0pt;">
+            {% endif %}
+            <div>
+                <h2>{{ object.name }}</h2>
+                <p>Vill: {{ object.details.present_vill }}, PO: {{ object.details.present_po }}, PS: {{ object.details.present_ps }}, Dist: {{ object.details.present_dist }}</p>
+                <p>{{ object.mobile_no }}</p>
+                <p>{{ object.email }}</p>
+            </div>
         </div>
     </div>
+    
 
     
         {% if object.details %}

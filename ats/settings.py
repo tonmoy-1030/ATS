@@ -32,7 +32,6 @@ ALLOWED_HOSTS = ['*']
 
 INSTALLED_APPS = [
     'jobs.apps.JobsConfig',
-    'leave.apps.LeaveConfig',
     'employees.apps.EmployeesConfig',
     'candidates.apps.CandidatesConfig',
     'report.apps.ReportConfig',
@@ -51,7 +50,8 @@ INSTALLED_APPS = [
     'explorer',
     'dashboard.templatetags',
     'django_plotly_dash.apps.DjangoPlotlyDashConfig',
-    'channels'
+    'channels',
+    'leave.apps.LeaveConfig',
     
 ]
 
@@ -105,13 +105,18 @@ DATABASES = {
     }
 }
 
-STORAGES = {
-# ...
-"staticfiles": {
-    "BACKEND": "whitenoise.storage.CompressedStaticFilesStorage",
-},
-}
 
+STORAGES = {
+    "default": {
+        "BACKEND": "django.core.files.storage.FileSystemStorage",
+        "OPTIONS": {
+            "location": BASE_DIR / "media",  # Directory for media files
+        },
+    },
+    "staticfiles": {
+        "BACKEND": "whitenoise.storage.CompressedStaticFilesStorage",
+    },
+}
 
 # Password validation
 # https://docs.djangoproject.com/en/5.0/ref/settings/#auth-password-validators
@@ -131,7 +136,8 @@ AUTH_PASSWORD_VALIDATORS = [
     },
 ]
 
-MEDIA_ROOT = os.path.join(BASE_DIR, 'media')
+MEDIA_URL = "/media/"
+MEDIA_ROOT = BASE_DIR / "media"
 
 # Internationalization
 # https://docs.djangoproject.com/en/5.0/topics/i18n/

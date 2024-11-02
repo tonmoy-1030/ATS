@@ -7,6 +7,7 @@ from django.utils import timezone
 
 
 class ContactInfo(models.Model):
+    profile_image = models.ImageField(upload_to='images/', null=True, blank=True)
     profile_picture = models.URLField(max_length=255, null=True, blank=True)
     official_mobile = models.CharField(max_length=20, blank=True)
     emergency_contact_person = models.CharField(max_length=100, blank=True)
