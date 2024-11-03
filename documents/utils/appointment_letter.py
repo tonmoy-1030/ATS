@@ -22,7 +22,7 @@ def appointment_letter(appointment_info, pdf_file):
                                 <b>{appointment_info['name']}</b><br/>                                                                         		
                                 Vill: {appointment_info['permanent_vill']} P.O: {appointment_info['permanent_PO']}<br/> 
                                 P.S: {appointment_info['permanent_PS']} Dist: {appointment_info['permanent_dist']}<br/> <br/>
-                                <b><u>Appointment - {appointment_info['designation']} {appointment_info['unit']}</u></b><br/><br/>
+                                <b><u>Appointment - {appointment_info['designation']}</u></b><br/><br/>
                                 <b>Dear Mr. {appointment_info['name']},</b><br/>
                                 We are pleased to appoint you as <b>{appointment_info['designation']}</b> {appointment_info['unit']} ,
                                 T.K. Bhaban ({appointment_info['floor_location']} Floor), 13 Kawran Bazar, Dhaka -1215 under the following terms:
@@ -232,7 +232,7 @@ def OnLaterPager(canvas, doc, appointment_info):
                                 <b>{appointment_info['name']}</b><br/>                                                                         		
                                 Vill: {appointment_info['permanent_vill']} P.O: {appointment_info['permanent_PO']}<br/> 
                                 P.S: {appointment_info['permanent_PS']} Dist: {appointment_info['permanent_dist']}<br/> <br/>
-                                <b><u>Appointment - {appointment_info['designation']} {appointment_info['unit']}</u></b><br/><br/>
+                                <b><u>Appointment - {appointment_info['designation']}</u></b><br/><br/>
                                 <b>Dear Mr. {appointment_info['name']},</b><br/>
                                 We are pleased to appoint you as <b>{appointment_info['designation']}</b> {appointment_info['unit']},
                                 T.K. Bhaban ({appointment_info['floor_location']} Floor), 13 Kawran Bazar, Dhaka -1215 under the following terms:
