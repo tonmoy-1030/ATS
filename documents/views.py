@@ -424,6 +424,7 @@ def generate_confirmation_letter(request):
                 "location": employee.employee.job_location,
                 "development_area": employee.development_area,
                 "effective_date": employee.effective_date,
+                "business_director": employee.employee.unit.business_director
             }
             
             # Generate the appropriate letter
@@ -635,7 +636,7 @@ def generate_appointment_letter(request):
                 "in_word": convert_to_words(appointment.salary),
                 "report_to": appointment.report_to,
                 "director_signature": appointment.employee.unit.business_director,
-                "CC1": appointment.CC1,
+                "CC1": appointment.employee.unit.business_director,
                 "CC2": appointment.CC2,
                 "CC3": appointment.CC3,
                 "CC4": appointment.CC4,

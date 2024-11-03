@@ -216,7 +216,6 @@ def OnLaterPager(canvas, doc, appointment_info):
     CC_frame.addFromList([Paragraph(f"""
                                     Cc:<br/>												
                                         &nbsp; &nbsp; &nbsp;{appointment_info['CC1']}<br/>
-                                        &nbsp; &nbsp; &nbsp;{appointment_info['CC2']}<br/>
                                         &nbsp; &nbsp; &nbsp;{appointment_info['CC3']}<br/>
                                         {CC4_CC5}
 
@@ -423,7 +422,6 @@ def OnLaterPager(canvas, doc, appointment_info):
     CC_frame.addFromList([Paragraph(f"""
                                     Cc:<br/>												
                                         &nbsp; &nbsp; &nbsp;{appointment_info['CC1']}<br/>
-                                        &nbsp; &nbsp; &nbsp;{appointment_info['CC2']}<br/>
                                         &nbsp; &nbsp; &nbsp;{appointment_info['CC3']}<br/>
                                         {CC4_CC5}
 
