@@ -218,15 +218,14 @@ def confirmation_letter(employee_data, pdf_file):
         
     
     
-    signature_text = """
+    signature_text = f"""
         <b>__________________________________</b><br/> 				
         <b>Col Almas Raisul Ghani, psc, G (Retd)</b><br/> 						                             
         <b>Director, HR & OD</b><br/> 
         <b>T.K. Group</b><br/> <br/> <br/> <br/> 
 
         Cc:<br/> 								
-        &nbsp;&nbsp;&nbsp;&nbsp;&nbsp;Business Director (Group-1)<br/> 
-        &nbsp;&nbsp;&nbsp;&nbsp;&nbsp;Business Director (Group-2)<br/> 
+        &nbsp;&nbsp;&nbsp;&nbsp;&nbsp;{employee_data['business_director']}<br/>
         &nbsp;&nbsp;&nbsp;&nbsp;&nbsp;Head of Business<br/> 
         &nbsp;&nbsp;&nbsp;&nbsp;&nbsp;Accounts Department<br/>
         &nbsp;&nbsp;&nbsp;&nbsp;&nbsp;Personal files<br/> 
@@ -297,8 +296,7 @@ def extension_letter(employee_data, pdf_file):
         <b>T.K. Group</b><br/> <br/> <br/> <br/> 
 
         Cc:<br/> 								
-        &nbsp;&nbsp;&nbsp;&nbsp;&nbsp;Business Director (Group-1)<br/> 
-        &nbsp;&nbsp;&nbsp;&nbsp;&nbsp;Business Director (Group-2)<br/> 
+        &nbsp;&nbsp;&nbsp;&nbsp;&nbsp;{employee_data['business_director']}<br/>
         &nbsp;&nbsp;&nbsp;&nbsp;&nbsp;Head of Business<br/> 
         &nbsp;&nbsp;&nbsp;&nbsp;&nbsp;Accounts Department<br/>
         &nbsp;&nbsp;&nbsp;&nbsp;&nbsp;Personal files<br/> 
