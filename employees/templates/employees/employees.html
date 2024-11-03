@@ -58,35 +58,33 @@
                                 href="{% url 'employees:employee-update' employee.pk %}"><i class="bi bi-pencil-square"></i></a>
 
                             <a href="#" class="text-danger h6" data-bs-toggle="modal"
-                                data-bs-target="#employeeDelete"><i class="bi bi-trash"></i></a>
-
-                            <!-- Modal -->
-
-                            <div class="modal" id="employeeDelete" tabindex="-1"
-                                aria-labelledby="employeeDeletelabel" aria-hidden="true">
-                                <div class="modal-dialog modal-dialog-centered modal-md">
-                                    <div class="modal-content">
-                                        <div class="modal-header">
-                                            <h1 class="modal-title fs-5" id="employeeDeletelabel">Delete?
-                                            </h1>
-                                            <button type="button" class="btn-close" data-bs-dismiss="modal"
-                                                aria-label="Close"></button>
-                                        </div>
-                                        <div class="modal-body">
-                                            <h6>Are you sure you want to delete "{{ employee.name }}"?</h6>
-                                        </div>
-                                        <div class="modal-footer">
-                                            <button type="button" class="btn btn-secondary"
-                                                data-bs-dismiss="modal">Close</button>
-                                            <form class="d-inline-block" method="post"
-                                                action="{% url 'employees:employee-delete' employee.id %}">
-                                                {% csrf_token %}
-                                                <input class="btn btn-danger" type="submit" value="Confirm">
-                                            </form>
-                                        </div>
-                                    </div>
-                                </div>
-                            </div>
+                                data-bs-target="#employeeDelete-{{employee.id}}">
+                                 <i class="bi bi-trash"></i>
+                             </a>
+                             
+                             <!-- Modal -->
+                             <div class="modal" id="employeeDelete-{{employee.id}}" tabindex="-1"
+                                  aria-labelledby="employeeDeletelabel-{{employee.id}}" aria-hidden="true">
+                                 <div class="modal-dialog modal-dialog-centered modal-md">
+                                     <div class="modal-content">
+                                         <div class="modal-header">
+                                             <h1 class="modal-title fs-5" id="employeeDeletelabel-{{employee.id}}">Delete?</h1>
+                                             <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
+                                         </div>
+                                         <div class="modal-body">
+                                             <h6>Are you sure you want to delete "{{ employee.name }}"?</h6>
+                                         </div>
+                                         <div class="modal-footer">
+                                             <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Close</button>
+                                             <form class="d-inline-block" method="post" action="{% url 'employees:employee-delete' employee.id %}">
+                                                 {% csrf_token %}
+                                                 <input class="btn btn-danger" type="submit" value="Confirm">
+                                             </form>
+                                         </div>
+                                     </div>
+                                 </div>
+                             </div>
+                             
 <!-- end modal -->
                         </td>
                     </tr>
