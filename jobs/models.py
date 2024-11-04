@@ -47,7 +47,15 @@ class Job(models.Model):
 
     def available_positions(self):
         return self.no_of_position - self.filled_positions()
-
+    
+    def vacant_days(self):
+        end_day = self.closing_date or timezone.now().date()
+        if self.posting_date:
+            start_day = min(self.posting_date, timezone.now().date())
+            return (end_day - start_day).days
+        else:
+            return 0
+    
     def save(self, *args, **kwargs):
         self.full_clean()  
         super().save(*args, **kwargs)
