@@ -445,8 +445,8 @@ def CandidateDetailsUpdate(request):
         'CURRENT_ORGANIZATION': 'Current Organization',
         'TOTAL_EXPERIENCE': 'Total Experience',
         'PRESENT_VILL': 'Present Vill',
-        'PRESENT_PO': 'P.O',
-        'PRESENT_PS': 'P.S',
+        'PRESENT_PO': 'Present_P.O',
+        'PRESENT_PS': 'Present_P.S',
         'PRESENT_DISTRICT': 'Present District',
         'PERMANENT_VILL': 'Permanent Vill',
         'PERMANENT_PO': 'P.O',
@@ -454,9 +454,9 @@ def CandidateDetailsUpdate(request):
         'PERMANENT_DISTRICT': 'Permanent District',
         'HIGHEST_DEGREE': 'Highest Degree',
         'DEGREE_NAME': 'Degree Name',
-        'SUBJECT': 'Subject',
-        'PASSING_YEAR': 'Passing Year',
-        'INISTITUTION': 'Institution',
+        'SUBJECT': 'Subject_',
+        'PASSING_YEAR': 'Passing Year_',
+        'INISTITUTION': 'Institution_',
         'CGPA': 'Division/GPA',
         'ANY_PROFESSIONAL_DEGREE': 'Do you have any Professional Degree?',
         'PROFESSIONAL_DEGREE': 'Professional Degree',
@@ -465,7 +465,8 @@ def CandidateDetailsUpdate(request):
         'PROFESSIONAL_PASSING_YEAR': 'Passing Year',
         'NID': 'NID No.',
         'religion': 'Religion',
-        'email': 'Email'
+        'email': 'Email',
+        'inputted_others':'Enter Your University Name'
     }
 
     alert_messages = []
@@ -513,7 +514,10 @@ def CandidateDetailsUpdate(request):
                     details_obj.degree_name = details.get(FIELD_IDS['DEGREE_NAME'], "")
                     details_obj.subject_highest_degree = details.get(FIELD_IDS['SUBJECT'], "")
                     details_obj.passing_year_highest_degree = details.get(FIELD_IDS['PASSING_YEAR'], "")
-                    details_obj.institution_highest_degree = details.get(FIELD_IDS['INISTITUTION'], "")
+                    if details.get(FIELD_IDS['INISTITUTION'], "") != "Others":
+                        details_obj.institution_highest_degree = details.get(FIELD_IDS['INISTITUTION'], "")
+                    else:
+                         details_obj.institution_highest_degree = details.get(FIELD_IDS['inputted_others'], "")
                     details_obj.division_or_gpa_highest_degree = details.get(FIELD_IDS['CGPA'], "")
                     details_obj.professional_degree = details.get(FIELD_IDS['PROFESSIONAL_DEGREE'], "")
                     details_obj.subject_professional_degree = details.get(FIELD_IDS['PROFESSIONAL_SUBJECT'], "")

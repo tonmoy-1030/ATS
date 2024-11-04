@@ -34,12 +34,11 @@ class DashBoard(ListView):
                 output_field=DurationField()
             )
         )
-        ttf_by_unit = jobs.values('unit').annotate(avg_ttf=Avg('time_to_fill'))
-
+        ttf_by_unit = jobs.values('unit__short_name').annotate(avg_ttf=Avg('time_to_fill'))
         unit_labels = []
         avg_ttf_values = []
         for entry in ttf_by_unit:
-            unit_labels.append(entry['unit'])
+            unit_labels.append(entry['unit__short_name'])
             avg_ttf_seconds = entry['avg_ttf'].total_seconds() if entry['avg_ttf'] else 0
             avg_ttf_values.append(avg_ttf_seconds / (60 * 60 * 24))
 

@@ -39,6 +39,8 @@
                         <th>Types</th>
                         <th>No of Position</th>
                         <th>Filled Position</th>
+                        <th>Vacant Days</th>
+                        <th>Closing Date</th>
                         <th>Status</th>
                     </thead>
                     <tbody>
@@ -53,6 +55,12 @@
                             <td>{{requisition.types}}</td>
                             <td class="text-center">{{requisition.no_of_position}}</td>
                             <td class="text-center">{{requisition.filled_positions}}</td>
+                            <td class="text-center">{{requisition.vacant_days}}</td>
+                            {% if requisition.closing_date != None %}
+                                <td class="text-center">{{requisition.closing_date}}</td>
+                            {% else %}
+                                <td class="text-center"></td>
+                            {% endif %}
                             {% if requisition.open_status %}
                                 <td class="text-success">Open</td>
                             {% else %}
