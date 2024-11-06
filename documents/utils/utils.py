@@ -41,6 +41,7 @@ def interview_assessment(candidate_data, pdf_path):
     c.drawString(50, 650, f"Name of Candidate: {candidate_data['name']}")
     c.drawString(50, 630, f"Applied for:  {candidate_data['applied_for']}")
     c.drawString(50, 610, f"Educational Qualification: {candidate_data['educational_qualification']}")
+    c.drawString(350, 630, f"Unit: {candidate_data['unit']}")
     c.drawString(350, 610, f"Age: {candidate_data['age']}")
     c.drawString(50, 590, f"Experience: {candidate_data['total_experience']} Years")
     c.drawString(350, 590, "Present Position Held:")

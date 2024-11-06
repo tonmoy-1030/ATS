@@ -165,6 +165,7 @@ def generate_candidate_assessment(request, interview_id):
         'applied_for': candidate.interview_schedule.job.first().job_title,
         'educational_qualification': education_qualification,
         'age':age,
+        'unit': candidate.interview_schedule.job.first().unit.short_name,
         'total_experience': total_exp
     }
         interview_assessment(candidate_data=candidate_data, pdf_path=buffer)
