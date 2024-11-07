@@ -822,8 +822,6 @@ def candidateReport(request):
 
     return render(request, template_name="documents/reportCandidateDetails.html", context={'form': form})
  
-        
-@user_passes_test(is_admin, login_url='/login', redirect_field_name='next')
 
 def employeeList(request):
     
@@ -837,8 +835,6 @@ def employeeList(request):
                 employees_employee.mobile_no,
                 employees_employee.email,
                 candidates_candidatesdetails.blood_group,
-                employees_salaryinfo.salary,
-                employees_salaryinfo.report_to,
                 jobs_businessunit.name,
                 candidates_candidatesdetails.nid,
                 employees_employeedetails.tin,
@@ -861,10 +857,9 @@ def employeeList(request):
                 employees_employeedetails.highest_degree,
   employees_employeedetails.profile_picture
 FROM employees_employee
-JOIN candidates_candidatesdetails ON employees_employee.candidate_id = candidates_candidatesdetails.candidate_id
-JOIN employees_employeedetails ON employees_employee.id = employees_employeedetails.employee_id
-JOIN employees_salaryinfo ON employees_employee.id = employees_salaryinfo.employee_id
-join jobs_businessunit on employees_employee.unit_id = jobs_businessunit.id;
+LEFT JOIN candidates_candidatesdetails ON employees_employee.candidate_id = candidates_candidatesdetails.candidate_id
+LEFT JOIN employees_employeedetails ON employees_employee.id = employees_employeedetails.employee_id
+LEFT join jobs_businessunit on employees_employee.unit_id = jobs_businessunit.id;
     '''
     with connection.cursor() as cursor:
         cursor.execute(query)
