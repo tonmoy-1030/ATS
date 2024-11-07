@@ -38,7 +38,7 @@
                                 href="{% url 'jobs:interview_details' schedule.id %}">{{schedule.job.first.job_title}}</a>
                         </td>
                         <td>{{schedule.interview_type}}</td>
-                        <td class="text-nowrap">{{schedule.interview_date|date:"Y-m-d h:i:s A" }}</td>
+                        <td class="text-nowrap">{{schedule.interview_date }}</td>
                     </tr>
                     {% endfor %}
 
@@ -49,7 +49,7 @@
                                 href="{% url 'jobs:final_interview_details' final_schedule.id %}">{{final_schedule.job.first.job_title}}</a>
                         </td>
                         <td>{{final_schedule.interview_type}}</td>
-                        <td>{{ final_schedule.interview_date|date:"Y-m-d h:i:s A" }}</td>
+                        <td>{{ final_schedule.interview_date}}</td>
                     </tr>
                     {% endfor %}
                 </tbody>
