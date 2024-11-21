@@ -16,6 +16,7 @@ from .views import (
                     unit_based_employee_search
                 
                     )
+from . import views
 
 app_name = 'employees'
 
@@ -38,4 +39,6 @@ urlpatterns = [
     path('separate/upload/csv',separate_upload_file , name='import_separate_csv' ),
     path('employee/salary',EmployeeSalaryInfo.as_view() , name='salary_info' ),
     path('employees/unit/search', unit_based_employee_search),
+    path('transfer/update/<int:pk>', views.TransferUpdateView.as_view(), name='transfer-update'),
+    path('posting/update/<int:pk>', views.PostingUpdateView.as_view(), name='posting-update')
 ] + static(settings.MEDIA_URL, document_root=settings.MEDIA_ROOT)

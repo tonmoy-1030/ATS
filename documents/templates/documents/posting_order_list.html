@@ -47,6 +47,7 @@
                                     <th>Unit</th>
                                     <th>New Location</th>
                                     <th>Effective Date</th>
+                                    <th>Action</th>
                                 </tr>
                             </thead>
                             <tbody>
@@ -64,6 +65,7 @@
                                     <td>{{ posting.employee.unit.short_name }}</td>
                                     <td>{{ posting.new_job_location }}</td>
                                     <td>{{ posting.effective_date}}</td>
+                                    <td><a href="{% url 'employees:posting-update' posting.id %}"><i class="bi bi-pencil-square"></i></a></td>
                                 </tr>
             
                                 {% endfor %}

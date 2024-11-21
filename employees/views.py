@@ -9,7 +9,8 @@ from .models import (Employee, SeperationStatus,
 from .forms import (UploadFileForm, SeperationForm, 
                     EmployeeEntryForm, EmployeeFilter, 
                     TransferOrderForm, EmployeeConfirmationForm, 
-                    PostingOrderForm, SalaryInfoForm)
+                    PostingOrderForm, SalaryInfoForm, TransferOrderUpdateForm,
+                    PostingOrderUpdateForm)
 from django.contrib.auth.decorators import user_passes_test
 from django.db.models import Q
 from datetime import datetime, timedelta
@@ -418,6 +419,19 @@ def transfer_order(request):
         
     return render(request, 'employees/transfer_order.html', {'formset':formset})
 
+class TransferUpdateView(UpdateView, SuccessMessageMixin):
+    model = TransferOrder
+    template_name="employees/transferForm.html"
+    form_class = TransferOrderUpdateForm
+    success_message = "Transfer Order Updated Successfully"
+    success_url = "/employee/transfer_order_list/"
+
+class PostingUpdateView(UpdateView, SuccessMessageMixin):
+    model = PostingOrder
+    template_name="employees/postingForm.html"
+    form_class = PostingOrderUpdateForm
+    success_message = "Posting Order Updated Successfully"
+    success_url = "/employee/posting_order_list/"
 
 def posting_order(request):
     PostingFormset = modelformset_factory(PostingOrder, PostingOrderForm, extra=10)

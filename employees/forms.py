@@ -109,6 +109,38 @@ class TransferOrderForm(forms.ModelForm):
             'report_to': forms.TextInput(attrs={"class": 'form-control', 'style': 'width: 140.0px; font-size: 12px; padding-left: 0px; padding-right: 0px'}),
             'effective_date': forms.DateInput(attrs={'type': 'date',"class": 'form-control', 'style': 'font-size: 12px;'}),            
         }
+
+class TransferOrderUpdateForm(forms.ModelForm):
+    
+    class Meta:
+        model = TransferOrder
+        fields = ['employee', 'current_job_location', 'current_location_type', 'current_under_region_zone', 'current_under_region_zone_type',\
+            'new_job_location', 'new_location_type', 'new_under_region_zone', 'new_under_region_zone_type', 'new_designation', 'report_to', 'effective_date']   
+
+        widgets = {
+            'employee': EmployeeWidgets,
+            'current_job_location': forms.TextInput(attrs={"class": 'form-control', 'placeholder': 'Location', 'label':'Current Location'}),
+            'current_location_type': forms.Select(attrs={"class": 'form-select'}),
+            'current_under_region_zone': forms.TextInput(attrs={"class": 'form-control'}),
+            'current_under_region_zone_type': forms.Select(attrs={"class": 'form-select'}),
+            'new_job_location': forms.TextInput(attrs={"class": 'form-control'}),
+            'new_location_type': forms.Select(attrs={"class": 'form-select'}),
+            'new_under_region_zone': forms.TextInput(attrs={"class": 'form-control'}),
+            'new_under_region_zone_type': forms.Select(attrs={"class": 'form-select'}),
+            'new_designation': forms.TextInput(attrs={"class": 'form-control'}),
+            'report_to': forms.TextInput(attrs={"class": 'form-control'}),
+            'effective_date': forms.DateInput(attrs={'type': 'date'}), 
+        }
+        labels ={
+            'current_job_location':'Current Location',
+            'current_location_type':'Type',
+            'current_under_region_zone':'Region/Zone',
+            'current_under_region_zone_type':'Type',
+            'new_job_location':'New Location',
+            'new_location_type':'Type',
+            'new_under_region_zone':'New Region/Zone',
+            'new_under_region_zone_type':'Type'            
+        }
         
 class PostingOrderForm(forms.ModelForm):
     
@@ -130,6 +162,28 @@ class PostingOrderForm(forms.ModelForm):
             'effective_date': forms.DateInput(attrs={'type': 'date',"class": 'form-control', 'style': 'font-size: 12px;'}),
             
             
+        }
+        
+class PostingOrderUpdateForm(forms.ModelForm):
+    
+    class Meta:
+        model = PostingOrder
+        fields = ['employee', 'new_job_location', 'new_location_type', 'new_under_region_zone', 'new_under_region_zone_type', 'report_to', 'effective_date']   
+
+        widgets = {
+            'employee': EmployeeWidgets,
+            'new_job_location': forms.TextInput(attrs={"class": 'form-control'}),
+            'new_location_type': forms.Select(attrs={"class": 'form-select'}),
+            'new_under_region_zone': forms.TextInput(attrs={"class": 'form-control'}),
+            'new_under_region_zone_type': forms.Select(attrs={"class": 'form-select'}),
+            'report_to': forms.TextInput(attrs={"class": 'form-control'}),
+            'effective_date': forms.DateInput(attrs={'type': 'date'}), 
+        }
+        labels ={
+            'new_job_location':'New Location',
+            'new_location_type':'Type',
+            'new_under_region_zone':'New Region/Zone',
+            'new_under_region_zone_type':'Type'            
         }
 
 class SalaryInfoForm(forms.ModelForm):

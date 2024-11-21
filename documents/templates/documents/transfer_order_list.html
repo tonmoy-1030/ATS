@@ -47,6 +47,7 @@
                                     <th>New Location</th>
                                     <th>Unit</th>
                                     <th>Effective Date</th>
+                                    <th>Action</th>
                                 </tr>
                             </thead>
                             <tbody>
@@ -64,6 +65,7 @@
                                     <td>{{ transfer.new_job_location }}</td>
                                     <td>{{transfer.employee.unit.short_name}}</td>
                                     <td>{{transfer.effective_date}}</td>
+                                    <td><a href="{% url 'employees:transfer-update' transfer.id %}"><i class="bi bi-pencil-square"></i></a></td>
                                 </tr>
 
                                 {% endfor %}
