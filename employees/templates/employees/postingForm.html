@@ -1,0 +1,107 @@
+{%extends "jobs/base.html"%}
+{%block content%}
+{% load crispy_forms_tags %}
+<div class="container-fluid">
+    <!-- Main content here -->
+    <div class="row">
+        <div class="col-md-3">
+            {% include 'employees/EmployeesManuBar.html' %}
+        </div>
+        <div class="col-md-9">
+            <div style="max-width: 600px;">
+                <form action="" method="post">
+                    {% csrf_token %}
+                    <fieldset>
+                        <legend class="text-center">Posting Order Update Form</legend>
+                        <div class="form-group row">
+                            <div class="form-group col-md-12 mb-2">
+                                {{form.employee | as_crispy_field}}
+                            </div>
+                            <div class="text-danger text-center"> New Location Location </div>
+                            <div class="form-group col-md-3 mb-2">
+                                {{form.new_job_location | as_crispy_field}}
+                            </div>
+                            <div class="form-group col-md-3 mb-2">
+                                {{form.new_location_type | as_crispy_field}}
+                            </div>
+                            <div class="form-group col-md-3 mb-2">
+                                {{form.new_under_region_zone | as_crispy_field}}
+                            </div>
+                            <div class="form-group col-md-3 mb-2">
+                                {{form.new_under_region_zone_type | as_crispy_field}}
+                            </div>
+                            <div class="text-danger text-center"> Reporting & Others </div>
+
+                            <div class="form-group col-md-6 mb-2">
+                                {{form.report_to | as_crispy_field}}
+                            </div>
+                            <div class="form-group col-md-6 mb-2">
+                                {{form.effective_date | as_crispy_field}}
+                            </div>
+                        </div>
+                        
+                    </fieldset>
+                    <button class="btn btn-primary btn-sm mt-4" type="Submit">Submit</button>
+                </form>
+            </div>
+        </div>
+    </div>
+</div>
+{%endblock%}
+
+{% block extra_scripts %}
+<script>
+    document.addEventListener('DOMContentLoaded', function () {
+        // Function to update Select2 styles based on the theme
+        function updateSelect2Styles() {
+            const isDarkTheme = document.documentElement.getAttribute('data-bs-theme') === 'dark';
+            const select2Containers = document.querySelectorAll('.select2-container--default .select2-selection--single .select2-selection__rendered');
+            const select2ContainersSingle = document.querySelectorAll('.select2-container--default .select2-selection--single');
+            const select2DropDown = document.querySelectorAll('.select2-dropdown');
+
+
+
+            select2ContainersSingle.forEach(container => {
+                if (isDarkTheme) {
+                    container.style.backgroundColor = '#00000000'; // Black with 75% opacity
+                    container.style.color = 'white';    // White with 80% opacity
+                } else {
+                    container.style.backgroundColor = ''; // White with 75% opacity
+                    container.style.color = '';          // Black with 80% opacity
+                }
+            });
+
+            select2Containers.forEach(container => {
+                if (isDarkTheme) {
+                    container.style.backgroundColor = '#00000000'; // Black with 75% opacity
+                    container.style.color = 'white';    // White with 80% opacity
+                } else {
+                    container.style.backgroundColor = ''; // White with 75% opacity
+                    container.style.color = '';          // Black with 80% opacity
+                }
+            });
+
+            select2DropDown.forEach(container => {
+                if (isDarkTheme) {
+                    container.style.backgroundColor = '#212529'; // Black with 75% opacity
+                    container.style.color = 'rgba(255, 255, 255, 0.8)';    // White with 80% opacity
+                } else {
+                    container.style.backgroundColor = 'white'; // White with 75% opacity
+                    container.style.color = 'black';          // Black with 80% opacity
+                }
+            });
+        }
+
+
+        // Function to periodically check for theme changes
+        function checkThemePeriodically() {
+            updateSelect2Styles();  // Update styles initially
+            setTimeout(checkThemePeriodically, 5);  // Recheck every 500ms
+        }
+
+        // Start the periodic check
+        checkThemePeriodically();
+    });
+
+</script>
+{% endblock %}
