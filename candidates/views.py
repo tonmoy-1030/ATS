@@ -39,7 +39,7 @@ TextConverter = TextConverter()
 DataExtraction = DataExtraction()
 
 genai.configure(api_key="AIzaSyB_WKoQ8d27_Zo9lNhOpH3zdRuf0XJ1EEc")
-model = genai.GenerativeModel('gemini-1.5-flash')
+model = genai.GenerativeModel("gemini-1.5-flash-002")
 
 
 def ResumeExtractor(file):
