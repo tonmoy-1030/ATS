@@ -197,7 +197,7 @@ def posting_letter(transfer_data, pdf_file):
         <b>T.K. Group</b><br/> <br/> <br/> <br/> 
 
         Cc:<br/> 								
-        &nbsp;&nbsp;&nbsp;&nbsp;&nbsp;>{transfer_data["business_director"]}<br/>
+        &nbsp;&nbsp;&nbsp;&nbsp;&nbsp;{transfer_data["business_director"]}<br/>
         &nbsp;&nbsp;&nbsp;&nbsp;&nbsp;Head of Business<br/> 
         &nbsp;&nbsp;&nbsp;&nbsp;&nbsp;Accounts Department<br/>
         &nbsp;&nbsp;&nbsp;&nbsp;&nbsp;Personal files<br/> 
