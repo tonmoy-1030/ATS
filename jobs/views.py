@@ -17,6 +17,7 @@ from collections import defaultdict
 from django.contrib import messages
 from django.contrib.auth.decorators import login_required
 from django.utils.decorators import method_decorator
+from django.views.decorators.cache import never_cache
 
 # Logout Page
 
@@ -266,6 +267,10 @@ class FinalInitialInterviewList(ListView):
 class ScheduleDetailview(DetailView):
     model = InterviewSchedule
     
+    @method_decorator(never_cache)
+    def dispatch(self, *args, **kwargs):
+        return super().dispatch(*args, **kwargs)
+    
     def get_context_data(self, **kwargs):
         context = super().get_context_data(**kwargs)
         interview_schedule = self.object
@@ -297,13 +302,17 @@ class ScheduleListview(ListView):
 class FinalScheduleDetailview(DetailView):
     model = FinalInterviewSchedule
     
+    @method_decorator(never_cache)
+    def dispatch(self, *args, **kwargs):
+        return super().dispatch(*args, **kwargs)
+    
     def get_context_data(self, **kwargs):
         context = super().get_context_data(**kwargs)
         final_interview_schedule = self.object
         
         candidates = Candidate.objects.filter(final_interview=final_interview_schedule)
         context['candidates'] = candidates
-        return context    
+        return context
 
 class FinalScheduleDeleteview(DeleteView):
     model = FinalInterviewSchedule
