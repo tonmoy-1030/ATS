@@ -31,6 +31,9 @@ class home( ListView):
     offer_model = Offer    
     employee_model = Employee
 
+    @method_decorator(never_cache)
+    def dispatch(self, *args, **kwargs):
+        return super().dispatch(*args, **kwargs)
     
     def get_context_data(self, **kwargs):
         current_month_start = timezone.now().replace(day=1, hour=0, minute=0, second=0, microsecond=0)
