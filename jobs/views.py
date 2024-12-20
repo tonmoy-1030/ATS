@@ -3,7 +3,7 @@ from typing import Any
 from django.shortcuts import render, redirect, get_object_or_404
 from django.contrib.messages.views import SuccessMessageMixin
 from .models import Job, InterviewSchedule, FinalInterviewSchedule, BusinessUnit
-from django.views.generic import DetailView, CreateView, UpdateView, ListView
+from django.views.generic import DetailView, CreateView, UpdateView, ListView, DeleteView
 from candidates.models import Candidate, Offer
 from django.urls import reverse
 from django.db.models import Count, Subquery
@@ -275,6 +275,12 @@ class ScheduleDetailview(DetailView):
         context['candidates'] = candidates
         context['duplicate_mobiles'] = duplicate_mobiles
         return context
+
+class ScheduleDeleteview(DeleteView):
+    model = InterviewSchedule
+        
+    def get_success_url(self):
+        return reverse('jobs:initial_interview_list')
     
 class ScheduleListview(ListView):
     model = InterviewSchedule
@@ -299,6 +305,11 @@ class FinalScheduleDetailview(DetailView):
         context['candidates'] = candidates
         return context    
 
+class FinalScheduleDeleteview(DeleteView):
+    model = FinalInterviewSchedule
+        
+    def get_success_url(self):
+        return reverse('jobs:final_interview_list')
 
 class ShortListedCandidate(ListView):
     template_name = 'jobs/shortlisted_candidates.html'

@@ -46,9 +46,51 @@
                     <td>{{final_schedule.job.first.job_title}}</td>
                     <td>{{final_schedule.interview_type}}</td>
                     <td>{{final_schedule.interview_date|date:"Y-m-d"}}</td>
-                    <td class="text-center"><a class="btn btn-outline-primary btn-sm" href="{% url 'jobs:update_final_schedule' final_schedule.pk %}"><i class="bi bi-arrow-repeat"></i> Update</a>
-                    <a class="btn btn-outline-info btn-sm"  href="{% url 'jobs:final_interview_details' final_schedule.id %}"></i> Details</a></td>
-                </tr>
+                    <td class="text-center">
+                        <a
+                          class="btn btn-outline-primary btn-sm"
+                          href="{% url 'jobs:update_final_schedule' final_schedule.pk %}"
+                          ><i class="bi bi-pencil-square"></i
+                        ></a>
+                        <a
+                          class="btn btn-outline-info btn-sm ms-2"
+                          href="{% url 'jobs:final_interview_details' final_schedule.id %}"
+                          ><i class="bi bi-eye"></i
+                        ></a>
+                        <a
+                          href="#"
+                          class="text-danger btn btn-outline-info btn-sm ms-2 "
+                          data-bs-toggle="modal"
+                          data-bs-target="#finalDelete-{{final_schedule.id}}"
+                        >
+                          <i class="bi bi-trash"></i>
+                        </a>
+                         <!-- Modal -->
+                         <div class="modal" id="finalDelete-{{final_schedule.id}}" tabindex="-1"
+                         aria-labelledby="finalDeletelabel-{{final_schedule.id}}" aria-hidden="true">
+                            <div class="modal-dialog modal-dialog-centered modal-md">
+                                <div class="modal-content">
+                                    <div class="modal-header">
+                                        <h1 class="modal-title fs-5" id="finalDeletelabel-{{final_schedule.id}}">Delete?</h1>
+                                        <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
+                                    </div>
+                                    <div class="modal-body">
+                                        <h6>Are you sure you want to delete "{{ final_schedule.job.first.job_title }}"?</h6>
+                                    </div>
+                                    <div class="modal-footer">
+                                        <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Close</button>
+                                        <form class="d-inline-block" method="post" action="{% url 'jobs:final_delete' final_schedule.id %}">
+                                            {% csrf_token %}
+                                            <input class="btn btn-danger" type="submit" value="Confirm">
+                                        </form>
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+                        
+                      </td>
+                    </tr>
+                    
                 {% endfor %}
             </tbody>
         </table>
