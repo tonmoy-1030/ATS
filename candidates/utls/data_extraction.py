@@ -1,8 +1,8 @@
-import os.path
+import os
 import phonenumbers
 import re
 
-TARGET_STRINGS = ['of', 'Résumé of','resume', 'cv', 'curriculum vitae', 'Powered By Bdjobs.Com', 'Page 1-2']
+TARGET_STRINGS = ['of', 'Résumé of', 'resume', 'cv', 'curriculum vitae', 'Powered By Bdjobs.Com', 'Page 1-2']
 
 
 class DataExtraction:
@@ -15,32 +15,46 @@ class DataExtraction:
         self.index_target = index_target
 
     def extract_name(self, text):
+        if not isinstance(text, list):
+            raise ValueError("Input text must be a list of lines.")
         for i, line in enumerate(text[:5]):
             if any(word.lower() in line.lower() for word in TARGET_STRINGS):
                 self.index_target = i
-        if self.index_target is not None:
+                break  # Stop checking after the first match
+        if self.index_target is not None and self.index_target + 1 < len(text):
             self.name = text[self.index_target + 1]
         else:
-            self.name = text[0]
+            self.name = text[0] if text else "Not Found"
         return self.name.title()
 
     def extract_phonenumbers(self, text):
+        if not isinstance(text, list):
+            raise ValueError("Input text must be a list of lines.")
         page_text = "\n".join(text)
         numbers = phonenumbers.PhoneNumberMatcher(text=page_text, region="BD")
         for number in numbers:
             self.phone = phonenumbers.format_number(number.number, phonenumbers.PhoneNumberFormat.E164)
             break  # Get the first number and break
+        else:
+            # Explicitly set "Not Found" if no phone numbers are detected
+            self.phone = "Not Found"
         return self.phone
 
+
     def extract_emails(self, text):
-        page_text = "\n".join(text)  # No need to join lines
+        if not isinstance(text, list):
+            raise ValueError("Input text must be a list of lines.")
+        page_text = "\n".join(text)
         emails = re.findall(self.EMAIL_REGEX, page_text)
-        if emails:
-            self.email = emails[0]
+        self.email = emails[0] if emails else "Not Found"
         return self.email
 
     @staticmethod
     def extract_file_name(path):
-        file_name = path.name
-        _, tail = os.path.split(file_name)
-        return tail
+        if isinstance(path, str):
+            file_name = os.path.basename(path)
+        elif hasattr(path, 'name'):
+            file_name = os.path.basename(path.name)
+        else:
+            raise ValueError("Path must be a string or an object with a 'name' attribute.")
+        return file_name

@@ -1,6 +1,7 @@
 from django.db import models
 import phonenumbers
 from django.utils import timezone
+from django.core.exceptions import ValidationError
 
 
 
@@ -51,9 +52,18 @@ class Candidate(models.Model):
     final_interview = models.ForeignKey("jobs.FinalInterviewSchedule", on_delete=models.CASCADE, null=True, blank=True)
     
     def save(self, *args, **kwargs):
-        parsed_mobile = phonenumbers.parse(self.mobile, "BD")
-        formatted_mobile = phonenumbers.format_number(parsed_mobile, phonenumbers.PhoneNumberFormat.E164)
-        self.mobile = formatted_mobile
+        if self.mobile and self.mobile != "Not Found":
+            try:
+                parsed_mobile = phonenumbers.parse(self.mobile, "BD")
+                if phonenumbers.is_valid_number(parsed_mobile):  # Check if the number is valid
+                    formatted_mobile = phonenumbers.format_number(parsed_mobile, phonenumbers.PhoneNumberFormat.E164)
+                    self.mobile = formatted_mobile
+                else:
+                    raise ValidationError("Invalid phone number provided.")
+            except phonenumbers.phonenumberutil.NumberParseException:
+                raise ValidationError("Failed to parse phone number. Ensure it is in a valid format.")
+        elif self.mobile == "Not Found":
+            self.mobile = "Not Found"  # Optionally clear the field or keep as is
         super().save(*args, **kwargs)
         
     

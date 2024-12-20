@@ -30,16 +30,38 @@ from django.contrib import messages
 import logging
 import time
 from requests.exceptions import RequestException
+
+
 from employees.models import Employee
 from .utls.google_sheet_Candidates import candidateDate
-from datetime import datetime            
+from datetime import datetime        
+import json 
+logger = logging.getLogger(__name__)
 
 
 TextConverter = TextConverter()
 DataExtraction = DataExtraction()
 
-genai.configure(api_key="AIzaSyB_WKoQ8d27_Zo9lNhOpH3zdRuf0XJ1EEc")
-model = genai.GenerativeModel("gemini-1.5-flash-002")
+def Resume_Date_As_JSON(prompts):
+  genai.configure(api_key="AIzaSyB_WKoQ8d27_Zo9lNhOpH3zdRuf0XJ1EEc")
+  model = genai.GenerativeModel(
+  model_name="gemini-1.5-flash",
+  generation_config={"response_mime_type": "application/json",}
+  )
+  chat_session = model.start_chat(
+            history=[
+                {
+                    "role": "user",
+                    "parts": [
+                        prompts,
+                        "Think you are an ATS system. Extract from the text: Name, Phone, Email, Highest_Educational_Degree, passing_year, Highest_Education_Degree_Institution, professional Degree, Experience (with Position, company, duration), permanent Address",
+                    ],
+                }
+            ]
+        )
+  response = chat_session.send_message("Extract the requested details.")
+  json_response = json.loads(response.text)
+  return json_response
 
 
 def ResumeExtractor(file):
@@ -70,7 +92,7 @@ def ResumeExtractor(file):
         max_retries = 3
         for attempt in range(max_retries):
             try:
-                response = model.generate_content(f"give me the Name in the below text just give me name not any word: {extracted_textinfo}")
+                response = Resume_Date_As_JSON("\n".join(extracted_textinfo))
                 if response:
                     break
             except RequestException as e:
@@ -82,7 +104,8 @@ def ResumeExtractor(file):
 
         if response:
             try:
-                name = response.text.title()
+                name = response['Name'].title()
+                print(name)
             except Exception as e:
                 logging.error(f"Error processing response: {e}")
                 name = DataExtraction.extract_name(extracted_textinfo)
@@ -116,38 +139,52 @@ class FileFieldFormView(FormView):
         session_key = f'upload_progress_{interview_schedule_pk}'
         self.request.session[session_key] = 0  # Initialize progress to 0
         self.request.session.modified = True
-        self.request.session.save()  # Save the session
-
-        for i, file in enumerate(files, 1):
-            # Extract resume info (replace ResumeExtractor with your actual logic)
-            resume_info = ResumeExtractor(file)
-
-            candidate = Candidate(
-                name=resume_info.name,
-                mobile=resume_info.phone,
-                email=resume_info.email,
-                filename=resume_info.file_name,
-                attendance_status='absent',
-                interview_schedule=interview_schedule
-            )
-            candidate.save()
-            candidate.job.set(jobs)
-
-            # Calculate the progress after each file is processed
-            progress = int((i / total_files) * 100)
-            self.request.session[session_key] = progress
-            self.request.session.modified = True  # Mark the session as modified
-            self.request.session.save()  # Explicitly save the session after each update
-        
-        # Ensure final progress is set to 100 when all files are uploaded
-        self.request.session[session_key] = 100
-        self.request.session.modified = True
         self.request.session.save()
 
-        return JsonResponse({'status': 'success'})
+        try:
+            for i, file in enumerate(files, 1):
+                try:
+                    # Extract resume info (replace ResumeExtractor with your actual logic)
+                    resume_info = ResumeExtractor(file)
+                    candidate = Candidate(
+                        name=resume_info.name,
+                        mobile=resume_info.phone,
+                        email=resume_info.email,
+                        filename=resume_info.file_name,
+                        attendance_status='absent',
+                        interview_schedule=interview_schedule
+                    )
+                    candidate.save()
+                    candidate.job.set(jobs)
+
+                except Exception as e:
+                    # Log the error and continue processing other files
+                    logger.error(f"Error processing file {file.name}: {e}")
+                    continue
+
+                # Calculate and update progress
+                progress = int((i / total_files) * 100)
+                self.request.session[session_key] = progress
+                self.request.session.modified = True
+                self.request.session.save()
+
+            # Ensure final progress is set to 100 when all files are uploaded
+            self.request.session[session_key] = 100
+            self.request.session.modified = True
+            self.request.session.save()
+
+            return JsonResponse({'status': 'success'})
+
+        except Exception as e:
+            logger.error(f"Unexpected error during file processing: {e}")
+            self.request.session[session_key] = -1  # Indicate failure
+            self.request.session.modified = True
+            self.request.session.save()
+            return JsonResponse({'status': 'error', 'message': 'An unexpected error occurred. Please try again later.'}, status=500)
 
     def form_invalid(self, form):
         return JsonResponse({'status': 'error', 'errors': form.errors}, status=400)
+
 
 
 # Helper view to return progress
@@ -156,37 +193,6 @@ def get_upload_progress(request, pk):
     progress = request.session.get(session_key, 0)  # Default to 0 if progress is not found
     return JsonResponse({'progress': progress})
 
-
-# class FileFieldFormView(FormView):
-#     form_class = FileFieldForm
-#     template_name = "candidates/upload.html"
-
-#     def form_valid(self, form):
-#         files = form.cleaned_data["file_field"]
-#         interview_schedule_pk = self.kwargs.get('pk')
-#         interview_schedule = get_object_or_404(InterviewSchedule, pk=interview_schedule_pk)
-#         jobs = interview_schedule.job.all()
-
-
-#         for file in files:
-#             resume_info = ResumeExtractor(file)
-#             candidate = Candidate(name=resume_info.name, 
-#                                   mobile=resume_info.phone,
-#                                   email=resume_info.email, 
-#                                   filename=resume_info.file_name,
-#                                   attendance_status='absent', 
-#                                   interview_schedule=interview_schedule)
-#             candidate.save()
-#             candidate.job.set(jobs)
-
-        
-#         self.interview_schedule_pk = interview_schedule_pk
-#         return super().form_valid(form)
-    
-#     def get_success_url(self):
-#         return reverse('jobs:interview_details', kwargs={'pk': self.interview_schedule_pk})
-    
-    
 class final_FileFieldFormView(FormView):
     form_class = FileFieldForm
     template_name = "candidates/upload.html"
