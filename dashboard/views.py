@@ -225,26 +225,90 @@ class SeparatedEMPJsonView(View):
             '''
 
         query= f'''
-        SELECT jobs_businessunit.short_name AS Unit,
-        COUNT(e.id) AS 'No. of Employees',
-        CASE
-            WHEN DATEDIFF(employees_seperationstatus.resign_date, e.DOJ) / 365.0 < 0.25 THEN 'Less than 3 months'
-            WHEN DATEDIFF(employees_seperationstatus.resign_date, e.DOJ) / 365.0 >= 0.25
-                    AND DATEDIFF(employees_seperationstatus.resign_date, e.DOJ) / 365.0 < 0.5 THEN '3-6 months'
-            WHEN DATEDIFF(employees_seperationstatus.resign_date, e.DOJ) / 365.0 >= 0.5
-                    AND DATEDIFF(employees_seperationstatus.resign_date, e.DOJ) / 365.0 < 0.75 THEN '6-9 months'
-            WHEN DATEDIFF(employees_seperationstatus.resign_date, e.DOJ) / 365.0 >= 0.75
-                    AND DATEDIFF(employees_seperationstatus.resign_date, e.DOJ) / 365.0 < 1 THEN '9-12 months'
-            ELSE 'More than 1 year'
-        END AS Duration_Category
-            FROM employees_employee e
-            JOIN employees_seperationstatus ON e.id = employees_seperationstatus.employee_id
-            JOIN jobs_businessunit ON e.unit_id = jobs_businessunit.id
-            {where}
-            GROUP BY jobs_businessunit.short_name,
-                    Duration_Category
-            ORDER BY jobs_businessunit.short_name,
-                    Duration_Category;
+        WITH units AS (
+            SELECT DISTINCT u.name AS unit
+            FROM jobs_businessunit u
+            JOIN employees_employee e ON u.id = e.unit_id
+        ),
+        months AS (
+            SELECT 1 AS month UNION
+            SELECT 2 UNION
+            SELECT 3 UNION
+            SELECT 4 UNION
+            SELECT 5 UNION
+            SELECT 6 UNION
+            SELECT 7 UNION
+            SELECT 8 UNION
+            SELECT 9 UNION
+            SELECT 10 UNION
+            SELECT 11 UNION
+            SELECT 12
+        ),
+        unit_months AS (
+            SELECT 
+                u.unit,
+                m.month
+            FROM 
+                units u
+            CROSS JOIN 
+                months m
+        ),
+        separations_per_month AS (
+            SELECT 
+                u.name AS unit,
+                MONTH(s.resign_date) AS month,
+                COUNT(*) AS separations
+            FROM 
+                employees_seperationstatus s
+            JOIN employees_employee e ON s.employee_id = e.id
+            JOIN jobs_businessunit u ON e.unit_id = u.id
+            WHERE 
+                YEAR(s.resign_date) = YEAR(CURDATE())
+            GROUP BY 
+                u.name, MONTH(s.resign_date)
+        ),
+        employees_per_month AS (
+            SELECT 
+                u.name AS unit,
+                m.month,
+                COUNT(*) AS employees_count
+            FROM 
+                jobs_businessunit u
+            CROSS JOIN months m
+            JOIN employees_employee e ON u.id = e.unit_id
+            LEFT JOIN employees_seperationstatus s ON e.id = s.employee_id
+            WHERE 
+                YEAR(e.DOJ) <= YEAR(CURDATE())
+                AND (
+                    s.resign_date IS NULL 
+                    OR YEAR(s.resign_date) > YEAR(CURDATE())
+                    OR (YEAR(s.resign_date) = YEAR(CURDATE()) AND MONTH(s.resign_date) >= m.month)
+                )
+                AND (
+                    YEAR(e.DOJ) < YEAR(CURDATE()) 
+                    OR (YEAR(e.DOJ) = YEAR(CURDATE()) AND MONTH(e.DOJ) <= m.month)
+                )
+            GROUP BY 
+                u.name, m.month
+        )
+        SELECT 
+            um.unit,
+            um.month,
+            COALESCE(spm.separations, 0) AS separations,
+            COALESCE(epm.employees_count, 0) AS employees_count,
+            COALESCE(
+                (CAST(COALESCE(spm.separations, 0) AS DECIMAL(10, 2)) / 
+                NULLIF(epm.employees_count, 0)) * 100, 0
+            ) AS attrition_rate
+        FROM 
+            unit_months um
+        LEFT JOIN 
+            separations_per_month spm ON um.unit = spm.unit AND um.month = spm.month
+        LEFT JOIN 
+            employees_per_month epm ON um.unit = epm.unit AND um.month = epm.month
+        ORDER BY 
+            um.unit, um.month;
+
                 '''
         with connection.cursor() as cursor:
                 cursor.execute(query)
