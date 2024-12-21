@@ -132,7 +132,7 @@ def get_candidate_data(request):
     candidate = Candidate.objects.get(pk=candidate_id)
 
     
-    exclude_patterns = ['02214', 'PC ', '02201', '02206', '02000', '02214', 'PCL-C', 'PPL-C', 'PG', 'TKFS']
+    exclude_patterns = ['02214', 'PC ', '02201', '02206', '02000', '02214', 'PCL-C', 'PPL-C', 'PG', 'TKFS', 'EMP']
     exclude_condition = Q()
     for pattern in exclude_patterns:
         exclude_condition |= Q(EID__startswith=pattern)
