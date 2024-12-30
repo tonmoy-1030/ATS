@@ -214,6 +214,19 @@ class EmployeeSeperationUpdateView(UpdateView):
 
 
 
+def sample_separated_upload_file(request):
+    response = HttpResponse(
+        content_type='text/csv',
+        headers = {"Content-Dispositon": "'attachment; 'filename'='sample_separation.csv'"}
+    )  
+    writter = csv.writer(response)
+    header_row = ['EID','Name', 'Resign_Date', 'Reason']  
+    writter.writerow(header_row)
+    row = ['2000006','Md. Ashraful Hossain Nury', '2021-01-03', 'Personal Reason']
+    writter.writerow(row)
+    
+    return response
+
 
 def import_separated_employees(file):
     temp_directory = os.path.join(settings.MEDIA_ROOT, 'temp')
@@ -232,13 +245,13 @@ def import_separated_employees(file):
                 resign_date_str = row['Resign_Date']
                 resign_date = datetime.strptime(resign_date_str, '%Y-%m-%d').date()
             except ValueError:
-                error_messages.append(f"Invalid date format for ID {row['ID']}: {resign_date_str}")
+                error_messages.append(f"Invalid date format for ID {row['EID']}: {resign_date_str}")
                 continue
             
             try:
-                employee = Employee.objects.get(EID=row['ID'])
+                employee = Employee.objects.get(EID=row['EID'])
             except Employee.DoesNotExist:
-                error_messages.append(f"Employee with ID {row['ID']} does not exist")
+                error_messages.append(f"Employee with ID {row['EID']} does not exist")
                 continue
 
             try:
@@ -272,7 +285,7 @@ def separate_upload_file(request):
             return HttpResponseRedirect("/employees/")
     else:
         form = UploadFileForm()
-    return render(request, "employees/upload.html", {"form": form})
+    return render(request, "employees/upload_separation.html", {"form": form})
 
 
 #update Employee Details

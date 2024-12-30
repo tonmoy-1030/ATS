@@ -1,0 +1,25 @@
+{%extends "jobs/base.html"%}
+{%block content%}
+{% load crispy_forms_tags %}
+<div class="container-fluid">
+    <!-- Main content here -->
+    <div class="row">
+        <div class="col-md-3">
+            {% include 'employees/EmployeesManuBar.html' %}
+        </div>
+        <div class="col-md-9">
+            <div class="container" style="max-width: 600px;">
+                <form action="" method="post" enctype="multipart/form-data">
+                    {% csrf_token %}
+                    <fieldset>
+                        {{form|crispy }}
+                    </fieldset>
+                    <button class="btn btn-primary btn-sm mt-4" type="submit"> <i class="bi bi-send"></i>
+                        Submit</button>
+                    <a class="btn btn-secondary btn-sm mt-4" href="{% url 'employees:sample_separation' %}"> Download
+                        Sample</a>
+                </form>
+            </div>
+        </div>
+    </div>
+    {%endblock%}
