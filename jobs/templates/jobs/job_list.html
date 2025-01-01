@@ -50,7 +50,7 @@
                             <td><a href="{% url 'jobs:job_details' requisition.id %}">{{requisition.posting_date}}</a></td>
                             <td>{{requisition.job_title}}</td>
                             <td>{{requisition.department}}</td>
-                            <td>{{requisition.unit.name}}</td>
+                            <td>{{requisition.unit.short_name}}</td>
                             <td>{{requisition.job_location}}</td>
                             <td>{{requisition.types}}</td>
                             <td class="text-center">{{requisition.no_of_position}}</td>

@@ -10,7 +10,7 @@ from .forms import (UploadFileForm, SeperationForm,
                     EmployeeEntryForm, EmployeeFilter, 
                     TransferOrderForm, EmployeeConfirmationForm, 
                     PostingOrderForm, SalaryInfoForm, TransferOrderUpdateForm,
-                    PostingOrderUpdateForm)
+                    PostingOrderUpdateForm, SeparationFilter)
 from django.contrib.auth.decorators import user_passes_test
 from django.db.models import Q
 from datetime import datetime, timedelta
@@ -212,6 +212,23 @@ class EmployeeSeperationUpdateView(UpdateView):
     template_name = "employees/seperation_form.html"
     success_url = "/employees/seperation"
 
+class EmployeeSeparationListView(ListView):
+    model = SeperationStatus
+    paginate_by = 12
+    template_name = 'employees/Separated_employees.html'
+    context_object_name = 'Separated_employees'
+    
+    
+    def get_queryset(self):
+        queryset = super().get_queryset()
+        filter = SeparationFilter(self.request.GET, queryset=SeperationStatus.objects.all().order_by('-resign_date'))
+        return filter.qs
+    
+    def get_context_data(self, **kwargs):
+        context = super().get_context_data(**kwargs)
+        context['filter'] = SeparationFilter(self.request.GET, queryset=self.get_queryset())
+        return context
+    
 
 
 def sample_separated_upload_file(request):

@@ -1,0 +1,92 @@
+{% extends "jobs/base.html" %}
+{% block content %}
+{% load crispy_forms_tags %}
+{% block style%}
+<style>
+    .form-group>div {
+        display: flex;
+        align-items: center;
+    }
+
+    .form-group>div>div {
+        margin-right: 10px;
+        /* Adjust the spacing as needed */
+    }
+</style>
+{% endblock %}
+
+<div class="container-fluid">
+    <div class="row">
+        <div class="col-md-3">
+            {% include 'employees/EmployeesManuBar.html' %}
+        </div>
+        <div class="col-md-9">
+            <legend class="text-center"> Employee List</legend>
+            <form method="get" class="form-inline">
+                {{ filter.form | crispy }}
+                <button type="submit" class="btn btn-primary mt-4"><i class="bi bi-search"></i> Search</button>
+            </form>
+            <table class="table table-bordered table-sm" id="employee_table">
+                <thead class="text-center align-middle">
+                    <tr>
+                        <th>ID</th>
+                        <th>Name</th>
+                        <th>Designation</th>
+                        <th>Department</th>
+                        <th>Mobile No.</th>
+                        <th>DOJ</th>
+                        <th>Resign Date</th>
+                        <th>Unit</th>
+                    </tr>
+                </thead>
+                <tbody>
+                    {% for separation in Separated_employees %}
+                    <tr>
+                        <td>{{ separation.employee.EID }}</a></td>
+                        <td>{{ separation.employee.name }}</td>
+                        <td>{{ separation.employee.designation }}</td>
+                        <td>{{ separation.employee.department }}</td>
+                        <td>{{ separation.employee.mobile_no }}</td>
+                        <td>{{separation.employee.DOJ}}</td>
+                        <td>{{separation.resign_date}}</td>
+                        <td>{{ separation.employee.unit.short_name }}</td>
+                        
+                    </tr>
+                    {% endfor %}
+                </tbody>
+            </table>
+            <div class="pagination justify-content-center">
+                <nav aria-label="Page navigation">
+                    <ul class="pagination">
+                        {% if page_obj.has_previous %}
+                        <li class="page-item">
+                            <a class="page-link"
+                                href="?{% if request.GET %}{{ request.GET.urlencode|safe }}&{% endif %}page=1">First</a>
+                        </li>
+                        <li class="page-item">
+                            <a class="page-link"
+                                href="?{% if request.GET %}{{ request.GET.urlencode|safe }}&{% endif %}page={{ page_obj.previous_page_number }}">Previous</a>
+                        </li>
+                        {% endif %}
+
+                        <li class="page-item disabled">
+                            <a class="page-link">Page {{ page_obj.number }} of {{ page_obj.paginator.num_pages }}</a>
+                        </li>
+
+                        {% if page_obj.has_next %}
+                        <li class="page-item">
+                            <a class="page-link"
+                                href="?{% if request.GET %}{{ request.GET.urlencode|safe }}&{% endif %}page={{ page_obj.next_page_number }}">Next</a>
+                        </li>
+                        <li class="page-item">
+                            <a class="page-link"
+                                href="?{% if request.GET %}{{ request.GET.urlencode|safe }}&{% endif %}page={{ page_obj.paginator.num_pages }}">Last</a>
+                        </li>
+                        {% endif %}
+                    </ul>
+                </nav>
+            </div>
+        </div>
+    </div>
+</div>
+{% endblock %}

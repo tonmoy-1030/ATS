@@ -41,5 +41,6 @@ urlpatterns = [
     path('employees/unit/search', unit_based_employee_search),
     path('transfer/update/<int:pk>', views.TransferUpdateView.as_view(), name='transfer-update'),
     path('posting/update/<int:pk>', views.PostingUpdateView.as_view(), name='posting-update'),
+    path('employees/separation/list', views.EmployeeSeparationListView.as_view(), name='employee-separation'),
     path('employees/separation/sample', views.sample_separated_upload_file, name='sample_separation')
 ] + static(settings.MEDIA_URL, document_root=settings.MEDIA_ROOT)

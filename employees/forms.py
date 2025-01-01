@@ -60,10 +60,26 @@ class EmployeeFilter(django_filters.FilterSet):
         choices = [(unit_id, unit_name) for (unit_id, unit_name) in unique_units]
         return choices
     
-    class Meta:
-        model = Employee
-        fields = ['name', 'department', 'unit']
+class SeparationFilter(django_filters.FilterSet):
+    name = django_filters.CharFilter(field_name='employee__name',lookup_expr='icontains', label="Name")
+    resignation_date = django_filters.DateFromToRangeFilter(field_name='resign_date', label='Resign Date', widget=django_filters.widgets.RangeWidget(
+                                                    attrs={'type': 'date'}
+                                                    ))
+    unit = django_filters.ChoiceFilter(field_name='employee__unit', choices=[], label='Unit')
 
+    def __init__(self, *args, **kwargs):
+        super().__init__(*args, **kwargs)
+        self.filters['unit'].extra['choices'] = self.get_unit_choices()
+
+    def get_unit_choices(self):
+        unique_units = Employee.objects.values_list('unit__id', 'unit__name').distinct()
+        choices = [(unit_id, unit_name) for (unit_id, unit_name) in unique_units]
+        return choices
+    
+    class Meta:
+        model = SeperationStatus
+        fields = ['name', 'resignation_date', 'unit']
+        
 
 # employee Confirmation Form
 class EmployeeConfirmationForm(forms.ModelForm):
