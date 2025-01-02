@@ -210,7 +210,7 @@ class EmployeeSeperationUpdateView(UpdateView):
     model = SeperationStatus
     form_class = SeperationForm
     template_name = "employees/seperation_form.html"
-    success_url = "/employees/seperation"
+    success_url = "/employees/separation"
 
 class EmployeeSeparationListView(ListView):
     model = SeperationStatus
