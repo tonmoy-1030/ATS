@@ -16,6 +16,6 @@ urlpatterns = [
     path('leaves/holiday/list', views.holidayList, name="holidayList"),
     path('leaves/upload/csv',views.upload_file , name='leave_csv' ),
     path('leaves/allocation/delete/<int:pk>',views.LeaveAllocationDeleteView.as_view() , name='allocationDelete' ),
-    path('leaves/application/delete/<int:pk>',views.LeaveApplicationDeleteView.as_view() , name='applicationDelete' ),         
-             
+    path('leaves/application/delete/<int:pk>',views.LeaveApplicationDeleteView.as_view() , name='applicationDelete' ),
+    path('leaves/allocation/process',views.leave_allocation_process , name='application_yearly_process' ),
 ]   

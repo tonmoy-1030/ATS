@@ -11,6 +11,8 @@ from django.conf import settings
 from django.db import IntegrityError
 import os
 import csv
+from django.db import transaction
+from .forms import LeaveAllocationProcessForm
 
 
 class LeaveAllocationCreateView(CreateView, SuccessMessageMixin):
@@ -210,3 +212,57 @@ def upload_file(request):
     else:
         form = UploadFileForm()
     return render(request, "leaves/upload.html", {"form": form})
+
+# Leave process for leave allocation of the year of all employees who has already been allocated leave in previous year
+
+def leave_allocation_process(request):
+    success_message = None
+
+    if request.method == "POST":
+        form = LeaveAllocationProcessForm(request.POST)
+        if form.is_valid():
+            current_year = form.cleaned_data['year']
+            employees = Employee.objects.select_related('details').all()
+            leave_types = LeaveType.objects.all()
+            
+            new_allocations = []
+            updated_count = 0
+            created_count = 0
+
+            try:
+                with transaction.atomic():
+                    for employee in employees:
+                        # Check if the employee has any prior leave allocations
+                        has_prior_allocations = LeaveAllocation.objects.filter(employee=employee).exists()
+                        
+                        if not has_prior_allocations:
+                            continue  # Skip employees without prior allocations
+                        
+                        for leave_type in leave_types:
+                            try:
+                                last_allocation = LeaveAllocation.objects.filter(
+                                    employee=employee, leave_type=leave_type
+                                ).latest('year')
+
+                                if last_allocation.year < current_year:
+                                    new_allocations.append(LeaveAllocation(
+                                        employee=employee,
+                                        leave_type=leave_type,
+                                        year=current_year,
+                                        leave_allocated=last_allocation.leave_allocated,
+                                        leave_taken=0,
+                                        leave_balance=last_allocation.leave_allocated
+                                    ))
+                                    updated_count += 1
+                            except LeaveAllocation.DoesNotExist:
+                                # Skip creating new allocations for employees with no prior allocations
+                                continue
+
+                    LeaveAllocation.objects.bulk_create(new_allocations)
+                success_message = f"Leave allocation completed successfully. {updated_count} updated, {created_count} created."
+            except Exception as e:
+                success_message = f"An error occurred: {str(e)}"
+    else:
+        form = LeaveAllocationProcessForm()
+
+    return render(request, 'leaves/leaveAllocation_yearly_process.html', {'form': form, 'success_message': success_message})

@@ -68,6 +68,15 @@ class HolidayForm(forms.ModelForm):
             'name': forms.TextInput(attrs={'class':'form-control'})
         }
             
+
+class LeaveAllocationProcessForm(forms.Form):
+    year = forms.IntegerField(
+        label="Year",
+        min_value=2000,
+        max_value=2100,
+        widget=forms.NumberInput(attrs={'class': 'form-control'}),
+        help_text="Enter the year for leave allocation."
+    )
     
 # Leave Filter Form
 class LeaveFilter(django_filters.FilterSet):
