@@ -10,7 +10,7 @@ from django.db.models import Count, Subquery
 from django.http import HttpResponse, JsonResponse
 from .forms import (RequisitionForm, InterviewFilter, FinalInterviewFilter,
                     ScheduleForm, UpdateScheduleForm, UpdateFinalScheduleForm,
-                    HCRFFilter)
+                    HCRFFilter, UpdateRequisitionForm)
 from django.utils import timezone
 from employees.models import Employee
 from collections import defaultdict
@@ -19,8 +19,13 @@ from django.contrib.auth.decorators import login_required
 from django.utils.decorators import method_decorator
 from django.views.decorators.cache import never_cache
 
-# Logout Page
+# unauthorized page
 
+def unauthorized(request):
+    return render(request, 'jobs/unauthorized.html')
+
+
+# Logout Page
 def logoutPage(request):
     return render(request, "jobs/logout.html")
 
@@ -222,7 +227,7 @@ class JobDetailView(DetailView):
     
 class JobUpdateView(SuccessMessageMixin, UpdateView):
     model = Job
-    form_class = RequisitionForm
+    form_class = UpdateRequisitionForm
     def get_success_url(self):
         return reverse('jobs:job_details', kwargs={'pk': self.object.pk})
     

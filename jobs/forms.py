@@ -72,6 +72,17 @@ class HCRFFilter(django_filters.FilterSet):
 class RequisitionForm(forms.ModelForm):
     class Meta:
         model = Job
+        fields = ['job_title', 'department', 'unit', 'job_location', 'posting_date','types', 'no_of_position', 'remarks']
+        widgets = { 
+                   'posting_date' : DatePickerInput(),
+                   'remarks': forms.Textarea(attrs={'rows':2}),
+                   'closing_date' : DatePickerInput(),
+                   }
+
+
+class UpdateRequisitionForm(forms.ModelForm):
+    class Meta:
+        model = Job
         fields = '__all__'
         # fields = ['job_title', 'department', 'unit', 'job_location', 'posting_date','types', 'no_of_position', 'remarks']
         widgets = { 
