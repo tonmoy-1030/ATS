@@ -105,7 +105,6 @@ def ResumeExtractor(file):
         if response:
             try:
                 name = response['Name'].title()
-                print(name)
             except Exception as e:
                 logging.error(f"Error processing response: {e}")
                 name = DataExtraction.extract_name(extracted_textinfo)
