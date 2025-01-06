@@ -12,7 +12,8 @@ class LoginRequiredMiddleware:
 
         # Define user-specific accessible URLs
         user_specific_urls = {
-            'guest': ['daily_joining', 'daily_joining_update', 'daily_joining_delete', 'daily_joining_list'],  # Replace with actual view names for user1
+            'guest': ['daily_joining', 'daily_joining_update', 'daily_joining_delete', 'daily_joining_list'],
+            'dhamrai-hr': ['daily_joining', 'daily_joining_update', 'daily_joining_delete', 'daily_joining_list'],
             # Add more users and their allowed URLs
         }
 
