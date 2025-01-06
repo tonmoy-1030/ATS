@@ -39,6 +39,7 @@ urlpatterns = [
     path('ajax/load-jobs/', views.load_jobs, name='ajax_load_jobs'),
     path('job/expend/vacancy', views.expands_requisition.as_view(), name='expend_requisition'),
     path('job/expend/joining', views.expands_joining_list.as_view(), name='expend_joining'),
+    path('user/unauthorized', views.unauthorized, name='unauthorized'),
     
 
 ]   

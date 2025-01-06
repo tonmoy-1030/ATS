@@ -197,6 +197,10 @@
                             <a href="{% url 'dashboard:dashboard' %}" class="sidebar-link"><i
                                     class="bi bi-check-circle-fill"></i>Dashboard</a>
                         </li>
+                        <li class="sidebar-item">
+                            <a href="{% url 'report:daily_joining_report' %}" class="sidebar-link"><i
+                                    class="bi bi-check-circle-fill"></i>Daily Joining Report</a>
+                        </li>
                     </ul>
                 </li>
 
@@ -326,6 +330,13 @@
                     </ul>
                 </li>
                 <!-- end process -->
+
+                <li class="sidebar-item">
+                    <a href="{% url 'report:daily_joining_list' %}" class="sidebar-link collapsed">
+                        <i class="bi bi-calendar-check"></i>
+                        <span>Daily Joining</span>
+                    </a>
+                </li>
                  
                  
             </ul>

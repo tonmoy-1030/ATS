@@ -1,0 +1,155 @@
+{% extends "jobs/base.html" %}
+
+{% block content %}
+<h1 class="text-center my-4">Daily Joining Report</h1>
+
+<div class="container">
+    <div class="row">
+        <!-- Left column for table -->
+        <div class="col-md-6" style="max-height: 1000px; overflow-y: auto; overflow-x: auto;">
+            <div class="table-responsive"><table class="table table-striped table-bordered table-hover table-sm fs-5">
+                <thead class="table-dark text-center">
+                    <tr class="text-center">
+                        <th>Date</th>
+                        {% if table_data %}
+                            {% for unit in table_data.0 %}
+                                {% if unit != 'date' %}
+                                    <th>{{ unit }}</th> <!-- Unit names dynamically added -->
+                                {% endif %}
+                            {% endfor %}
+                        {% endif %}
+                    </tr>
+                </thead>
+                <tbody>
+                    {% for row in table_data %}
+                        <tr>
+                            <td>{{ row.date }}</td>
+                            {% for unit, join_count in row.items %}
+                                {% if unit != 'date' %}
+                                    <td class="text-center">{{ join_count }}</td>
+                                {% endif %}
+                            {% endfor %}
+                        </tr>
+                    {% endfor %}
+                </tbody>
+            </table>
+            </div>
+            <div>
+                <ul class="pagination">
+                    {% if table_data.has_previous %}
+                        <li><a href="?page={{ table_data.previous_page_number }}">Previous</a></li>
+                    {% endif %}
+            
+                    <li>Page {{ table_data.number }} of {{ table_data.paginator.num_pages }}</li>
+            
+                    {% if table_data.has_next %}
+                        <li><a href="?page={{ table_data.next_page_number }}">Next</a></li>
+                    {% endif %}
+                </ul>
+            </div>
+        </div>
+
+        <!-- Right column for graph -->
+        <div class="col-md-6">
+            <div id="graph-container" class="shadow-lg p-3 mb-5 bg-white rounded">
+                <h4 class="text-center text-primary">Joinings Trend by Unit</h4>
+                <canvas id="joiningsChart"></canvas>
+                <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+                <script>
+                    // Get the data passed from Django
+                    var dates = {{ chart_data.dates|safe }};
+                    var joinings = {{ chart_data.joinings|safe }};
+
+                    // Prepare the datasets for the chart
+                    var datasets = Object.keys(joinings).map(function(unit) {
+                        return {
+                            label: unit,
+                            data: joinings[unit],
+                            fill: false,
+                            borderColor: getRandomColor(),
+                            backgroundColor: getRandomColor(),
+                            pointRadius: 6,
+                            pointHoverRadius: 8,
+                            tension: 0.3,
+                            borderWidth: 3
+                        };
+                    });
+
+                    // Generate a random color for each dataset
+                    function getRandomColor() {
+                        var letters = '0123456789ABCDEF'.split('');
+                        var color = '#';
+                        for (var i = 0; i < 6; i++) {
+                            color += letters[Math.floor(Math.random() * 16)];
+                        }
+                        return color;
+                    }
+
+                    // Chart configuration
+                    var ctx = document.getElementById('joiningsChart').getContext('2d');
+                    var joiningsChart = new Chart(ctx, {
+                        type: 'line', // Type of chart
+                        data: {
+                            labels: dates, // x-axis labels
+                            datasets: datasets // The actual data to plot
+                        },
+                        options: {
+                            responsive: true,
+                            plugins: {
+                                legend: {
+                                    position: 'top',
+                                    labels: {
+                                        font: {
+                                            size: 14
+                                        }
+                                    }
+                                },
+                                tooltip: {
+                                    callbacks: {
+                                        label: function(tooltipItem) {
+                                            return tooltipItem.raw + " joinings";
+                                        }
+                                    }
+                                }
+                            },
+                            scales: {
+                                x: {
+                                    title: {
+                                        display: true,
+                                        text: 'Date',
+                                        font: {
+                                            size: 16
+                                        }
+                                    }
+                                },
+                                y: {
+                                    title: {
+                                        display: true,
+                                        text: 'Joinings Count',
+                                        font: {
+                                            size: 16
+                                        }
+                                    },
+                                    beginAtZero: true,
+                                    ticks: {
+                                        stepSize: 10
+                                    }
+                                }
+                            },
+                            elements: {
+                                line: {
+                                    tension: 0.4
+                                },
+                                point: {
+                                    radius: 6
+                                }
+                            }
+                        }
+                    });
+                </script>
+            </div>
+        </div>
+    </div>
+</div>
+
+{% endblock %}

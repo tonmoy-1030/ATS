@@ -27,6 +27,7 @@ from jobs.models import BusinessUnit
 
 
 
+
 class EmployeeListView(ListView):
     model = Employee
     paginate_by = 12

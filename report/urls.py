@@ -7,4 +7,9 @@ urlpatterns = [
     path('report/interview_schedule/', views.interviewSchedule, name='Schedule'),
     path('documents/bond/', views.employee_list_bond, name='bond_list'),
     path('documents/bond/paper', views.BondPaper, name='bond_paper'),
+    path('report/daily_joining/', views.DailyJoiningCreateView.as_view(), name='daily_joining'),
+    path('report/daily_joining/<int:pk>/update/', views.DailyJoiningUpdateView.as_view(), name='daily_joining_update'),
+    path('report/daily_joining/<int:pk>/delete/', views.DailyJoiningDeleteView.as_view(), name='daily_joining_delete'),
+    path('report/daily_joining/list/', views.DailyJoiningListView.as_view(), name='daily_joining_list'),
+    path('report/daily_joining/report/', views.get_daily_joinings, name='daily_joining_report'),
 ]

@@ -1,0 +1,60 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Access Denied</title>
+    <style>
+        body {
+            font-family: Arial, sans-serif;
+            background-color: #f4f4f4;
+            color: #333;
+            margin: 0;
+            padding: 0;
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            height: 100vh;
+        }
+        .container {
+            text-align: center;
+            background: #fff;
+            padding: 30px 40px;
+            border-radius: 10px;
+            box-shadow: 0 4px 8px rgba(0, 0, 0, 0.1);
+            max-width: 500px;
+        }
+        h1 {
+            font-size: 2em;
+            color: #d9534f; /* Bootstrap Danger color */
+            margin-bottom: 20px;
+        }
+        p {
+            font-size: 1.2em;
+            line-height: 1.5;
+            margin-bottom: 20px;
+        }
+        .button {
+            display: inline-block;
+            text-decoration: none;
+            background-color: #0275d8; /* Bootstrap Primary color */
+            color: white;
+            padding: 10px 20px;
+            border-radius: 5px;
+            font-size: 1em;
+            font-weight: bold;
+            transition: background-color 0.3s;
+        }
+        .button:hover {
+            background-color: #025aa5;
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <h1>Access Denied</h1>
+        <p>We're sorry, but you do not have permission to view this page. If you believe this is an error, please contact your administrator.</p>
+        <a href="{% url 'report:daily_joining_list' %}" class="button">Go to Homepage</a>
+    </div>
+</body>
+</html>

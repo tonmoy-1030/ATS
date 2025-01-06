@@ -1,0 +1,48 @@
+
+<div class="sidebar">
+    <nav class="navbar navbar-light">
+        <a class="navbar-brand" href="{% url 'report:daily_joining_list' %}">ATS</a>
+    </nav>
+    <ul class="nav flex-column">
+        <li class="nav-item">
+            <a class="nav-link active" href="{% url 'report:daily_joining_list' %}"><i class="bi bi-house-door"></i>All Joining List</a>
+        </li>
+        <li class="nav-item">
+            <a class="nav-link" href="{% url 'report:daily_joining' %}"><i class="bi bi-list"></i>Add</a>
+        </li>
+        {% if user.username != 'guest' %}
+        <li class="nav-item">
+            <a class="nav-link" href="{% url 'jobs:home' %}"><i class="bi bi-box-arrow-left"></i>Back to Main</a>
+        </li>
+        {% endif %}
+    </ul>
+
+    <!-- Custom Sidebar Footer -->
+    <div class="sidebar-footer">
+        <ul class="list-unstyled mb-3">
+            <li class="sidebar-item">
+                <a href="#" class="sidebar-link collapsed has-dropdown" data-bs-toggle="collapse"
+                    data-bs-target="#account" aria-expanded="false" aria-controls="account">
+                    <i class="bi bi-person-fill"></i>
+                    <span>{{ user.first_name }} {{ user.last_name }}</span>
+                </a>
+                <ul id="account" class="sidebar-dropdown list-unstyled">
+                    <li class="sidebar-item">
+                        {% if user.is_authenticated %}
+                        <form action="{% url 'jobs:logout' %}" method="post" style="display: inline;">
+                            {% csrf_token %}
+                            <button class="btn sidebar-link text-white" type="submit" style="padding-left: 30px;">
+                                <i class="bi bi-box-arrow-right"></i> Logout
+                            </button>
+                        </form>
+                        {% else %}
+                        
+                        <a class="text-white" href="{% url 'jobs:login' %}">Login</a>
+                        {% endif %}
+                    </li>
+                </ul>
+            </li>
+        </ul>
+        <hr class="my-2" style="border-color: rgba(255, 255, 255, 0.2);">
+    </div>
+</div>

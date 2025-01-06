@@ -2,6 +2,7 @@ from django.db import models
 import phonenumbers
 from django.utils import timezone
 from django.core.exceptions import ValidationError
+from auditlog.registry import auditlog
 
 
 
@@ -187,3 +188,7 @@ class Offer(models.Model):
             
     def __str__(self):
         return f"Job Offer for {self.candidate.name} for {self.offered_designation}"
+    
+auditlog.register(Candidate)
+auditlog.register(CandidatesDetails)
+auditlog.register(Offer)

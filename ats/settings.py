@@ -52,6 +52,7 @@ INSTALLED_APPS = [
     'django_plotly_dash.apps.DjangoPlotlyDashConfig',
     'channels',
     'leave.apps.LeaveConfig',
+    'auditlog',
     
 ]
 
@@ -65,8 +66,8 @@ MIDDLEWARE = [
     'django.middleware.clickjacking.XFrameOptionsMiddleware',
     'django_plotly_dash.middleware.BaseMiddleware',
     "whitenoise.middleware.WhiteNoiseMiddleware",  
-    # 'django.contrib.staticfiles',
-    # 'ats.middleware.LoginRequiredMiddleware'
+    'ats.middleware.LoginRequiredMiddleware',
+    'auditlog.middleware.AuditlogMiddleware'
 ]
 
 ROOT_URLCONF = 'ats.urls'

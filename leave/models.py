@@ -2,6 +2,7 @@ from django.db import models
 from django.utils import timezone
 from employees.models import Employee
 from django.core.exceptions import ValidationError
+from auditlog.registry import auditlog
 
 
 class Holiday(models.Model):
@@ -107,3 +108,8 @@ class LeaveApplication(models.Model):
     
     def __str__(self):
         return f"{self.employee.name} - {self.leave_type} from {self.start_date} to {self.end_date}"
+
+auditlog.register(Holiday)
+auditlog.register(LeaveType)
+auditlog.register(LeaveAllocation)
+auditlog.register(LeaveApplication)

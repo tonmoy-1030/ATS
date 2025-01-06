@@ -4,6 +4,7 @@ from django.db.models.signals import post_save, pre_delete
 from django.dispatch import receiver
 from dateutil.relativedelta import relativedelta
 from django.utils import timezone
+from auditlog.registry import auditlog
 
 
 class ContactInfo(models.Model):
@@ -338,3 +339,11 @@ class SalaryInfo(models.Model):
         # Update related employee record if necessary
         if hasattr(self.employee, 'save'):
             self.employee.save()
+            
+auditlog.register(Employee)
+auditlog.register(EmployeeDetails)
+auditlog.register(SeperationStatus)
+auditlog.register(EmployeeConfirmation)
+auditlog.register(TransferOrder)
+auditlog.register(PostingOrder)
+auditlog.register(SalaryInfo)

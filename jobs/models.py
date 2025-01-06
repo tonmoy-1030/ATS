@@ -2,7 +2,7 @@ from django.db import models
 from django.utils import timezone
 from django.core.exceptions import ValidationError
 from candidates.models import Offer
-
+from auditlog.registry import auditlog
 
 class BusinessUnit(models.Model):
     
@@ -92,3 +92,8 @@ class FinalInterviewSchedule(models.Model):
             return f"{self.interview_type}, {self.interview_date}, {first_job.job_title}"
         else:
             return f"{self.interview_type}, {self.interview_date}, No Job Assigned" 
+
+auditlog.register(Job)
+auditlog.register(InterviewSchedule)
+auditlog.register(FinalInterviewSchedule)
+auditlog.register(BusinessUnit)
