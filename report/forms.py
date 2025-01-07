@@ -2,6 +2,7 @@ from django import forms
 from candidates.models import Offer
 from jobs.models import BusinessUnit
 from .models import DailyJoining
+from django.contrib.auth.models import User
 
 
 class scheduleForm(forms.Form):
@@ -24,11 +25,12 @@ class scheduleForm(forms.Form):
 class DailyJoiningForm(forms.ModelForm):
     class Meta:
         model = DailyJoining
-        fields = ['unit', 'date', 'location', 'recruitment_type', 'joinings_count']
+        fields = ['unit', 'date', 'location','employee_category', 'recruitment_type', 'joinings_count']
         widgets = {
             'unit': forms.Select(attrs={'class': 'form-select'}),
             'date': forms.DateInput(attrs={'class': 'form-control', 'type': 'date'}),
-            'location': forms.Select(attrs={'class': 'form-select'}),
+            'location': forms.TextInput(attrs={'class': 'form-control', 'readonly': 'readonly'}),
+            'employee_category': forms.Select(attrs={'class': 'form-select'}),
             'recruitment_type': forms.Select(attrs={'class': 'form-select'}),
             'joinings_count': forms.NumberInput(attrs={'class': 'form-control'}),
         }
@@ -36,30 +38,27 @@ class DailyJoiningForm(forms.ModelForm):
             'unit': 'Business Unit',
             'date': 'Date',
             'location': 'Location',
+            'employee_category': 'Employee Category',
             'recruitment_type': 'Recruitment Type',
             'joinings_count': 'Joinings Count',
         }
         help_texts = {
-            'unit': 'Select the Business Unit',
-            'date': 'Select the Date',
-            'location': 'Select the Location',
+            'employee_category': 'Select the Employee Category',
             'recruitment_type': 'Select the Recruitment Type',
             'joinings_count': 'Enter the Joinings Count',
         }
         error_messages = {
-            'unit': {
-                'required': 'Business Unit is required',
-            },
-            'date': {
-                'required': 'Date is required',
-            },
-            'location': {
-                'required': 'Location is required',
-            },
-            'recruitment_type': {
-                'required': 'Recruitment Type is required',
-            },
-            'joinings_count': {
-                'required': 'Joinings Count is required',
-            },
+            'unit': {'required': 'Business Unit is required'},
+            'date': {'required': 'Date is required'},
+            'location': {'required': 'Location is required'},
+            'employee_category': {'required': 'Employee Category is required'},
+            'recruitment_type': {'required': 'Recruitment Type is required'},
+            'joinings_count': {'required': 'Joinings Count is required'},
         }
+
+    def __init__(self, *args, **kwargs):
+        user = kwargs.pop('user', None)
+        super().__init__(*args, **kwargs)
+
+        if user.username== "tonmoy.hossain":
+            self.fields['location'].initial = "Dhamrai"

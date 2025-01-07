@@ -1,16 +1,11 @@
-from django.shortcuts import render
-from .forms import scheduleForm
+from django.shortcuts import render, redirect
+from django.urls import reverse
 from datetime import timedelta
 import os
-from django.shortcuts import render
 from django.http import HttpResponse
-from pyreportjasper import PyReportJasper
 from .forms import scheduleForm, DailyJoiningForm
-from datetime import timedelta
 import tempfile  # To create temporary files
-from django.http import HttpResponse
 from pyreportjasper import PyReportJasper
-from datetime import timedelta
 from employees.forms import EmployeeFilter
 from employees.models import Employee
 from django.core.paginator import Paginator, EmptyPage, PageNotAnInteger
@@ -42,9 +37,17 @@ class DailyJoiningCreateView(CreateView):
     template_name = 'report/daily_joining_form.html'
     success_url = '/report/daily_joining/'
 
+    def get_form_kwargs(self):
+        # Get the default form kwargs and add the user
+        kwargs = super().get_form_kwargs()
+        kwargs['user'] = self.request.user
+        return kwargs
+
     def form_valid(self, form):
+        # Assign the logged-in user to the form instance (if applicable)
         form.instance.user = self.request.user
         return super().form_valid(form)
+
     
 class DailyJoiningUpdateView(UpdateView):
     model = DailyJoining
@@ -52,9 +55,19 @@ class DailyJoiningUpdateView(UpdateView):
     template_name = 'report/daily_joining_form.html'
     success_url = '/report/daily_joining/'
 
+    def get_form_kwargs(self):
+        # Get the default form kwargs and add the user
+        kwargs = super().get_form_kwargs()
+        kwargs['user'] = self.request.user
+        return kwargs
+
     def form_valid(self, form):
+        # Assign the logged-in user to the form instance (if applicable)
         form.instance.user = self.request.user
         return super().form_valid(form)
+    
+    def get_success_url(self):
+        return reverse('report:daily_joining_list')
     
 class DailyJoiningDeleteView(DeleteView):
     model = DailyJoining
@@ -93,83 +106,52 @@ class DailyJoiningReportView(ListView):
         return context
     
 
-from django.core.paginator import Paginator, EmptyPage, PageNotAnInteger
-
 def get_daily_joinings(request):
     # Query the data from the DailyJoining model and order by date descending
     daily_joinings = DailyJoining.objects.all().values(
-        'date', 
-        'unit__short_name', 
-        'location', 
-        'recruitment_type', 
+        'date',
+        'unit__short_name',
+        'location',
+        'employee_category',
+        'recruitment_type',
         'joinings_count'
     ).order_by('-date')  # Order by date in descending order
 
     # Convert the queryset to a pandas DataFrame
     df = pd.DataFrame(daily_joinings)
+    df['date'] = pd.to_datetime(df['date'], errors='coerce')
+    df['date'] = df['date'].dt.strftime('%d-%b-%y')
 
-    # Ensure the 'date' column is in datetime format
-    df['date'] = pd.to_datetime(df['date'])
-
-    # Create the pivot table with a multi-level index (date, unit, recruitment_type)
+    # Create the pivot table with a multi-level index (date, unit, location, category)
     pivot_table = pd.pivot_table(
-        df, 
-        values='joinings_count', 
-        index=['date'], 
-        columns='unit__short_name', 
-        aggfunc='sum', 
-        margins=True, 
-        margins_name='Totals', 
-        fill_value=0
+        df,
+        values='joinings_count',
+        index=['unit__short_name', 'location', 'employee_category'],
+        columns=['date'],
+        aggfunc='sum',
+        margins=True,
+        margins_name='Total',
+        fill_value=""
     )
 
     # Reset the index to flatten the pivot table (for easier rendering in the template)
     pivot_table = pivot_table.reset_index()
-
-    # Convert the pivot table back to a list of dictionaries for rendering in the template
-    table_data = pivot_table.to_dict('records')
-
-    # Optionally format the date for template rendering
-    for row in table_data:
-        if row['date'] != 'Totals':
-            row['date'] = pd.to_datetime(row['date']).strftime('%b %d, %Y')  # Format as Jan 04, 2025
+    # pivot_table['date'] = pivot_table['date'].apply(lambda x: x.strftime('%d-%b-%y') if not pd.isnull(x) else x)
     
-    totals_row = None
-    if 'Totals' in [row['date'] for row in table_data]:
-        totals_row = next(row for row in table_data if row['date'] == 'Totals')
-        table_data = [row for row in table_data if row['date'] != 'Totals']  # Remove 'Totals' row
-
-    # Reverse the remaining data
-    table_data.reverse()
-
-    # Add the 'Totals' row back at the end
-    if totals_row:
-        table_data.append(totals_row)
-
-    # Add pagination logic here
-    paginator = Paginator(table_data, 10)  # Show 10 rows per page
-    page = request.GET.get('page')  # Get the current page number from the request
-    try:
-        paginated_table_data = paginator.page(page)
-    except PageNotAnInteger:
-        paginated_table_data = paginator.page(1)  # If page is not an integer, show the first page
-    except EmptyPage:
-        paginated_table_data = paginator.page(paginator.num_pages)  # If page is out of range, show the last page
-
-    # Prepare chart data (optional)
-    chart_data = {
-        'dates': [row['date'] for row in table_data if row['date'] != 'Totals'],
-        'joinings': {
-            unit: [row.get(unit, 0) for row in table_data if row['date'] != 'Totals']
-            for unit in pivot_table.columns if unit != 'Totals'
-        }
-    }
-
+    # Prepare the data for template rendering
+    table_data = pivot_table.to_dict('records')
+    # Extract the dynamic headers in hierarchical format (unit -> location -> category)
+    
+    timestamp_keys  = list(table_data[0].keys())[3:-1]
+    
+    unit_counts = {}
+    for row in table_data:
+        unit = row['unit__short_name']
+        unit_counts[unit] = unit_counts.get(unit, 0) + 1
+        
     # Render the result in the template
-    return render(request, 'report/daily_joining_report.html', {
-        'table_data': paginated_table_data,  # Paginated table data
-        'chart_data': chart_data
-    })
+    return render(request, 'report/daily_joining_report.html', {'rows': table_data, 'timestamp_keys': timestamp_keys, 'unit_counts': unit_counts}
+    )
 
 
 def interviewSchedule(request):

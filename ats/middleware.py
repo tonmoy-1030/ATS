@@ -30,7 +30,7 @@ class LoginRequiredMiddleware:
             if request.user.username in user_specific_urls:
                 allowed_urls = user_specific_urls[request.user.username]
                 if current_url not in exempt_urls and current_url not in allowed_urls:
-                    return redirect('jobs:unauthorized')  # Redirect to an unauthorized access page
+                    return redirect('report:daily_joining_list')  # Redirect to an unauthorized access page
 
         # If the user is not in the user-specific list, allow access to all URLs
         response = self.get_response(request)

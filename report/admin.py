@@ -4,6 +4,6 @@ from .models import DailyJoining
 
 @admin.register(DailyJoining)
 class DailyJoiningAdmin(admin.ModelAdmin):
-    list_display = ('unit', 'date', 'location', 'recruitment_type', 'joinings_count')
+    list_display = ('unit', 'date', 'location','employee_category', 'recruitment_type', 'joinings_count')
     list_filter = ('unit', 'location', 'recruitment_type', 'date')
     search_fields = ('unit__name',)

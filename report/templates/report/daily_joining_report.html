@@ -1,155 +1,90 @@
 {% extends "jobs/base.html" %}
+{% load custom_filters %}
 
 {% block content %}
-<h1 class="text-center my-4">Daily Joining Report</h1>
+<h1 class="text-center my-4 fs-2">Daily Joining Report</h1>
 
-<div class="container">
-    <div class="row">
-        <!-- Left column for table -->
-        <div class="col-md-6" style="max-height: 1000px; overflow-y: auto; overflow-x: auto;">
-            <div class="table-responsive"><table class="table table-striped table-bordered table-hover table-sm fs-5">
-                <thead class="table-dark text-center">
-                    <tr class="text-center">
-                        <th>Date</th>
-                        {% if table_data %}
-                            {% for unit in table_data.0 %}
-                                {% if unit != 'date' %}
-                                    <th>{{ unit }}</th> <!-- Unit names dynamically added -->
-                                {% endif %}
-                            {% endfor %}
-                        {% endif %}
-                    </tr>
-                </thead>
-                <tbody>
-                    {% for row in table_data %}
-                        <tr>
-                            <td>{{ row.date }}</td>
-                            {% for unit, join_count in row.items %}
-                                {% if unit != 'date' %}
-                                    <td class="text-center">{{ join_count }}</td>
-                                {% endif %}
-                            {% endfor %}
-                        </tr>
+<div class="container" style="font-family: 'Times New Roman', Times, serif;">
+  <div class="row">
+    <!-- Left column for table -->
+    <div class="col-md-12">
+      <div class="table-responsive">
+
+        <table class="table table-bordered table-striped border-dark fs-6" id="reportTable">
+            <thead class="text-center">
+                <tr>
+                    <th>SL</th>
+                    <th>Unit</th>
+                    <th>Location</th>
+                    <th>Employee Category</th>
+                    <!-- Loop over the timestamp keys for dynamic headers -->
+                    {% for timestamp in timestamp_keys %}
+                        <th>{{ timestamp }}</th>
                     {% endfor %}
-                </tbody>
-            </table>
-            </div>
-            <div>
-                <ul class="pagination">
-                    {% if table_data.has_previous %}
-                        <li><a href="?page={{ table_data.previous_page_number }}">Previous</a></li>
-                    {% endif %}
-            
-                    <li>Page {{ table_data.number }} of {{ table_data.paginator.num_pages }}</li>
-            
-                    {% if table_data.has_next %}
-                        <li><a href="?page={{ table_data.next_page_number }}">Next</a></li>
-                    {% endif %}
-                </ul>
-            </div>
-        </div>
+                </tr>
+            </thead>
+          <tbody>
+            {% for row in rows %}
+                <tr>
+                    <td class="text-center align-middle">{{ forloop.counter }}</td>
+                    <td class="unit text-center align-middle">{{ row.unit__short_name }}</td>
+                    <td class="location text-center align-middle">{{ row.location }}</td>
+                    <td class="text-center align-middle">{{ row.employee_category }}</td>
 
-        <!-- Right column for graph -->
-        <div class="col-md-6">
-            <div id="graph-container" class="shadow-lg p-3 mb-5 bg-white rounded">
-                <h4 class="text-center text-primary">Joinings Trend by Unit</h4>
-                <canvas id="joiningsChart"></canvas>
-                <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
-                <script>
-                    // Get the data passed from Django
-                    var dates = {{ chart_data.dates|safe }};
-                    var joinings = {{ chart_data.joinings|safe }};
-
-                    // Prepare the datasets for the chart
-                    var datasets = Object.keys(joinings).map(function(unit) {
-                        return {
-                            label: unit,
-                            data: joinings[unit],
-                            fill: false,
-                            borderColor: getRandomColor(),
-                            backgroundColor: getRandomColor(),
-                            pointRadius: 6,
-                            pointHoverRadius: 8,
-                            tension: 0.3,
-                            borderWidth: 3
-                        };
-                    });
-
-                    // Generate a random color for each dataset
-                    function getRandomColor() {
-                        var letters = '0123456789ABCDEF'.split('');
-                        var color = '#';
-                        for (var i = 0; i < 6; i++) {
-                            color += letters[Math.floor(Math.random() * 16)];
-                        }
-                        return color;
-                    }
-
-                    // Chart configuration
-                    var ctx = document.getElementById('joiningsChart').getContext('2d');
-                    var joiningsChart = new Chart(ctx, {
-                        type: 'line', // Type of chart
-                        data: {
-                            labels: dates, // x-axis labels
-                            datasets: datasets // The actual data to plot
-                        },
-                        options: {
-                            responsive: true,
-                            plugins: {
-                                legend: {
-                                    position: 'top',
-                                    labels: {
-                                        font: {
-                                            size: 14
-                                        }
-                                    }
-                                },
-                                tooltip: {
-                                    callbacks: {
-                                        label: function(tooltipItem) {
-                                            return tooltipItem.raw + " joinings";
-                                        }
-                                    }
-                                }
-                            },
-                            scales: {
-                                x: {
-                                    title: {
-                                        display: true,
-                                        text: 'Date',
-                                        font: {
-                                            size: 16
-                                        }
-                                    }
-                                },
-                                y: {
-                                    title: {
-                                        display: true,
-                                        text: 'Joinings Count',
-                                        font: {
-                                            size: 16
-                                        }
-                                    },
-                                    beginAtZero: true,
-                                    ticks: {
-                                        stepSize: 10
-                                    }
-                                }
-                            },
-                            elements: {
-                                line: {
-                                    tension: 0.4
-                                },
-                                point: {
-                                    radius: 6
-                                }
-                            }
-                        }
-                    });
-                </script>
-            </div>
-        </div>
+                    <!-- Loop over the timestamp keys for dynamic row values -->
+                    {% for timestamp in timestamp_keys %}
+                        <td class="text-center align-middle">{{ row|get_value:timestamp }}</td>
+                    {% endfor %}
+                </tr>
+            {% endfor %}
+        </tbody>
+        </table>
+      </div>
     </div>
+  </div>
 </div>
+
+<script>
+    // JavaScript to handle rowspan for both Unit and Location columns dynamically
+    document.addEventListener("DOMContentLoaded", function() {
+        let table = document.getElementById("reportTable");
+        let rows = table.rows;
+        let previousUnit = null;
+        let previousLocation = null;
+        let rowspanUnit = 1;
+        let rowspanLocation = 1;
+
+        for (let i = 1; i < rows.length; i++) {  // Start from 1 to skip the header
+            let currentUnitCell = rows[i].cells[1];  // "Unit" column
+            let currentLocationCell = rows[i].cells[2];  // "Location" column
+            let currentUnit = currentUnitCell.textContent.trim();
+            let currentLocation = currentLocationCell.textContent.trim();
+
+            // Check if the unit is the same as the previous row
+            if (currentUnit === previousUnit) {
+                // Hide the current row's unit cell and increment rowspan
+                currentUnitCell.style.display = "none";
+                rows[i - rowspanUnit].cells[1].rowSpan = rowspanUnit + 1;
+                rowspanUnit++;
+            } else {
+                // Reset the rowspan count and set the unit cell to be visible
+                previousUnit = currentUnit;
+                rowspanUnit = 1;
+            }
+
+            // Check if the location is the same as the previous row for the same unit
+            if (currentLocation === previousLocation && currentUnit === previousUnit) {
+                // Hide the current row's location cell and increment rowspan
+                currentLocationCell.style.display = "none";
+                rows[i - rowspanLocation].cells[2].rowSpan = rowspanLocation + 1;
+                rowspanLocation++;
+            } else {
+                // Reset the rowspan count for location and set the location cell to be visible
+                previousLocation = currentLocation;
+                rowspanLocation = 1;
+            }
+        }
+    });
+</script>
 
 {% endblock %}
