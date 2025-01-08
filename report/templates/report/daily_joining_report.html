@@ -2,16 +2,46 @@
 {% load custom_filters %}
 
 {% block content %}
-<h1 class="text-center my-4 fs-2" style="font-family: 'Times New Roman', Times, serif;">Daily Joining Report</h1>
 
-<div class="container" style="font-family: 'Times New Roman', Times, serif;">
+
+<div class="container" style="font-family: 'Times New Roman', Times, serif;  overflow: auto;">
   <div class="row">
     <!-- Left column for table -->
-    <div class="col-md-12">
-      <div class="table-responsive">
-
-        <table class="table table-bordered table-hover border-dark fs-6" id="reportTable">
+    <h1 class="text-center my-4 fs-2" style="font-family: 'Times New Roman', Times, serif;">Yearly Summary Report</h1>
+     <div class="col-md-6">
+        <div>
+            <canvas id="joiningsChart"></canvas>
+        </div>
+     </div>
+     <div class="col-md-6">
+        <table class="table table-sm table-bordered border-dark table-hover fs-6">
             <thead class="text-center table-dark">
+                <tr>
+                    <th>Unit</th>
+                    <th>Total</th>
+                </tr>
+            </thead>
+            <tbody>
+                {% for unit in grouped_data %}
+                    <tr>
+                        <td>{{ unit.unit__short_name }}</td>
+                        <td class="text-center">{{ unit.total_joinings }}</td>
+                    </tr>
+                {% endfor %}
+                <tr>
+                    <td>Grand Total</td>
+                    <td class="text-center">{{grand_total}}</td>
+                </tr>
+            </tbody>
+            
+        </table>
+     </div>
+    <div class="col-md-12">
+    <h1 class="text-center my-4 fs-2" style="font-family: 'Times New Roman', Times, serif;">Daily Joining Report</h1>
+      <div class="table-responsive" style="max-height: 590px;">
+
+        <table class="table table-sm table-bordered border-dark table-hover fs-6" id="reportTable">
+            <thead class="text-center table-dark" style="position: sticky; top: 0;">
                 <tr>
                     <th>SL</th>
                     <th>Unit</th>
@@ -21,6 +51,7 @@
                     {% for timestamp in timestamp_keys %}
                         <th>{{ timestamp }}</th>
                     {% endfor %}
+                    <th>Total</th>
                 </tr>
             </thead>
           <tbody>
@@ -35,6 +66,7 @@
                     {% for timestamp in timestamp_keys %}
                         <td class="text-center align-middle">{{ row|get_value:timestamp }}</td>
                     {% endfor %}
+                    <td class="text-center align-middle">{{ row.Total }}</td>
                 </tr>
             {% endfor %}
         </tbody>
@@ -42,7 +74,23 @@
       </div>
     </div>
   </div>
+  <div class="d-flex justify-content-between align-items-center my-3">
+    <a href="?start_date={{ prev_start_date }}" class="btn btn-outline-primary">
+        <i class="bi bi-arrow-left"></i> Previous 10 Days
+    </a>
+    <span class="text-muted">
+        Showing records from {{ prev_start_date }} to 
+        {{ current_start_date }}
+    </span>
+    <a href="?start_date={{ next_start_date }}" class="btn btn-outline-primary">
+        Next 10 Days <i class="bi bi-arrow-right"></i>
+    </a>
 </div>
+
+
+</div>
+<script src="https://code.jquery.com/jquery-3.6.0.min.js"></script>
+<script src="https://cdn.jsdelivr.net/npm/chartjs-plugin-datalabels"></script>
 
 <script>
     // JavaScript to handle rowspan for both Unit and Location columns dynamically
@@ -86,5 +134,76 @@
         }
     });
 </script>
+
+<script>
+    // Using AJAX to fetch the chart data from the view
+    $(document).ready(function () {
+        $.ajax({
+            url: "{% url 'report:daily_joining_chart' %}",  // Replace with your actual URL
+            type: "GET",
+            success: function (response) {
+                // Log the response data to the console for debugging
+                console.log("Chart data received:", response);
+                
+                // Get the context of the canvas element
+                const ctx = document.getElementById('joiningsChart').getContext('2d');
+                
+                // Define an array of colors
+                const colors = [
+                    'rgba(75, 192, 192, 0.6)',
+                    'rgba(255, 99, 132, 0.6)',
+                    'rgba(54, 162, 235, 0.6)',
+                    'rgba(255, 159, 64, 0.6)',
+                    'rgba(153, 102, 255, 0.6)',
+                    'rgba(255, 205, 86, 0.6)',
+                    'rgba(201, 203, 207, 0.6)',
+                    'rgba(0, 128, 0, 0.6)',  // Green
+                    'rgba(255, 69, 0, 0.6)',  // Red-Orange
+                    'rgba(255, 99, 71, 0.6)'   // Tomato
+                ];
+
+                // Create a new chart with multiple colors and data labels
+                new Chart(ctx, {
+                    type: 'bar',
+                    data: {
+                        labels: response.labels,  // Use labels from the response (e.g., dates)
+                        datasets: [{
+                            label: 'Total Joinings',
+                            data: response.data,  // Use data from the response (e.g., number of joinings)
+                            backgroundColor: colors.slice(0, response.data.length),  // Slice to match the number of bars
+                            borderColor: colors.slice(0, response.data.length).map(c => c.replace('0.6', '1')),  // Use the same colors with border opacity of 1
+                            borderWidth: 1,
+                        }]
+                    },
+                    options: {
+            plugins: {
+                datalabels: {
+                    display: true,
+                    align: 'end',
+                    anchor: 'start',
+                    color: '#fff',
+                    font: {
+                        size: 11,
+                        weight: 600
+                    },
+                    formatter: function (value) {
+                        return Math.round(value * 10) / 10;
+                    }
+                },
+                legend: {
+                    display: false
+                }
+            }
+        }
+                });
+            },
+            error: function (jqXHR, textStatus, errorThrown) {
+                console.error("Error fetching chart data:", textStatus, errorThrown);
+            }
+        });
+    });
+</script>
+
+
 
 {% endblock %}

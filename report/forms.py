@@ -60,5 +60,31 @@ class DailyJoiningForm(forms.ModelForm):
         user = kwargs.pop('user', None)
         super().__init__(*args, **kwargs)
 
-        if user.username== "tonmoy.hossain":
+        if user.username== "gbml-bagerhat-hr":
+            self.fields['location'].initial = "Bagerhat"
+        elif user.username== "gbml-bogura-hr":
+            self.fields['location'].initial = "Bogura"
+        elif user.username== "gbml-jashore-hr":
+            self.fields['location'].initial = "Jeshore"
+        elif user.username== "gbml-rangpur-hr":
+            self.fields['location'].initial = "Rangpur"
+        elif user.username== "ppl-pcl-hr":
+            self.fields['location'].initial = "Factory"
+        elif user.username== "sfll-hr":
+            self.fields['location'].initial = "Factory"
+        elif user.username== "sorl-hr":
+            self.fields['location'].initial = "Factory"
+        elif user.username== "svoil-hr":
+            self.fields['location'].initial = "Factory"
+        elif user.username== "food-comilla-hr":
+            self.fields['location'].initial = "Comilla"
+        elif user.username== "food-dhamrai-hr":
             self.fields['location'].initial = "Dhamrai"
+        elif user.username== "food-gazipur-hr":
+            self.fields['location'].initial = "Gazipur"
+        elif user.username== "food-narsigdi-hr":
+            self.fields['location'].initial = "Narsigndi"
+        elif user.username== "food-potiya-hr":
+            self.fields['location'].initial = "Potiya"
+        else:
+            self.fields['location'].initial = "Head Office"

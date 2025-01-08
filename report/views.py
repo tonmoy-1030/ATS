@@ -2,7 +2,7 @@ from django.shortcuts import render, redirect
 from django.urls import reverse
 from datetime import timedelta
 import os
-from django.http import HttpResponse
+from django.http import HttpResponse,JsonResponse
 from .forms import scheduleForm, DailyJoiningForm
 import tempfile  # To create temporary files
 from pyreportjasper import PyReportJasper
@@ -104,11 +104,22 @@ class DailyJoiningReportView(ListView):
         context = super().get_context_data(**kwargs)
         context['title'] = 'Daily Joining Report'
         return context
-    
+import django.utils.timezone as timezone
+from django.db.models import Sum    
 
 def get_daily_joinings(request):
-    # Query the data from the DailyJoining model and order by date descending
-    daily_joinings = DailyJoining.objects.all().values(
+
+    # Get the start_date from the request (default to today's date)
+    start_date = request.GET.get('start_date', timezone.now().date())
+    start_date = pd.to_datetime(start_date).date()
+
+    # Calculate the range for the last 10 days
+    end_date = start_date - timedelta(days=10)
+
+    # Query the data within the 10-day range
+    daily_joinings = DailyJoining.objects.filter(
+        date__lte=start_date, date__gte=end_date
+    ).values(
         'date',
         'unit__short_name',
         'location',
@@ -117,41 +128,68 @@ def get_daily_joinings(request):
         'joinings_count'
     ).order_by('-date')  # Order by date in descending order
 
+    pd.set_option('future.no_silent_downcasting', True)
+
     # Convert the queryset to a pandas DataFrame
     df = pd.DataFrame(daily_joinings)
-    df['date'] = pd.to_datetime(df['date'], errors='coerce')
-    df['date'] = df['date'].dt.strftime('%d-%b-%y')
+    if not df.empty:
+        df['date'] = pd.to_datetime(df['date'], errors='coerce')
+        df['date'] = df['date'].dt.strftime('%d-%b-%y')
 
-    # Create the pivot table with a multi-level index (date, unit, location, category)
-    pivot_table = pd.pivot_table(
-        df,
-        values='joinings_count',
-        index=['unit__short_name', 'location', 'employee_category'],
-        columns=['date'],
-        aggfunc='sum',
-        margins=True,
-        margins_name='Total',
-        fill_value="❌"
-    )
+        # Create the pivot table with a multi-level index (date, unit, location, category)
+        pivot_table = pd.pivot_table(
+            df,
+            values='joinings_count',
+            index=['unit__short_name', 'location', 'employee_category'],
+            columns=['date'],
+            aggfunc='sum',
+            margins=True,
+            margins_name='Total',
+            fill_value="❎"
+        )
 
-    # Reset the index to flatten the pivot table (for easier rendering in the template)
-    pivot_table = pivot_table.reset_index()
-    # pivot_table['date'] = pivot_table['date'].apply(lambda x: x.strftime('%d-%b-%y') if not pd.isnull(x) else x)
+        # Reset the index to flatten the pivot table (for easier rendering in the template)
+        pivot_table = pivot_table.reset_index()
+
+        # Prepare the data for template rendering
+        table_data = pivot_table.to_dict('records')
+        timestamp_keys = list(table_data[0].keys())[3:-1] if table_data else []
+    else:
+        table_data = []
+        timestamp_keys = []
+
+    # Calculate the next and previous date ranges
+    next_start_date = (start_date + timedelta(days=10)).strftime('%Y-%m-%d')
+    prev_start_date = (start_date - timedelta(days=10)).strftime('%Y-%m-%d')
     
-    # Prepare the data for template rendering
-    table_data = pivot_table.to_dict('records')
-    # Extract the dynamic headers in hierarchical format (unit -> location -> category)
+    grouped_data = DailyJoining.objects.filter(date__year=timezone.now().year).values('unit__short_name').annotate(
+        total_joinings=Sum('joinings_count')  # Sum the joinings_count for each group
+    )  # Order by total_joinings in descending order
     
-    timestamp_keys  = list(table_data[0].keys())[3:-1]
+    grand_total = DailyJoining.objects.filter(date__year=timezone.now().year).aggregate(
+        total_joinings=Sum('joinings_count')
+    )['total_joinings']
     
-    unit_counts = {}
-    for row in table_data:
-        unit = row['unit__short_name']
-        unit_counts[unit] = unit_counts.get(unit, 0) + 1
-        
     # Render the result in the template
-    return render(request, 'report/daily_joining_report.html', {'rows': table_data, 'timestamp_keys': timestamp_keys, 'unit_counts': unit_counts}
-    )
+    return render(request, 'report/daily_joining_report.html', {
+        'rows': table_data,
+        'timestamp_keys': timestamp_keys,
+        'current_start_date': start_date.strftime('%Y-%m-%d'),
+        'next_start_date': next_start_date,
+        'prev_start_date': prev_start_date,
+        'grouped_data': grouped_data,
+        'grand_total': grand_total
+    })
+
+def daily_joinings_chart(request):
+    
+    grouped_data = DailyJoining.objects.filter(date__year=timezone.now().year).values('unit__short_name').annotate(
+        total_joinings=Sum('joinings_count')  # Sum the joinings_count for each group
+    )  # Order by total_joinings in descending order
+    
+    labels = [item['unit__short_name'] for item in grouped_data]
+    data = [item['total_joinings'] for item in grouped_data]
+    return JsonResponse({'labels': labels, 'data': data})
 
 
 def interviewSchedule(request):

@@ -12,4 +12,5 @@ urlpatterns = [
     path('report/daily_joining/<int:pk>/delete/', views.DailyJoiningDeleteView.as_view(), name='daily_joining_delete'),
     path('report/daily_joining/list/', views.DailyJoiningListView.as_view(), name='daily_joining_list'),
     path('report/daily_joining/report/', views.get_daily_joinings, name='daily_joining_report'),
+    path('report/daily_joinings/chart/', views.daily_joinings_chart, name='daily_joining_chart'),
 ]

@@ -13,7 +13,21 @@ class LoginRequiredMiddleware:
         # Define user-specific accessible URLs
         user_specific_urls = {
             'guest': ['daily_joining', 'daily_joining_update', 'daily_joining_delete', 'daily_joining_list'],
-            'dhamrai-hr': ['daily_joining', 'daily_joining_update', 'daily_joining_delete', 'daily_joining_list'],
+            'gbml-bagerhat-hr': ['daily_joining', 'daily_joining_update', 'daily_joining_delete', 'daily_joining_list'],
+            'gbml-bogura-hr': ['daily_joining', 'daily_joining_update', 'daily_joining_delete', 'daily_joining_list'],
+            'gbml-jashore-hr': ['daily_joining', 'daily_joining_update', 'daily_joining_delete', 'daily_joining_list'],
+            'gbml-rangpur-hr': ['daily_joining', 'daily_joining_update', 'daily_joining_delete', 'daily_joining_list'],
+            'ppl-pcl-hr': ['daily_joining', 'daily_joining_update', 'daily_joining_delete', 'daily_joining_list'],
+            'sfll-hr': ['daily_joining', 'daily_joining_update', 'daily_joining_delete', 'daily_joining_list'],
+            'sorl-hr': ['daily_joining', 'daily_joining_update', 'daily_joining_delete', 'daily_joining_list'],
+            'svoil-hr': ['daily_joining', 'daily_joining_update', 'daily_joining_delete', 'daily_joining_list'],
+            'food-comilla-hr': ['daily_joining', 'daily_joining_update', 'daily_joining_delete', 'daily_joining_list'],
+            'food-dhamrai-hr': ['daily_joining', 'daily_joining_update', 'daily_joining_delete', 'daily_joining_list'],
+            'food-gazipur-hr': ['daily_joining', 'daily_joining_update', 'daily_joining_delete', 'daily_joining_list'],
+            'food-narsigdi-hr': ['daily_joining', 'daily_joining_update', 'daily_joining_delete', 'daily_joining_list'],
+            'food-potiya-hr': ['daily_joining', 'daily_joining_update', 'daily_joining_delete', 'daily_joining_list'],
+            
+            
             # Add more users and their allowed URLs
         }
 
