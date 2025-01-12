@@ -112,13 +112,12 @@ def get_daily_joinings(request):
     # Get the start_date from the request (default to today's date)
     start_date = request.GET.get('start_date', timezone.now().date())
     start_date = pd.to_datetime(start_date).date()
-
     # Calculate the range for the last 10 days
-    end_date = start_date - timedelta(days=10)
 
+    end_date = start_date - timedelta(days=9)
     # Query the data within the 10-day range
     daily_joinings = DailyJoining.objects.filter(
-        date__lte=start_date, date__gte=end_date
+        date__lt=start_date, date__gte=end_date
     ).values(
         'date',
         'unit__short_name',
@@ -160,7 +159,8 @@ def get_daily_joinings(request):
 
     # Calculate the next and previous date ranges
     next_start_date = (start_date + timedelta(days=10)).strftime('%Y-%m-%d')
-    prev_start_date = (start_date - timedelta(days=10)).strftime('%Y-%m-%d')
+    prev_start_date = (start_date - timedelta(days=9)).strftime('%Y-%m-%d')
+    
     
     grouped_data = DailyJoining.objects.filter(date__year=timezone.now().year).values('unit__short_name').annotate(
         total_joinings=Sum('joinings_count')  # Sum the joinings_count for each group
