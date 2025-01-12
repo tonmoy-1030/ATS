@@ -145,7 +145,7 @@ def get_daily_joinings(request):
             aggfunc='sum',
             margins=True,
             margins_name='Total',
-            fill_value="❎"
+            fill_value="-"
         )
 
         # Reset the index to flatten the pivot table (for easier rendering in the template)
