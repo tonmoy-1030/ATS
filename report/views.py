@@ -175,7 +175,7 @@ def get_daily_joinings(request):
     return render(request, 'report/daily_joining_report.html', {
         'rows': table_data,
         'timestamp_keys': timestamp_keys,
-        'current_start_date': start_date.strftime('%Y-%m-%d'),
+        'current_start_date': (start_date-timedelta(days=1)).strftime('%Y-%m-%d'),
         'next_start_date': next_start_date,
         'prev_start_date': prev_start_date,
         'grouped_data': grouped_data,
