@@ -201,17 +201,19 @@ class EmployeeDeleteView(DeleteView):
     context_object_name = 'employee_list'
     success_url = "/employees"
 
-class EmployeeSeparationCreateView(CreateView):
-    model = SeperationStatus
-    form_class = SeperationForm
-    template_name = "employees/seperation_form.html"
-    success_url = "/employees/seperation"
-    
-class EmployeeSeperationUpdateView(UpdateView):
+class EmployeeSeparationCreateView(CreateView, SuccessMessageMixin):
     model = SeperationStatus
     form_class = SeperationForm
     template_name = "employees/seperation_form.html"
     success_url = "/employees/separation"
+    success_message = "Employee Separation Status Entered Successfully"
+    
+class EmployeeSeperationUpdateView(UpdateView, SuccessMessageMixin):
+    model = SeperationStatus
+    form_class = SeperationForm
+    template_name = "employees/seperation_form.html"
+    success_url = "/employees/separation"
+    success_message = "Employee Separation Status updated Successfully"
 
 class EmployeeSeparationListView(ListView):
     model = SeperationStatus
