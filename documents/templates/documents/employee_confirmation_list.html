@@ -46,6 +46,7 @@
                                     <th>Date of Joining</th>
                                     <th>Unit</th>
                                     <th>Confirmation Date</th>
+                                    <th>Remarks</th>
                                 </tr>
                             </thead>
                             <tbody>
@@ -62,6 +63,7 @@
                                     <td>{{ employee.DOJ }}</td>
                                     <td>{{ employee.unit.short_name }}</td>
                                     <td>{{employee.confirmation_date}}</td>
+                                    <td>{{ employee.remarks }}</td>
                                 </tr>
 
                                 {% endfor %}
