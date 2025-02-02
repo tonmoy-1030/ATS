@@ -153,14 +153,14 @@ def OnLaterPager(canvas, doc, appointment_info):
     termination_semicolon_frame = Frame(x1=3.5*inch, y1=8.8*inch, width=4.5*inch, height=1*inch, showBoundary=0)
     termination_semicolon_frame.addFromList([Paragraph("<b>:</b>", normal_style)], canvas)
     termination_frame = Frame(x1=3.6*inch, y1=8*inch, width=4.4*inch, height=1.8*inch, showBoundary=0)
-    termination_frame.addFromList([Paragraph("""Your service is terminable at any point of time within
+    termination_frame.addFromList([Paragraph(f"""Your service is terminable at any point of time within
                                              probation period from either side without assigning 
                                              any reason whatsoever. In case of resignation, you have
-                                             to give 1 (one) month’s prior written notice and shall 
+                                             to give {appointment_info['notice_period']} ({appointment_info['notice_period_word'].lower()}) month’s prior written notice and shall 
                                              not leave the employment without properly handing over 
                                              the charges as well as a formal release order. Otherwise,
                                              company will not be liable to provide you any financial 
-                                             benefits (including salary) and will deduct 1 (one) month’s
+                                             benefits (including salary) and will deduct {appointment_info['notice_period']} ({appointment_info['notice_period_word'].lower()}) month’s
                                              salary from your final settlement.""", normal_style)], canvas)
     
     # 10. Exclusivity
@@ -339,14 +339,14 @@ def OnLaterPager(canvas, doc, appointment_info):
     termination_semicolon_frame = Frame(x1=3.5*inch, y1=8.8*inch, width=4.5*inch, height=1*inch, showBoundary=0)
     termination_semicolon_frame.addFromList([Paragraph("<b>:</b>", normal_style)], canvas)
     termination_frame = Frame(x1=3.6*inch, y1=8*inch, width=4.4*inch, height=1.8*inch, showBoundary=0)
-    termination_frame.addFromList([Paragraph("""Your service is terminable at any point of time within
+    termination_frame.addFromList([Paragraph(f"""Your service is terminable at any point of time within
                                              probation period from either side without assigning 
                                              any reason whatsoever. In case of resignation, you have
-                                             to give 1 (one) month’s prior written notice and shall 
+                                             to give {appointment_info['notice_period']} ({appointment_info['notice_period_word'].lower()}) month’s prior written notice and shall 
                                              not leave the employment without properly handing over 
                                              the charges as well as a formal release order. Otherwise,
                                              company will not be liable to provide you any financial 
-                                             benefits (including salary) and will deduct 1 (one) month’s
+                                             benefits (including salary) and will deduct {appointment_info['notice_period']} ({appointment_info['notice_period_word'].lower()}) month’s
                                              salary from your final settlement.""", normal_style)], canvas)
     
     # 10. Exclusivity

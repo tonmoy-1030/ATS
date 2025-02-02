@@ -31,6 +31,10 @@
                             {{form.error}}
                         </div>
                         <div class="form-group col-md-6 mb-2">
+                            {{ form.notice_period|as_crispy_field }}
+                            {{form.error}}
+                        </div>
+                        <div class="form-group col-md-12 mb-2">
                             {{ form.director_signature|as_crispy_field }}
                             {{form.error}}
                         </div>

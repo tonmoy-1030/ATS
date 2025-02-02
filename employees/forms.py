@@ -206,7 +206,7 @@ class SalaryInfoForm(forms.ModelForm):
     
     class Meta:
         model = SalaryInfo
-        fields = ['employee','salary', 'report_to', 'place_of_posting','director_signature', 
+        fields = ['employee','salary', 'report_to', 'place_of_posting','notice_period','director_signature', 
                   'CC1', 'CC2', 'CC3', 'CC4', 'CC5', 'CC6', 'CC6','CC7' ]
         
         widgets = {

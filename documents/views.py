@@ -637,6 +637,8 @@ def generate_appointment_letter(request):
                 "in_word": convert_to_words(appointment.salary),
                 "report_to": appointment.report_to,
                 "director_signature": appointment.director_signature,
+                "notice_period": appointment.notice_period,
+                "notice_period_word": convert_to_words(appointment.notice_period),
                 "CC1": appointment.employee.unit.business_director,
                 "CC2": appointment.CC2,
                 "CC3": appointment.CC3,
