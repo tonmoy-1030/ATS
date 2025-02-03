@@ -31,16 +31,10 @@ class CustomUserAdmin(UserAdmin):
         'first_name', 
         'last_name', 
         'is_staff', 
-        'formatted_last_login',  # Custom formatted last login
-        'date_joined'            # Optional: Add other fields
+        'last_login',  # Custom formatted last login
+        'date_joined'   
     )
 
-    # Method to format last_login
-    def formatted_last_login(self, obj):
-        if obj.last_login:
-            return obj.last_login.strftime("%Y-%m-%d %H:%M:%S")
-        return "Never logged in"
-    formatted_last_login.short_description = 'Last Login'  # Column header
 
 # Unregister the default User admin and register the custom one
 admin.site.unregister(User)
