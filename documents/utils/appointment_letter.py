@@ -15,7 +15,7 @@ def appointment_letter(appointment_info, pdf_file):
     normal_style.leading = 15
     normal_style.alignment = 4
         
-    flowables.append(Paragraph(f"""<br/>
+    flowables.append(Paragraph(f"""<br/><br/>
                                 <b>STRICTLY PRIVATE AND CONFIDENTIAL</b><br/>
                                 {appointment_info['ref']}<br/>          
                                 Date: {appointment_info['issue_date'].strftime("%d-%b-%Y")}<br/><br/>	    
@@ -148,11 +148,11 @@ def OnLaterPager(canvas, doc, appointment_info):
     )
 
     # 9. Termination
-    termination_point_frame = Frame(x1=1*inch, y1=9.3*inch, width=2*inch, height=.5*inch, showBoundary=0)
+    termination_point_frame = Frame(x1=1*inch, y1=9*inch, width=2*inch, height=.5*inch, showBoundary=0)
     termination_point_frame.addFromList([Paragraph("<b>9. &nbsp; &nbsp; &nbsp; Termination</b>", normal_style)], canv=canvas)
-    termination_semicolon_frame = Frame(x1=3.5*inch, y1=8.8*inch, width=4.5*inch, height=1*inch, showBoundary=0)
+    termination_semicolon_frame = Frame(x1=3.5*inch, y1=8.5*inch, width=4.5*inch, height=1*inch, showBoundary=0)
     termination_semicolon_frame.addFromList([Paragraph("<b>:</b>", normal_style)], canvas)
-    termination_frame = Frame(x1=3.6*inch, y1=8*inch, width=4.4*inch, height=1.8*inch, showBoundary=0)
+    termination_frame = Frame(x1=3.6*inch, y1=7.7*inch, width=4.4*inch, height=1.8*inch, showBoundary=0)
     termination_frame.addFromList([Paragraph(f"""Your service is terminable at any point of time within
                                              probation period from either side without assigning 
                                              any reason whatsoever. In case of resignation, you have
@@ -224,7 +224,7 @@ def OnLaterPager(canvas, doc, appointment_info):
     canvas.showPage()
     
     flowables = []
-    flowables.append(Paragraph(f"""
+    flowables.append(Paragraph(f"""<br/>
                                 <b>STRICTLY PRIVATE AND CONFIDENTIAL</b><br/>
                                {appointment_info['ref']}<br/>        
                                 Date: {appointment_info['issue_date'].strftime("%d-%b-%Y")}<br/><br/>	    
@@ -252,7 +252,7 @@ def OnLaterPager(canvas, doc, appointment_info):
         director_signature_ = f"{appointment_info['director_signature']} .........................."
     
     # Director Signature
-    director_signature = Frame(x1=4*inch, y1=8.7*inch, width=3.5*inch, height=.5*inch, showBoundary=0)
+    director_signature = Frame(x1=5*inch, y1=8.7*inch, width=3.5*inch, height=.5*inch, showBoundary=0)
     director_signature.addFromList([Paragraph(f"{director_signature_}", normal_style)], canvas)
 
         
@@ -334,11 +334,11 @@ def OnLaterPager(canvas, doc, appointment_info):
     canvas.showPage()
     
     # 9. Termination
-    termination_point_frame = Frame(x1=1*inch, y1=9.3*inch, width=2*inch, height=.5*inch, showBoundary=0)
+    termination_point_frame = Frame(x1=1*inch, y1=9*inch, width=2*inch, height=.5*inch, showBoundary=0)
     termination_point_frame.addFromList([Paragraph("<b>9. &nbsp; &nbsp; &nbsp; Termination</b>", normal_style)], canv=canvas)
-    termination_semicolon_frame = Frame(x1=3.5*inch, y1=8.8*inch, width=4.5*inch, height=1*inch, showBoundary=0)
+    termination_semicolon_frame = Frame(x1=3.5*inch, y1=8.5*inch, width=4.5*inch, height=1*inch, showBoundary=0)
     termination_semicolon_frame.addFromList([Paragraph("<b>:</b>", normal_style)], canvas)
-    termination_frame = Frame(x1=3.6*inch, y1=8*inch, width=4.4*inch, height=1.8*inch, showBoundary=0)
+    termination_frame = Frame(x1=3.6*inch, y1=7.7*inch, width=4.4*inch, height=1.8*inch, showBoundary=0)
     termination_frame.addFromList([Paragraph(f"""Your service is terminable at any point of time within
                                              probation period from either side without assigning 
                                              any reason whatsoever. In case of resignation, you have
