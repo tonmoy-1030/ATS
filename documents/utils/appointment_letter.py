@@ -59,72 +59,72 @@ def onfirstpage(canvas, doc, appointment_info):
     )
     
     # 1. Designation
-    designation_point_frame = Frame(x1=1*inch, y1=6.3*inch, width=2*inch, height=.5*inch, showBoundary=0)
+    designation_point_frame = Frame(x1=1*inch, y1=6*inch, width=2*inch, height=.5*inch, showBoundary=0)
     designation_point_frame.addFromList([Paragraph("<b>1. &nbsp; &nbsp; &nbsp; Designation</b>", normal_style)], canv=canvas)
-    designation_frame = Frame(x1=3.5*inch, y1=6.3*inch, width=4.5*inch, height=.5*inch, showBoundary=0)
+    designation_frame = Frame(x1=3.5*inch, y1=6*inch, width=4.5*inch, height=.5*inch, showBoundary=0)
     designation_frame.addFromList([Paragraph(f"<b>: {appointment_info['designation']}</b>", normal_style)], canv=canvas)
     
     # 2. Place of Posting
-    place_of_posting_point_frame = Frame(x1=1*inch, y1=5.8*inch, width=2*inch, height=.5*inch, showBoundary=0)
+    place_of_posting_point_frame = Frame(x1=1*inch, y1=5.5*inch, width=2*inch, height=.5*inch, showBoundary=0)
     place_of_posting_point_frame.addFromList([Paragraph("<b>2. &nbsp; &nbsp; &nbsp; Place of Posting</b>", normal_style)], canv=canvas)
-    place_of_posting_frame = Frame(x1=3.5*inch, y1=5.8*inch, width=4.5*inch, height=.5*inch, showBoundary=0)
+    place_of_posting_frame = Frame(x1=3.5*inch, y1=5.5*inch, width=4.5*inch, height=.5*inch, showBoundary=0)
     place_of_posting_frame.addFromList([Paragraph(f"<b>:</b> {appointment_info['location']}", normal_style)], canvas)
-    place_of_posting_subtext_frame = Frame(x1=3.6*inch, y1=5.6*inch, width=4.45*inch, height=.5*inch, showBoundary=0)
+    place_of_posting_subtext_frame = Frame(x1=3.6*inch, y1=5.3*inch, width=4.45*inch, height=.5*inch, showBoundary=0)
     place_of_posting_subtext_frame.addFromList([Paragraph("You will have no objection to serve the company at \
                                                             any location within Bangladesh as and when required \
                                                             in the interest of the company", sub_normal_style)], canvas)
     
     # 3. Date of Joining
-    DOJ_point_frame = Frame(x1=1*inch, y1=5.1*inch, width=2*inch, height=.5*inch, showBoundary=0)
+    DOJ_point_frame = Frame(x1=1*inch, y1=4.8*inch, width=2*inch, height=.5*inch, showBoundary=0)
     DOJ_point_frame.addFromList([Paragraph("<b>3. &nbsp; &nbsp; &nbsp;Date of Joining</b>", normal_style)], canvas)
-    DOJ_frame = Frame(x1=3.5*inch, y1=5.1*inch, width=4.5*inch, height=.5*inch, showBoundary=0)
+    DOJ_frame = Frame(x1=3.5*inch, y1=4.8*inch, width=4.5*inch, height=.5*inch, showBoundary=0)
     DOJ_frame.addFromList([Paragraph(f": {appointment_info['DOJ'].strftime("%d-%b-%Y")}", normal_style)], canvas)
     
     # 4. Types of Service
-    service_point_frame = Frame(x1=1*inch, y1=4.6*inch, width=2*inch, height=.5*inch, showBoundary=0)
+    service_point_frame = Frame(x1=1*inch, y1=4.3*inch, width=2*inch, height=.5*inch, showBoundary=0)
     service_point_frame.addFromList([Paragraph("<b>4. &nbsp; &nbsp; &nbsp;Types of Service</b>", normal_style)], canvas)
-    service_semicolon_frame = Frame(x1=3.5*inch, y1=4.1*inch, width=4.5*inch, height=1*inch, showBoundary=0)
+    service_semicolon_frame = Frame(x1=3.5*inch, y1=4*inch, width=4.5*inch, height=1*inch, showBoundary=0)
     service_semicolon_frame.addFromList([Paragraph("<b>:</b>", normal_style)], canvas)
-    service_frame = Frame(x1=3.6*inch, y1=4.1*inch, width=4.4*inch, height=1*inch, showBoundary=0)
+    service_frame = Frame(x1=3.6*inch, y1=4*inch, width=4.4*inch, height=1*inch, showBoundary=0)
     service_frame.addFromList([Paragraph("You are appointed with a probation period of 6 (six) months.\
                                             Depending on your performance, your appointment will be confirmed. \
                                             However, the management reserves the right to extend your probation \
                                             period, if deemed necessary.", normal_style)], canvas)
     
     # 5. Leave
-    leave_point_frame = Frame(x1=1*inch, y1=3.4*inch, width=2*inch, height=.5*inch, showBoundary=0)
+    leave_point_frame = Frame(x1=1*inch, y1=3.1*inch, width=2*inch, height=.5*inch, showBoundary=0)
     leave_point_frame.addFromList([Paragraph("<b>5. &nbsp; &nbsp; &nbsp; Leave</b>", normal_style)], canvas)
-    leave_semicolon_frame = Frame(x1=3.5*inch, y1=2.95*inch, width=4.5*inch, height=1*inch, showBoundary=0)
+    leave_semicolon_frame = Frame(x1=3.5*inch, y1=2.65*inch, width=4.5*inch, height=1*inch, showBoundary=0)
     leave_semicolon_frame.addFromList([Paragraph("<b>:</b>", normal_style)], canvas)
-    leave_frame = Frame(x1=3.6*inch, y1=2.95*inch, width=4.4*inch, height=1*inch, showBoundary=0)
+    leave_frame = Frame(x1=3.6*inch, y1=2.65*inch, width=4.4*inch, height=1*inch, showBoundary=0)
     leave_frame.addFromList([Paragraph("""During the probation period, only weekly holidays and Govt.
                                        holidays will be admissible. Due to extra work of the department,
                                        you may be requested to work on holidays.""", normal_style)], canvas)
     
     # 6. Salary
-    salary_point_frame = Frame(x1=1*inch, y1=2.5*inch, width=2*inch, height=.5*inch, showBoundary=0)
+    salary_point_frame = Frame(x1=1*inch, y1=2.2*inch, width=2*inch, height=.5*inch, showBoundary=0)
     salary_point_frame.addFromList([Paragraph("<b>6. &nbsp; &nbsp; &nbsp; Salary</b>", normal_style)], canvas)
-    salary_semicolon_frame = Frame(x1=3.5*inch, y1=2.05*inch, width=4.5*inch, height=1*inch, showBoundary=0)
+    salary_semicolon_frame = Frame(x1=3.5*inch, y1=1.75*inch, width=4.5*inch, height=1*inch, showBoundary=0)
     salary_semicolon_frame.addFromList([Paragraph("<b>:</b>", normal_style)], canvas)
-    salary_frame = Frame(x1=3.6*inch, y1=2.05*inch, width=4.4*inch, height=1*inch, showBoundary=0)
+    salary_frame = Frame(x1=3.6*inch, y1=1.75*inch, width=4.4*inch, height=1*inch, showBoundary=0)
     salary_frame.addFromList([Paragraph(f"""You will be paid a consolidated salary
                                         of <b> Tk. {appointment_info['salary']}.00</b> ({appointment_info['in_word']} Taka only) 
                                         per month. .""", normal_style)], canvas) # need to fix Salary as accounting format and in word format
-    salary_sub_text = Frame(x1=3.6*inch, y1=1.6*inch, width=4.4*inch, height=1*inch, showBoundary=0)
+    salary_sub_text = Frame(x1=3.6*inch, y1=1.3*inch, width=4.4*inch, height=1*inch, showBoundary=0)
     salary_sub_text.addFromList([Paragraph("Income tax will be borne by you.", sub_normal_style)], canvas)
     
     # 7. Responsibilities
-    responsibilities_point_frame = Frame(x1=1*inch, y1=1.8*inch, width=2*inch, height=.5*inch, showBoundary=0)
+    responsibilities_point_frame = Frame(x1=1*inch, y1=1.5*inch, width=2*inch, height=.5*inch, showBoundary=0)
     responsibilities_point_frame.addFromList([Paragraph("<b>7. &nbsp; &nbsp; &nbsp; Responsibilities</b>", normal_style)], canvas)
-    responsibilities_frame = Frame(x1=3.5*inch, y1=1.8*inch, width=4.5*inch, height=.5*inch, showBoundary=0)
+    responsibilities_frame = Frame(x1=3.5*inch, y1=1.5*inch, width=4.5*inch, height=.5*inch, showBoundary=0)
     responsibilities_frame.addFromList([Paragraph("<b>:</b> Job description is attached as Annexure – ‘A’", normal_style)], canvas)
     
     # 8. Service Rules & Regulation
-    rules_point_frame = Frame(x1=1*inch, y1=1.2*inch, width=2.5*inch, height=.5*inch, showBoundary=0)
+    rules_point_frame = Frame(x1=1*inch, y1=.9*inch, width=2.5*inch, height=.5*inch, showBoundary=0)
     rules_point_frame.addFromList([Paragraph("<b>8. &nbsp; &nbsp; &nbsp; Service Rules & Regulation</b>", normal_style)], canvas)
-    rules_semicolon_frame = Frame(x1=3.5*inch, y1=.7*inch, width=4.5*inch, height=1*inch, showBoundary=0)
+    rules_semicolon_frame = Frame(x1=3.5*inch, y1=.4*inch, width=4.5*inch, height=1*inch, showBoundary=0)
     rules_semicolon_frame.addFromList([Paragraph("<b>:</b>", normal_style)], canvas)
-    rules_frame = Frame(x1=3.6*inch, y1=.7*inch, width=4.5*inch, height=1*inch, showBoundary=0)
+    rules_frame = Frame(x1=3.6*inch, y1=.4*inch, width=4.5*inch, height=1*inch, showBoundary=0)
     rules_frame.addFromList([Paragraph(f""" 
                                        You will be abide by the Rules, Regulations, 
                                        Customs and Practices of <b>{appointment_info['policy']}.</b> 
@@ -243,7 +243,7 @@ def OnLaterPager(canvas, doc, appointment_info):
     flowables.append(Spacer(1,15))
     
     # 3rd Page Frame
-    front_text_frame = Frame(x1=1*inch, y1=6.8*inch, width=6.5*inch, height=2.8*inch, showBoundary=0)
+    front_text_frame = Frame(x1=1*inch, y1=6.8*inch, width=7*inch, height=2.8*inch, topPadding=0, bottomPadding=0, showBoundary=0)
     front_text_frame.addFromList(flowables, canv=canvas)
     
     if appointment_info['director_signature'] == None:
