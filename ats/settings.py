@@ -66,7 +66,7 @@ MIDDLEWARE = [
     'django.middleware.clickjacking.XFrameOptionsMiddleware',
     'django_plotly_dash.middleware.BaseMiddleware',
     "whitenoise.middleware.WhiteNoiseMiddleware",  
-    # 'ats.middleware.LoginRequiredMiddleware',
+    'ats.middleware.LoginRequiredMiddleware',
     'auditlog.middleware.AuditlogMiddleware'
 ]
 
