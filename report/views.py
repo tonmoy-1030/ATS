@@ -15,6 +15,8 @@ from django.views.generic.list import ListView
 import pandas as pd
 import openpyxl
 from django.contrib.auth.decorators import user_passes_test
+from .forms import EmployeeReportForm
+from django.db.models import Q
 
 
 
@@ -338,8 +340,6 @@ def BondPaper(request):
             response['Content-Disposition'] = f'inline; filename="{employee.EID}_{employee.name}_Bond.pdf"'
             return response
 
-from .forms import EmployeeReportForm
-from django.db.models import Q
 
 def EmployeeListReport(request):
     # Create workbook and sheet
