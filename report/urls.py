@@ -13,4 +13,6 @@ urlpatterns = [
     path('report/daily_joining/list/', views.DailyJoiningListView.as_view(), name='daily_joining_list'),
     path('report/daily_joining/report/', views.get_daily_joinings, name='daily_joining_report'),
     path('report/daily_joinings/chart/', views.daily_joinings_chart, name='daily_joining_chart'),
+    path('report/employee_list/download', views.EmployeeListReport, name='employee_list'),
+    path('report/employee_list/salary/download', views.EmployeeListReportWithSalary, name='employee_list_salary'),
 ]

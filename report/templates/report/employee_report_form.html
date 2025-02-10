@@ -1,0 +1,25 @@
+{% extends "jobs/base.html" %}
+{% block content %}
+{% load crispy_forms_tags %}
+
+<div class="container-fluid">
+    <div class="row">
+        <div  class="col-md-3">
+            {% include 'documents/reportManuBar.html' %}
+        </div>
+    <div class="container mt-5" style="max-width: 600px;">
+        <legend class="text-center mb-4">Employee Report Generator</legend>
+        <form method="get" class="form-group" target="_blank">
+            {% csrf_token %}
+            {{ form|crispy }}
+
+            <button type="submit" class="btn btn-primary mt-4">
+                <i class="bi bi-arrow-down-circle"></i> Download
+            </button>
+        </form>
+    </div>
+</div>
+</div>
+{% endblock %}
+
+

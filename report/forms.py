@@ -88,3 +88,21 @@ class DailyJoiningForm(forms.ModelForm):
             self.fields['location'].initial = "Potiya"
         else:
             self.fields['location'].initial = "Head Office"
+            
+
+class EmployeeReportForm(forms.Form):
+    unit = forms.ModelChoiceField(
+        queryset=BusinessUnit.objects.all(),
+        required=False,
+        empty_label="All Units"
+    )
+    date_from = forms.DateField(
+        label='Date of Joining From',
+        required=False,
+        widget=forms.DateInput(attrs={'type': 'date'})
+    )
+    date_to = forms.DateField(
+        label='Date of Joining To',
+        required=False,
+        widget=forms.DateInput(attrs={'type': 'date'})
+    )

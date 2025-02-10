@@ -53,12 +53,20 @@
                 </svg>
                 Job Vacancy
             </a>
-            <a href="{% url 'documents:employee_download' %}" class="nav-link link-body-emphasis">
+            <a href="{% url 'report:employee_list' %}" class="nav-link link-body-emphasis">
                 <svg class="bi pe-none me-2" width="16" height="16">
                     <use xlink:href="#speedometer2" />
                 </svg>
                 Employee List
             </a>
+            {% if user.is_staff %}
+            <a href="{% url 'report:employee_list_salary' %}" class="nav-link link-body-emphasis">
+                <svg class="bi pe-none me-2" width="16" height="16">
+                    <use xlink:href="#speedometer2" />
+                </svg>
+                Employee List with Salary
+            </a>
+            {% endif %}
             <a href="{% url 'report:Schedule' %}" class="nav-link link-body-emphasis">
                 <svg class="bi pe-none me-2" width="16" height="16">
                     <use xlink:href="#speedometer2" />

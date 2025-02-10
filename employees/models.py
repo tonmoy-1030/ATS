@@ -299,7 +299,7 @@ class PostingOrder(models.Model):
 
 
 class SalaryInfo(models.Model):
-    employee = models.OneToOneField(Employee, on_delete=models.CASCADE)
+    employee = models.OneToOneField(Employee, on_delete=models.CASCADE, related_name='salary')
     issue_date = models.DateField(default=timezone.now)
     salary = models.IntegerField()
     report_to = models.CharField(max_length=255)
