@@ -273,7 +273,7 @@ def interviewSchedule(request):
 
 def employee_list_bond(request):
     # filtering the employee list only which has details
-    employee_filter = EmployeeFilter(request.GET, queryset=Employee.objects.filter(details__isnull=False, unit_id=1).order_by('-DOJ'))
+    employee_filter = EmployeeFilter(request.GET, queryset=Employee.objects.filter(details__isnull=False).order_by('-DOJ'))
     
     paginator = Paginator(employee_filter.qs, 10)  
     page_number = request.GET.get('page')
