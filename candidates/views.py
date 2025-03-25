@@ -45,7 +45,7 @@ DataExtraction = DataExtraction()
 def Resume_Date_As_JSON(prompts):
   genai.configure(api_key="AIzaSyB_WKoQ8d27_Zo9lNhOpH3zdRuf0XJ1EEc")
   model = genai.GenerativeModel(
-  model_name="gemini-1.5-flash",
+  model_name="gemini-2.0-flash",
   generation_config={"response_mime_type": "application/json",}
   )
   chat_session = model.start_chat(
@@ -104,7 +104,7 @@ def ResumeExtractor(file):
 
         if response:
             try:
-                name = response['Name'].title()
+                name = response['name'].title()
             except Exception as e:
                 logging.error(f"Error processing response: {e}")
                 name = DataExtraction.extract_name(extracted_textinfo)
