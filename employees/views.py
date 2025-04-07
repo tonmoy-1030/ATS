@@ -134,14 +134,14 @@ def get_candidate_data(request):
     candidate_id = request.GET.get('candidate_id')
     candidate = Candidate.objects.get(pk=candidate_id)
 
-    
     exclude_patterns = ['02214', 'PC ', '02201', '02206', '02000', '02214', 'PCL-C', 'PPL-C', 'PG', 'TKFS', 'EMP']
     exclude_condition = Q()
     for pattern in exclude_patterns:
         exclude_condition |= Q(EID__startswith=pattern)
         
-    matching_eids = Employee.objects.filter(unit=candidate.offer.job.unit).exclude(exclude_condition).values_list('EID', flat=True)
-
+    matching_eids = Employee.objects.filter(unit=candidate.offer.job.unit)\
+                                     .exclude(exclude_condition)\
+                                     .values_list('EID', flat=True)
 
     numeric_parts = []
     for eid in matching_eids:
@@ -149,15 +149,15 @@ def get_candidate_data(request):
         if numeric_part_match:
             numeric_parts.append(int(numeric_part_match.group()))
 
-    max_numeric_part = max(numeric_parts) if numeric_parts else None
-
-    if max_numeric_part is not None:
-        unit_pattern = determine_pattern(candidate.offer.job.unit.name)
-        new_eid = (unit_pattern.format(max_numeric_part + 1))
-
+    # Use a default value (0) if no numeric part was found, so the new EID starts with 1.
+    if numeric_parts:
+        max_numeric_part = max(numeric_parts)
     else:
-        print("No matching EID found for the given unit.")
-        new_eid = 'Not Found'
+        max_numeric_part = 0
+
+    unit_pattern = determine_pattern(candidate.offer.job.unit.name)
+    new_eid = unit_pattern.format(max_numeric_part + 1)
+
     data = {
         'EID': new_eid,
         'name': candidate.name,
@@ -170,8 +170,7 @@ def get_candidate_data(request):
         'job': candidate.offer.job.id,
         'candidate': candidate.pk,
     }
-    return JsonResponse(data)  
-
+    return JsonResponse(data)
     
 def upload_file(request):
     if request.method == "POST":
