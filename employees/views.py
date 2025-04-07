@@ -125,6 +125,8 @@ def determine_pattern(unit):
         return 'PPL-P{0:03d}'
     elif unit == 'Prime Cosmetics Limited':
         return 'PCL-P{0:03d}'
+    elif unit == 'T.K. Logistics':
+        return 'TKL{0:03d}'
     else:
         return '0{0}'
 
