@@ -157,6 +157,7 @@ def get_candidate_data(request):
 
     else:
         print("No matching EID found for the given unit.")
+        new_eid = 'Not Found'
     data = {
         'EID': new_eid,
         'name': candidate.name,
