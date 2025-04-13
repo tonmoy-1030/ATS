@@ -50,7 +50,6 @@ INSTALLED_APPS = [
     'explorer',
     'dashboard.templatetags',
     'django_plotly_dash.apps.DjangoPlotlyDashConfig',
-    'channels',
     'leave.apps.LeaveConfig',
     'auditlog',
     
