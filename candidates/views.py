@@ -45,7 +45,7 @@ DataExtraction = DataExtraction()
 def Resume_Date_As_JSON(prompts):
   genai.configure(api_key="AIzaSyB_WKoQ8d27_Zo9lNhOpH3zdRuf0XJ1EEc")
   model = genai.GenerativeModel(
-  model_name="gemini-2.0-flash",
+  model_name="gemini-2.0-flash-lite",
   generation_config={"response_mime_type": "application/json",}
   )
   chat_session = model.start_chat(
@@ -54,13 +54,31 @@ def Resume_Date_As_JSON(prompts):
                     "role": "user",
                     "parts": [
                         prompts,
-                        "Think you are an ATS system. Extract from the text: Name, Phone, Email, Highest_Educational_Degree, passing_year, Highest_Education_Degree_Institution, professional Degree, Experience (with Position, company, duration), permanent Address",
+                        """
+                        Act as an ATS parser. Extract the following details from the text and format them as a JSON object. Use these exact keys:  
+                        {  
+                            "name": "Full Name (str)",  
+                            "phone": "Phone Number (str)",  
+                            "email": "Email Address (str)",  
+                            "highest_educational_degree": "Highest Degree (e.g., 'MSc Computer Science')",  
+                            "passing_year": "Year Completed (int)",  
+                            "highest_education_institution": "Institution Name (str)",  
+                            "professional_degrees": ["List of certifications (e.g., 'PMP', 'CFA')"],  
+                            "experience": [  
+                                {"position": "Job Title", "company": "Company Name", "duration": "Employment Period (str)"},  
+                                # Add more roles if present  
+                            ],  
+                            "permanent_address": "Full Residential Address (str)"  
+                        }  
+                            Omit keys entirely if data is missing. Prioritize accuracy over assumptions.  
+                        """,
                     ],
                 }
             ]
         )
   response = chat_session.send_message("Extract the requested details.")
   json_response = json.loads(response.text)
+  print(json_response)
   return json_response
 
 
