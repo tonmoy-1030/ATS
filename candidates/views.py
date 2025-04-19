@@ -55,22 +55,26 @@ def Resume_Date_As_JSON(prompts):
                     "parts": [
                         prompts,
                         """
-                        Act as an ATS parser. Extract the following details from the text and format them as a JSON object. Use these exact keys:  
-                        {  
-                            "name": "Full Name (str)",  
-                            "phone": "Phone Number (str)",  
-                            "email": "Email Address (str)",  
-                            "highest_educational_degree": "Highest Degree (e.g., 'MSc Computer Science')",  
-                            "passing_year": "Year Completed (int)",  
-                            "highest_education_institution": "Institution Name (str)",  
-                            "professional_degrees": ["List of certifications (e.g., 'PMP', 'CFA')"],  
-                            "experience": [  
-                                {"position": "Job Title", "company": "Company Name", "duration": "Employment Period (str)"},  
-                                # Add more roles if present  
-                            ],  
-                            "permanent_address": "Full Residential Address (str)"  
-                        }  
-                            Omit keys entirely if data is missing. Prioritize accuracy over assumptions.  
+                        Think you are an ATS system. Extract from the text in json format and keep the keys in the same format as below even if there is not data: 
+                        {
+                        "Name": "",
+                        "Phone": "",
+                        "Email": "",
+                        "Highest_Educational_Degree": "",
+                        "Passing_Year": "",
+                        "Highest_Education_Degree_Institution": "",
+                        "Professional_Degree": "",
+                        "Experience": [
+                            {
+                            "Position": "",
+                            "Company": "",
+                            "Duration": ""
+                            }
+                        ],
+                        "Permanent_Address": ""
+                        }
+                        
+                        do not give list format. provide the output in json format only.
                         """,
                     ],
                 }
@@ -121,7 +125,7 @@ def ResumeExtractor(file):
 
         if response:
             try:
-                name = response['name'].title()
+                name = response['Name'].title()
             except Exception as e:
                 logging.error(f"Error processing response: {e}")
                 name = DataExtraction.extract_name(extracted_textinfo)
