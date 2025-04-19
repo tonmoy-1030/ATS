@@ -13,7 +13,6 @@ click-didyoumean==0.3.1
 click-plugins==1.1.1
 click-repl==0.3.0
 colorama==0.4.6
-contourpy==1.2.1
 crispy-bootstrap4==2023.1
 cycler==0.12.1
 dash==2.9.3
@@ -59,16 +58,16 @@ kombu==5.4.0
 libsass==0.23.0
 lxml==5.1.0
 MarkupSafe==2.1.5
-matplotlib==3.9.1
+matplotlib
 num2words==0.5.13
-numpy==2.0.0
+numpy
 oauthlib==3.2.2
 openpyxl==3.0.10
 packaging==23.2
-pandas==2.2.2
+pandas
 pdf2image==1.17.0
 phonenumbers==8.13.28
-pillow==10.2.0
+pillow
 platformdirs==4.2.2
 plotly==5.22.0
 prompt_toolkit==3.0.47
@@ -91,8 +90,6 @@ requests==2.31.0
 requests-oauthlib==2.0.0
 rjsmin==1.2.1
 rsa==4.9
-scipy==1.14.0
-seaborn==0.11.2
 setuptools==72.1.0
 simplejson==3.19.2
 six==1.16.0
