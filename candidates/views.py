@@ -78,7 +78,6 @@ def Resume_Date_As_JSON(prompts):
         )
   response = chat_session.send_message("Extract the requested details.")
   json_response = json.loads(response.text)
-  print(json_response)
   return json_response
 
 
