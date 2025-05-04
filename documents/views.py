@@ -253,7 +253,7 @@ def JobOfferList(request):
     return render(request, 'documents/offered_candidates.html', {'filter': employee_filter, 'page_obj': page_obj})
 
 def employee_confirmation_list(request):
-    employee_filter = EmployeeConfirmationFilter(request.GET, queryset=Employee.objects.all().order_by('id')) 
+    employee_filter = EmployeeConfirmationFilter(request.GET, queryset=Employee.objects.filter(active_status=True).order_by('id')) 
     
     paginator = Paginator(employee_filter.qs, 10)  
     page_number = request.GET.get('page')
