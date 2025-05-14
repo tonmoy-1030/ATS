@@ -547,25 +547,76 @@
         <div class="alert alert-{{message.tags}} text-center">{{message}}</div>
         {% endfor %} {% endif %} {%block content%} {%endblock%}
       </div>
+      <!-- Response Modal -->
       <div
-        id="loadingOverlay"
-        style="
-          display: none;
-          position: fixed;
-          z-index: 9999;
-          top: 0;
-          left: 0;
-          width: 100%;
-          height: 100%;
-          background-color: rgba(255, 255, 255, 0.8);
-          text-align: center;
-          padding-top: 20%;
-          font-size: 24px;
-          color: #333;
-        "
+        class="modal fade"
+        id="responseModal"
+        tabindex="-1"
+        aria-hidden="true"
       >
-        <div class="spinner-border" role="status">
-          <span class="visually-hidden">Loading...</span>
+        <div class="modal-dialog modal-dialog-centered modal-lg">
+          <div class="modal-content">
+            <div class="modal-header">
+              <h5 class="modal-title">Process Results</h5>
+              <button
+                type="button"
+                class="btn-close"
+                data-bs-dismiss="modal"
+                aria-label="Close"
+              ></button>
+            </div>
+            <div class="modal-body">
+              <table class="table table-bordered table-striped">
+                <thead>
+                  <tr>
+                    <th>Name</th>
+                    <th>Mobile</th>
+                    <th>Remarks</th>
+                  </tr>
+                </thead>
+                <tbody id="responseModalTableBody">
+                  <!-- Dynamically filled -->
+                </tbody>
+              </table>
+            </div>
+            <div class="modal-footer">
+              <button
+                type="button"
+                class="btn btn-secondary"
+                data-bs-dismiss="modal"
+              >
+                Close
+              </button>
+            </div>
+          </div>
+        </div>
+      </div>
+
+      <!-- Loading Modal -->
+      <div
+        class="modal fade"
+        id="loadingModal"
+        tabindex="-1"
+        aria-hidden="true"
+        data-bs-backdrop="static"
+        data-bs-keyboard="false"
+      >
+        <div class="modal-dialog modal-dialog-centered">
+          <div class="modal-content p-4">
+            <div
+              class="d-flex flex-column align-items-center justify-content-center"
+              style="min-height: 200px"
+            >
+              <div
+                class="spinner-border text-primary"
+                role="status"
+                style="width: 3rem; height: 3rem"
+              >
+                <span class="visually-hidden">Loading...</span>
+              </div>
+              <p class="mt-3 mb-0">Processing... Please wait</p>
+            </div>
+          </div>
         </div>
       </div>
 
@@ -586,17 +637,67 @@
 
     <script>
       $(document).ready(function () {
-        // Show loader
+        const loadingModal = new bootstrap.Modal(
+          document.getElementById("loadingModal")
+        );
+        const responseModal = new bootstrap.Modal(
+          document.getElementById("responseModal")
+        );
+
         function showLoader() {
-          $("#loadingOverlay").show();
+          loadingModal.show();
         }
 
-        // Hide loader
         function hideLoader() {
-          $("#loadingOverlay").hide();
+          loadingModal.hide();
         }
 
-        // Function to handle AJAX request for both employee and candidate data
+        function parseAlertMessages(messages) {
+          const pattern =
+            /Employee with mobile number \('([^']+)',\s*'([^']+)'\) (.*)\./;
+          return messages.map((msg) => {
+            const match = msg.match(pattern);
+            if (match) {
+              return {
+                mobile: match[1],
+                name: match[2],
+                remarks: match[3],
+              };
+            } else {
+              return {
+                mobile: "",
+                name: "",
+                remarks: msg, // fallback
+              };
+            }
+          });
+        }
+
+        function populateTable(parsedMessages) {
+          let tbody = $("#responseModalTableBody");
+          tbody.empty();
+
+          if (parsedMessages.length === 0) {
+            tbody.append(
+              '<tr><td colspan="3" class="text-center">No data returned.</td></tr>'
+            );
+            return;
+          }
+
+          parsedMessages.forEach((msg) => {
+            let row = `
+          <tr>
+            <td>${msg.name}</td>
+            <td>${msg.mobile}</td>
+            <td>${msg.remarks}</td>
+          </tr>
+        `;
+            tbody.append(row);
+          });
+
+          responseModal.show();
+        }
+
         function handleDataRequest(url) {
           showLoader();
           $.ajax({
@@ -604,23 +705,23 @@
             type: "GET",
             success: function (data) {
               hideLoader();
-              var alertMessage = data.alert_messages.join("\n");
-              alert(alertMessage);
+              const parsed = parseAlertMessages(data.alert_messages || []);
+              populateTable(parsed);
             },
             error: function (xhr, status, error) {
               hideLoader();
-              alert("An error occurred: " + error);
+              populateTable([
+                { name: "", mobile: "", remarks: `Error: ${error}` },
+              ]);
             },
           });
         }
 
-        // Click handler for processing employee data
         $("#process_employee_data").click(function (event) {
           event.preventDefault();
           handleDataRequest("/employee_details/");
         });
 
-        // Click handler for processing candidate data
         $("#process_candidate_data").click(function (event) {
           event.preventDefault();
           handleDataRequest("/update-candidate-details/");
