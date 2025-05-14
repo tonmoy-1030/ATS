@@ -1,386 +1,577 @@
 <!DOCTYPE html>
 <html lang="en">
-
-<head>
-    {% load static %}
-    {{ form.media.css }}
+  <head>
+    {% load static %} {{ form.media.css }}
     <script src="{% static 'jobs/assets/js/color-modes.js' %}"></script>
-    <meta charset="UTF-8">
-    <meta http-equiv="X-UA-Compatible" content="IE=edge">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>
-        {% block title %} {% endblock %}
-    </title>
-    <link rel="icon" type="image/x-icon" href="{% static 'jobs/favicon.ico' %}">
-    <link rel="stylesheet" href="{% static 'jobs/bootstrap-icons-1.11.3/font/bootstrap-icons.min.css' %}">
-    <link rel="stylesheet" href="{% static 'jobs/assets/dist/css/bootstrap.min.css' %}">
-    <link rel="stylesheet" href="{% static 'jobs/style.css' %}">
-    
+    <meta charset="UTF-8" />
+    <meta http-equiv="X-UA-Compatible" content="IE=edge" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>{% block title %} {% endblock %}</title>
+    <link
+      rel="icon"
+      type="image/x-icon"
+      href="{% static 'jobs/favicon.ico' %}"
+    />
+    <link
+      rel="stylesheet"
+      href="{% static 'jobs/bootstrap-icons-1.11.3/font/bootstrap-icons.min.css' %}"
+    />
+    <link
+      rel="stylesheet"
+      href="{% static 'jobs/assets/dist/css/bootstrap.min.css' %}"
+    />
+    <link rel="stylesheet" href="{% static 'jobs/style.css' %}" />
+
     {% block style %} {% endblock %}
     <style>
-        .bd-placeholder-img {
-            font-size: 1.125rem;
-            text-anchor: middle;
-            -webkit-user-select: none;
-            -moz-user-select: none;
-            user-select: none;
-        }
+      .bd-placeholder-img {
+        font-size: 1.125rem;
+        text-anchor: middle;
+        -webkit-user-select: none;
+        -moz-user-select: none;
+        user-select: none;
+      }
 
-        @media (min-width: 768px) {
-            .bd-placeholder-img-lg {
-                font-size: 3.5rem;
-            }
+      @media (min-width: 768px) {
+        .bd-placeholder-img-lg {
+          font-size: 3.5rem;
         }
+      }
 
-        .b-example-divider {
-            width: 100%;
-            height: .5rem;
-            background-color: rgba(0, 0, 0, .1);
-            border: solid rgba(0, 0, 0, .15);
-            border-width: .5px 0;
-            box-shadow: inset 0 .5em 1.5em rgba(0, 0, 0, .1), inset 0 .125em .5em rgba(0, 0, 0, .15);
+      .b-example-divider {
+        width: 100%;
+        height: 0.5rem;
+        background-color: rgba(0, 0, 0, 0.1);
+        border: solid rgba(0, 0, 0, 0.15);
+        border-width: 0.5px 0;
+        box-shadow: inset 0 0.5em 1.5em rgba(0, 0, 0, 0.1),
+          inset 0 0.125em 0.5em rgba(0, 0, 0, 0.15);
+      }
+
+      .b-example-vr {
+        flex-shrink: 0;
+        width: 1.5rem;
+        height: 100vh;
+      }
+
+      .bi {
+        vertical-align: -0.125em;
+        fill: currentColor;
+      }
+
+      .nav-scroller {
+        position: relative;
+        z-index: 2;
+        height: 2.75rem;
+        overflow-y: hidden;
+      }
+
+      .nav-scroller .nav {
+        display: flex;
+        flex-wrap: nowrap;
+        padding-bottom: 1rem;
+        margin-top: -1px;
+        overflow-x: auto;
+        text-align: center;
+        white-space: nowrap;
+        -webkit-overflow-scrolling: touch;
+      }
+
+      .btn-bd-primary {
+        --bd-violet-bg: #712cf9;
+        --bd-violet-rgb: 112.520718, 44.062154, 249.437846;
+
+        --bs-btn-font-weight: 600;
+        --bs-btn-color: var(--bs-white);
+        --bs-btn-bg: var(--bd-violet-bg);
+        --bs-btn-border-color: var(--bd-violet-bg);
+        --bs-btn-hover-color: var(--bs-white);
+        --bs-btn-hover-bg: #6528e0;
+        --bs-btn-hover-border-color: #6528e0;
+        --bs-btn-focus-shadow-rgb: var(--bd-violet-rgb);
+        --bs-btn-active-color: var(--bs-btn-hover-color);
+        --bs-btn-active-bg: #5a23c8;
+        --bs-btn-active-border-color: #5a23c8;
+      }
+
+      .bd-mode-toggle {
+        z-index: 1500;
+      }
+
+      .bd-mode-toggle .dropdown-menu .active .bi {
+        display: block !important;
+      }
+
+      .spinner {
+        width: 60px;
+        height: 60px;
+        border: 8px solid #f3f3f3;
+        border-top: 8px solid #3498db;
+        border-radius: 50%;
+        animation: spin 1s linear infinite;
+      }
+
+      @keyframes spin {
+        0% {
+          transform: rotate(0deg);
         }
-
-        .b-example-vr {
-            flex-shrink: 0;
-            width: 1.5rem;
-            height: 100vh;
+        100% {
+          transform: rotate(360deg);
         }
-
-        .bi {
-            vertical-align: -.125em;
-            fill: currentColor;
-        }
-
-        .nav-scroller {
-            position: relative;
-            z-index: 2;
-            height: 2.75rem;
-            overflow-y: hidden;
-        }
-
-        .nav-scroller .nav {
-            display: flex;
-            flex-wrap: nowrap;
-            padding-bottom: 1rem;
-            margin-top: -1px;
-            overflow-x: auto;
-            text-align: center;
-            white-space: nowrap;
-            -webkit-overflow-scrolling: touch;
-        }
-
-        .btn-bd-primary {
-            --bd-violet-bg: #712cf9;
-            --bd-violet-rgb: 112.520718, 44.062154, 249.437846;
-
-            --bs-btn-font-weight: 600;
-            --bs-btn-color: var(--bs-white);
-            --bs-btn-bg: var(--bd-violet-bg);
-            --bs-btn-border-color: var(--bd-violet-bg);
-            --bs-btn-hover-color: var(--bs-white);
-            --bs-btn-hover-bg: #6528e0;
-            --bs-btn-hover-border-color: #6528e0;
-            --bs-btn-focus-shadow-rgb: var(--bd-violet-rgb);
-            --bs-btn-active-color: var(--bs-btn-hover-color);
-            --bs-btn-active-bg: #5a23c8;
-            --bs-btn-active-border-color: #5a23c8;
-        }
-
-        .bd-mode-toggle {
-            z-index: 1500;
-        }
-
-        .bd-mode-toggle .dropdown-menu .active .bi {
-            display: block !important;
-        }
+      }
     </style>
 
-
-
-
     <!-- jobs\static\jobs\bootstrap-icons-1.11.3\font\bootstrap-icons.min.css -->
+  </head>
 
-</head>
-
-<body>
+  <body>
     <svg xmlns="http://www.w3.org/2000/svg" class="d-none">
-        <symbol id="check2" viewBox="0 0 16 16">
-            <path
-                d="M13.854 3.646a.5.5 0 0 1 0 .708l-7 7a.5.5 0 0 1-.708 0l-3.5-3.5a.5.5 0 1 1 .708-.708L6.5 10.293l6.646-6.647a.5.5 0 0 1 .708 0z" />
-        </symbol>
-        <symbol id="circle-half" viewBox="0 0 16 16">
-            <path d="M8 15A7 7 0 1 0 8 1v14zm0 1A8 8 0 1 1 8 0a8 8 0 0 1 0 16z" />
-        </symbol>
-        <symbol id="moon-stars-fill" viewBox="0 0 16 16">
-            <path
-                d="M6 .278a.768.768 0 0 1 .08.858 7.208 7.208 0 0 0-.878 3.46c0 4.021 3.278 7.277 7.318 7.277.527 0 1.04-.055 1.533-.16a.787.787 0 0 1 .81.316.733.733 0 0 1-.031.893A8.349 8.349 0 0 1 8.344 16C3.734 16 0 12.286 0 7.71 0 4.266 2.114 1.312 5.124.06A.752.752 0 0 1 6 .278z" />
-            <path
-                d="M10.794 3.148a.217.217 0 0 1 .412 0l.387 1.162c.173.518.579.924 1.097 1.097l1.162.387a.217.217 0 0 1 0 .412l-1.162.387a1.734 1.734 0 0 0-1.097 1.097l-.387 1.162a.217.217 0 0 1-.412 0l-.387-1.162A1.734 1.734 0 0 0 9.31 6.593l-1.162-.387a.217.217 0 0 1 0-.412l1.162-.387a1.734 1.734 0 0 0 1.097-1.097l.387-1.162zM13.863.099a.145.145 0 0 1 .274 0l.258.774c.115.346.386.617.732.732l.774.258a.145.145 0 0 1 0 .274l-.774.258a1.156 1.156 0 0 0-.732.732l-.258.774a.145.145 0 0 1-.274 0l-.258-.774a1.156 1.156 0 0 0-.732-.732l-.774-.258a.145.145 0 0 1 0-.274l.774-.258c.346-.115.617-.386.732-.732L13.863.1z" />
-        </symbol>
-        <symbol id="sun-fill" viewBox="0 0 16 16">
-            <path
-                d="M8 12a4 4 0 1 0 0-8 4 4 0 0 0 0 8zM8 0a.5.5 0 0 1 .5.5v2a.5.5 0 0 1-1 0v-2A.5.5 0 0 1 8 0zm0 13a.5.5 0 0 1 .5.5v2a.5.5 0 0 1-1 0v-2A.5.5 0 0 1 8 13zm8-5a.5.5 0 0 1-.5.5h-2a.5.5 0 0 1 0-1h2a.5.5 0 0 1 .5.5zM3 8a.5.5 0 0 1-.5.5h-2a.5.5 0 0 1 0-1h2A.5.5 0 0 1 3 8zm10.657-5.657a.5.5 0 0 1 0 .707l-1.414 1.415a.5.5 0 1 1-.707-.708l1.414-1.414a.5.5 0 0 1 .707 0zm-9.193 9.193a.5.5 0 0 1 0 .707L3.05 13.657a.5.5 0 0 1-.707-.707l1.414-1.414a.5.5 0 0 1 .707 0zm9.193 2.121a.5.5 0 0 1-.707 0l-1.414-1.414a.5.5 0 0 1 .707-.707l1.414 1.414a.5.5 0 0 1 0 .707zM4.464 4.465a.5.5 0 0 1-.707 0L2.343 3.05a.5.5 0 1 1 .707-.707l1.414 1.414a.5.5 0 0 1 0 .708z" />
-        </symbol>
+      <symbol id="check2" viewBox="0 0 16 16">
+        <path
+          d="M13.854 3.646a.5.5 0 0 1 0 .708l-7 7a.5.5 0 0 1-.708 0l-3.5-3.5a.5.5 0 1 1 .708-.708L6.5 10.293l6.646-6.647a.5.5 0 0 1 .708 0z"
+        />
+      </symbol>
+      <symbol id="circle-half" viewBox="0 0 16 16">
+        <path d="M8 15A7 7 0 1 0 8 1v14zm0 1A8 8 0 1 1 8 0a8 8 0 0 1 0 16z" />
+      </symbol>
+      <symbol id="moon-stars-fill" viewBox="0 0 16 16">
+        <path
+          d="M6 .278a.768.768 0 0 1 .08.858 7.208 7.208 0 0 0-.878 3.46c0 4.021 3.278 7.277 7.318 7.277.527 0 1.04-.055 1.533-.16a.787.787 0 0 1 .81.316.733.733 0 0 1-.031.893A8.349 8.349 0 0 1 8.344 16C3.734 16 0 12.286 0 7.71 0 4.266 2.114 1.312 5.124.06A.752.752 0 0 1 6 .278z"
+        />
+        <path
+          d="M10.794 3.148a.217.217 0 0 1 .412 0l.387 1.162c.173.518.579.924 1.097 1.097l1.162.387a.217.217 0 0 1 0 .412l-1.162.387a1.734 1.734 0 0 0-1.097 1.097l-.387 1.162a.217.217 0 0 1-.412 0l-.387-1.162A1.734 1.734 0 0 0 9.31 6.593l-1.162-.387a.217.217 0 0 1 0-.412l1.162-.387a1.734 1.734 0 0 0 1.097-1.097l.387-1.162zM13.863.099a.145.145 0 0 1 .274 0l.258.774c.115.346.386.617.732.732l.774.258a.145.145 0 0 1 0 .274l-.774.258a1.156 1.156 0 0 0-.732.732l-.258.774a.145.145 0 0 1-.274 0l-.258-.774a1.156 1.156 0 0 0-.732-.732l-.774-.258a.145.145 0 0 1 0-.274l.774-.258c.346-.115.617-.386.732-.732L13.863.1z"
+        />
+      </symbol>
+      <symbol id="sun-fill" viewBox="0 0 16 16">
+        <path
+          d="M8 12a4 4 0 1 0 0-8 4 4 0 0 0 0 8zM8 0a.5.5 0 0 1 .5.5v2a.5.5 0 0 1-1 0v-2A.5.5 0 0 1 8 0zm0 13a.5.5 0 0 1 .5.5v2a.5.5 0 0 1-1 0v-2A.5.5 0 0 1 8 13zm8-5a.5.5 0 0 1-.5.5h-2a.5.5 0 0 1 0-1h2a.5.5 0 0 1 .5.5zM3 8a.5.5 0 0 1-.5.5h-2a.5.5 0 0 1 0-1h2A.5.5 0 0 1 3 8zm10.657-5.657a.5.5 0 0 1 0 .707l-1.414 1.415a.5.5 0 1 1-.707-.708l1.414-1.414a.5.5 0 0 1 .707 0zm-9.193 9.193a.5.5 0 0 1 0 .707L3.05 13.657a.5.5 0 0 1-.707-.707l1.414-1.414a.5.5 0 0 1 .707 0zm9.193 2.121a.5.5 0 0 1-.707 0l-1.414-1.414a.5.5 0 0 1 .707-.707l1.414 1.414a.5.5 0 0 1 0 .707zM4.464 4.465a.5.5 0 0 1-.707 0L2.343 3.05a.5.5 0 1 1 .707-.707l1.414 1.414a.5.5 0 0 1 0 .708z"
+        />
+      </symbol>
     </svg>
 
-    <div class="dropdown position-fixed bottom-0 end-0 mb-3 me-3 bd-mode-toggle">
-        <button class="btn btn-bd-primary py-2 dropdown-toggle d-flex align-items-center" id="bd-theme" type="button"
-            aria-expanded="false" data-bs-toggle="dropdown" aria-label="Toggle theme (auto)">
-            <svg class="bi my-1 theme-icon-active" width="1em" height="1em">
-                <use href="#circle-half"></use>
+    <div
+      class="dropdown position-fixed bottom-0 end-0 mb-3 me-3 bd-mode-toggle"
+    >
+      <button
+        class="btn btn-bd-primary py-2 dropdown-toggle d-flex align-items-center"
+        id="bd-theme"
+        type="button"
+        aria-expanded="false"
+        data-bs-toggle="dropdown"
+        aria-label="Toggle theme (auto)"
+      >
+        <svg class="bi my-1 theme-icon-active" width="1em" height="1em">
+          <use href="#circle-half"></use>
+        </svg>
+        <span class="visually-hidden" id="bd-theme-text">Toggle theme</span>
+      </button>
+      <ul
+        class="dropdown-menu dropdown-menu-end shadow"
+        aria-labelledby="bd-theme-text"
+      >
+        <li>
+          <button
+            type="button"
+            class="dropdown-item d-flex align-items-center"
+            data-bs-theme-value="light"
+            aria-pressed="false"
+          >
+            <svg class="bi me-2 opacity-50" width="1em" height="1em">
+              <use href="#sun-fill"></use>
             </svg>
-            <span class="visually-hidden" id="bd-theme-text">Toggle theme</span>
-        </button>
-        <ul class="dropdown-menu dropdown-menu-end shadow" aria-labelledby="bd-theme-text">
-            <li>
-                <button type="button" class="dropdown-item d-flex align-items-center" data-bs-theme-value="light"
-                    aria-pressed="false">
-                    <svg class="bi me-2 opacity-50" width="1em" height="1em">
-                        <use href="#sun-fill"></use>
-                    </svg>
-                    Light
-                    <svg class="bi ms-auto d-none" width="1em" height="1em">
-                        <use href="#check2"></use>
-                    </svg>
-                </button>
-            </li>
-            <li>
-                <button type="button" class="dropdown-item d-flex align-items-center" data-bs-theme-value="dark"
-                    aria-pressed="false">
-                    <svg class="bi me-2 opacity-50" width="1em" height="1em">
-                        <use href="#moon-stars-fill"></use>
-                    </svg>
-                    Dark
-                    <svg class="bi ms-auto d-none" width="1em" height="1em">
-                        <use href="#check2"></use>
-                    </svg>
-                </button>
-            </li>
-            <li>
-                <button type="button" class="dropdown-item d-flex align-items-center active" data-bs-theme-value="auto"
-                    aria-pressed="true">
-                    <svg class="bi me-2 opacity-50" width="1em" height="1em">
-                        <use href="#circle-half"></use>
-                    </svg>
-                    Auto
-                    <svg class="bi ms-auto d-none" width="1em" height="1em">
-                        <use href="#check2"></use>
-                    </svg>
-                </button>
-            </li>
-        </ul>
+            Light
+            <svg class="bi ms-auto d-none" width="1em" height="1em">
+              <use href="#check2"></use>
+            </svg>
+          </button>
+        </li>
+        <li>
+          <button
+            type="button"
+            class="dropdown-item d-flex align-items-center"
+            data-bs-theme-value="dark"
+            aria-pressed="false"
+          >
+            <svg class="bi me-2 opacity-50" width="1em" height="1em">
+              <use href="#moon-stars-fill"></use>
+            </svg>
+            Dark
+            <svg class="bi ms-auto d-none" width="1em" height="1em">
+              <use href="#check2"></use>
+            </svg>
+          </button>
+        </li>
+        <li>
+          <button
+            type="button"
+            class="dropdown-item d-flex align-items-center active"
+            data-bs-theme-value="auto"
+            aria-pressed="true"
+          >
+            <svg class="bi me-2 opacity-50" width="1em" height="1em">
+              <use href="#circle-half"></use>
+            </svg>
+            Auto
+            <svg class="bi ms-auto d-none" width="1em" height="1em">
+              <use href="#check2"></use>
+            </svg>
+          </button>
+        </li>
+      </ul>
     </div>
-
 
     <!-- sidebar -->
     <div class="wrapper">
-        <aside id="sidebar">
-            <div class="d-flex">
-                <button class="toggle-btn" type="button">
-                    <i class="bi bi-grid"></i>
-                </button>
-                <div class="sidebar-logo">
-                    <a href="{%url 'jobs:home' %}">Recruitment</a>
-                </div>
-            </div>
-            <ul class="sidebar-nav">
-                
-                <li class="sidebar-item">
-                    <a href="#" class="sidebar-link collapsed has-dropdown" data-bs-toggle="collapse"
-                        data-bs-target="#dashboard" aria-expanded="false" aria-controls="dashboard">
-                        <i width="16" height="16" class="bi bi-palette"></i>
-                        <span>Dashboard</span>
-                    </a>
-                    <ul id="dashboard" class="sidebar-dropdown list-unstyled collapse" data-bs-parent="#sidebar">
-                        <li class="sidebar-item">
-                            <a href="{% url 'dashboard:dashboard' %}" class="sidebar-link"><i
-                                    class="bi bi-check-circle-fill"></i>Dashboard</a>
-                        </li>
-                        <li class="sidebar-item">
-                            <a href="{% url 'report:daily_joining_report' %}" class="sidebar-link"><i
-                                    class="bi bi-check-circle-fill"></i>Daily Joining Report</a>
-                        </li>
-                    </ul>
-                </li>
-
-
-                <!-- headcount -->
-
-                <li class="sidebar-item">
-                    <a href="#" class="sidebar-link collapsed has-dropdown" data-bs-toggle="collapse"
-                        data-bs-target="#hcrf" aria-expanded="false" aria-controls="hcrf">
-                        <i width="16" height="16" class="bi bi-person-plus"></i>
-                        <span>Headcount Requisition</span>
-                    </a>
-                    <ul id="hcrf" class="sidebar-dropdown list-unstyled collapse" data-bs-parent="#sidebar">
-                        <li class="sidebar-item">
-                            <a href="{% url 'jobs:headcount-list' %}" class="sidebar-link"><i
-                                    class="bi bi-check-circle-fill"></i>HCRF List</a>
-                        </li>
-                        <li class="sidebar-item">
-                            <a href="{% url 'jobs:create-headcount' %}" class="sidebar-link"><i
-                                    class="bi bi-check-circle-fill"></i>New HCRF</a>
-                        </li>
-                    </ul>
-                </li>
-
-                <li class="sidebar-item">
-                    <a href="#" class="sidebar-link collapsed has-dropdown" data-bs-toggle="collapse"
-                        data-bs-target="#interview" aria-expanded="false" aria-controls="interview">
-                        <i width="16" height="16" class="bi bi-toggles"></i>
-                        <span>Interview</span>
-                    </a>
-                    <ul id="interview" class="sidebar-dropdown list-unstyled collapse" data-bs-parent="#sidebar">
-                        <li class="sidebar-item">
-                            <a href="{% url 'jobs:create_schedule' %}" class="sidebar-link"><i
-                                    class="bi bi-check-circle-fill"></i>Create Schedule</a>
-                        </li>
-                        <li class="sidebar-item">
-                            <a href="{% url 'jobs:initial_interview_list' %}" class="sidebar-link"><i
-                                    class="bi bi-check-circle-fill"></i>Initial Interview List</a>
-                            <a href="{% url 'jobs:final_interview_list' %}" class="sidebar-link"><i
-                                    class="bi bi-check-circle-fill"></i>Final Interview List</a>
-                        </li>
-                    </ul>
-                </li>
-                <!--  -->
-
-                <!-- Candidate -->
-                <li class="sidebar-item">
-                    <a href="#" class="sidebar-link collapsed has-dropdown" data-bs-toggle="collapse"
-                        data-bs-target="#candidate01" aria-expanded="false" aria-controls="candidate01">
-                        <i class="bi bi-person-check"></i>
-                        <span>Candidate</span>
-                    </a>
-                    <ul id="candidate01" class="sidebar-dropdown list-unstyled collapse" data-bs-parent="#sidebar">
-                        <li class="sidebar-item">
-                            <a href="{% url 'candidates:candidates' %}" class="sidebar-link"><i
-                                    class="bi bi-check-circle-fill"></i>Candidate List</a>
-                        </li>
-                        <li class="sidebar-item">
-                            <a href="{% url 'candidates:candidates_details' %}" class="sidebar-link"><i
-                                    class="bi bi-check-circle-fill"></i>Candidate Details</a>
-                        </li>
-                        <li class="sidebar-item">
-                            <a href="{% url 'candidates:offer-list' %}" class="sidebar-link"><i
-                                    class="bi bi-check-circle-fill"></i>Offered Candidate</a>
-                        </li>
-                    </ul>
-                </li>
-
-                <!--  -->    
-                <li class="sidebar-item">
-                    <a href="#" class="sidebar-link collapsed has-dropdown" data-bs-toggle="collapse"
-                        data-bs-target="#operation" aria-expanded="false" aria-controls="operation">
-                        <i class="bi bi-file-text"></i>
-                        <span> HR Operation</span>
-                    </a>
-                    <ul id="operation" class="sidebar-dropdown list-unstyled collapse" data-bs-parent="#sidebar">
-                        
-                        <li class="sidebar-item">
-                            <a  href="{% url 'employees:employee-create' %}" class="sidebar-link"><i
-                                class="bi bi-check-circle-fill"></i> Employee Management </a>
-                        </li>
-
-                        <li class="sidebar-item">
-                            <a  href="{% url 'leave:leaveApplication' %}" class="sidebar-link"><i
-                                class="bi bi-check-circle-fill"></i> Leave Management </a>
-                        </li>
-                    
-                        <li class="sidebar-item">
-                            <a href="{% url 'documents:joining-form-list' %}" class="sidebar-link"><i
-                                class="bi bi-check-circle-fill"></i> Document Management </a>
-                        </li>
-                    </ul>
-                </li>
-
-                <!-- Report -->
-                <li class="sidebar-item">
-                    <a href="#" class="sidebar-link collapsed has-dropdown" data-bs-toggle="collapse"
-                        data-bs-target="#report" aria-expanded="false" aria-controls="report">
-                        <i class="bi bi-stack"></i>
-                        <span>Report</span>
-                    </a>
-                    <ul id="report" class="sidebar-dropdown list-unstyled collapse" data-bs-parent="#sidebar">
-                        <li class="sidebar-item">
-                            <a href="{% url 'documents:Candidate_report' %}"
-                                class="sidebar-link"><i class="bi bi-check-circle-fill"></i>Report</a>
-                        </li>
-                    </ul>
-                </li>
-                <!-- end report -->
-
-                <!-- Process -->
-                <li class="sidebar-item">
-                    <a href="#" class="sidebar-link collapsed has-dropdown" data-bs-toggle="collapse"
-                        data-bs-target="#process" aria-expanded="false" aria-controls="process">
-                        <i class="bi bi-gear"></i>
-                        <span>Process Data</span>
-                    </a>
-                    <ul id="process" class="sidebar-dropdown list-unstyled collapse" data-bs-parent="#sidebar">
-                        <li class="sidebar-item">
-                            <a id="process_employee_data" href="{% url 'employees:emp-details' %}"
-                                class="sidebar-link"><i class="bi bi-check-circle-fill"></i>Employee Details</a>
-                        </li>
-                        <li class="sidebar-item">
-                            <a id="process_candidate_data" href="{% url 'candidates:update_candidate_details' %}"
-                                class="sidebar-link"><i class="bi bi-check-circle-fill"></i>Candidate Details</a>
-                        </li>
-                    </ul>
-                </li>
-                <!-- end process -->
-
-                <li class="sidebar-item">
-                    <a href="{% url 'report:daily_joining_list' %}" class="sidebar-link collapsed">
-                        <i class="bi bi-calendar-check"></i>
-                        <span>Daily Joining</span>
-                    </a>
-                </li>
-                 
-                 
+      <aside id="sidebar">
+        <div class="d-flex">
+          <button class="toggle-btn" type="button">
+            <i class="bi bi-grid"></i>
+          </button>
+          <div class="sidebar-logo">
+            <a href="{%url 'jobs:home' %}">Recruitment</a>
+          </div>
+        </div>
+        <ul class="sidebar-nav">
+          <li class="sidebar-item">
+            <a
+              href="#"
+              class="sidebar-link collapsed has-dropdown"
+              data-bs-toggle="collapse"
+              data-bs-target="#dashboard"
+              aria-expanded="false"
+              aria-controls="dashboard"
+            >
+              <i width="16" height="16" class="bi bi-palette"></i>
+              <span>Dashboard</span>
+            </a>
+            <ul
+              id="dashboard"
+              class="sidebar-dropdown list-unstyled collapse"
+              data-bs-parent="#sidebar"
+            >
+              <li class="sidebar-item">
+                <a href="{% url 'dashboard:dashboard' %}" class="sidebar-link"
+                  ><i class="bi bi-check-circle-fill"></i>Dashboard</a
+                >
+              </li>
+              <li class="sidebar-item">
+                <a
+                  href="{% url 'report:daily_joining_report' %}"
+                  class="sidebar-link"
+                  ><i class="bi bi-check-circle-fill"></i>Daily Joining
+                  Report</a
+                >
+              </li>
             </ul>
+          </li>
 
-            <div class="sidebar-footer">
-                <li class="sidebar-item">
-                    <a href="#" class="sidebar-link collapsed has-dropdown" data-bs-toggle="collapse"
-                        data-bs-target="#account" aria-expanded="false" aria-controls="account">
-                        <i class="bi bi-person-fill" width="32" height="32"></i>
-                        <span>{{user.first_name}}</span>
-                    </a>
-                    <ul id="account" class="sidebar-dropdown list-unstyled collapse" data-bs-parent="#sidebar">
-                        <li class="sidebar-item">
-                            {% if user.is_authenticated %}
-                            <form action="{% url 'jobs:logout' %}" method="post" style="display: inline;">
-                                {% csrf_token %}
-                                <button class="btn sidebar-link" type="submit" style="padding-left: 30px;">
-                                    <i class="bi bi-box-arrow-right"></i> Logout
-                                </button>
-                            </form>
-                            {% else %}
-                            <a href="{% url 'jobs:login' %}"
-                                class="sidebar-link"><i class="bi bi-box-arrow-in-left"></i>Login</a>
-                            {% endif %}
-                        </li>
-                    </ul>
-                </li>
-            </div>
-        </aside>
-        <!-- main-content -->
-        <div class="main p-3">
+          <!-- headcount -->
 
-            {% if messages %}
-            {%for message in messages%}
-            <div class="alert alert-{{message.tags}} text-center">
-                {{message}}
-            </div>
-            {% endfor %}
-            {% endif %}
-            {%block content%} {%endblock%}
+          <li class="sidebar-item">
+            <a
+              href="#"
+              class="sidebar-link collapsed has-dropdown"
+              data-bs-toggle="collapse"
+              data-bs-target="#hcrf"
+              aria-expanded="false"
+              aria-controls="hcrf"
+            >
+              <i width="16" height="16" class="bi bi-person-plus"></i>
+              <span>Headcount Requisition</span>
+            </a>
+            <ul
+              id="hcrf"
+              class="sidebar-dropdown list-unstyled collapse"
+              data-bs-parent="#sidebar"
+            >
+              <li class="sidebar-item">
+                <a href="{% url 'jobs:headcount-list' %}" class="sidebar-link"
+                  ><i class="bi bi-check-circle-fill"></i>HCRF List</a
+                >
+              </li>
+              <li class="sidebar-item">
+                <a href="{% url 'jobs:create-headcount' %}" class="sidebar-link"
+                  ><i class="bi bi-check-circle-fill"></i>New HCRF</a
+                >
+              </li>
+            </ul>
+          </li>
+
+          <li class="sidebar-item">
+            <a
+              href="#"
+              class="sidebar-link collapsed has-dropdown"
+              data-bs-toggle="collapse"
+              data-bs-target="#interview"
+              aria-expanded="false"
+              aria-controls="interview"
+            >
+              <i width="16" height="16" class="bi bi-toggles"></i>
+              <span>Interview</span>
+            </a>
+            <ul
+              id="interview"
+              class="sidebar-dropdown list-unstyled collapse"
+              data-bs-parent="#sidebar"
+            >
+              <li class="sidebar-item">
+                <a href="{% url 'jobs:create_schedule' %}" class="sidebar-link"
+                  ><i class="bi bi-check-circle-fill"></i>Create Schedule</a
+                >
+              </li>
+              <li class="sidebar-item">
+                <a
+                  href="{% url 'jobs:initial_interview_list' %}"
+                  class="sidebar-link"
+                  ><i class="bi bi-check-circle-fill"></i>Initial Interview
+                  List</a
+                >
+                <a
+                  href="{% url 'jobs:final_interview_list' %}"
+                  class="sidebar-link"
+                  ><i class="bi bi-check-circle-fill"></i>Final Interview
+                  List</a
+                >
+              </li>
+            </ul>
+          </li>
+          <!--  -->
+
+          <!-- Candidate -->
+          <li class="sidebar-item">
+            <a
+              href="#"
+              class="sidebar-link collapsed has-dropdown"
+              data-bs-toggle="collapse"
+              data-bs-target="#candidate01"
+              aria-expanded="false"
+              aria-controls="candidate01"
+            >
+              <i class="bi bi-person-check"></i>
+              <span>Candidate</span>
+            </a>
+            <ul
+              id="candidate01"
+              class="sidebar-dropdown list-unstyled collapse"
+              data-bs-parent="#sidebar"
+            >
+              <li class="sidebar-item">
+                <a href="{% url 'candidates:candidates' %}" class="sidebar-link"
+                  ><i class="bi bi-check-circle-fill"></i>Candidate List</a
+                >
+              </li>
+              <li class="sidebar-item">
+                <a
+                  href="{% url 'candidates:candidates_details' %}"
+                  class="sidebar-link"
+                  ><i class="bi bi-check-circle-fill"></i>Candidate Details</a
+                >
+              </li>
+              <li class="sidebar-item">
+                <a href="{% url 'candidates:offer-list' %}" class="sidebar-link"
+                  ><i class="bi bi-check-circle-fill"></i>Offered Candidate</a
+                >
+              </li>
+            </ul>
+          </li>
+
+          <!--  -->
+          <li class="sidebar-item">
+            <a
+              href="#"
+              class="sidebar-link collapsed has-dropdown"
+              data-bs-toggle="collapse"
+              data-bs-target="#operation"
+              aria-expanded="false"
+              aria-controls="operation"
+            >
+              <i class="bi bi-file-text"></i>
+              <span> HR Operation</span>
+            </a>
+            <ul
+              id="operation"
+              class="sidebar-dropdown list-unstyled collapse"
+              data-bs-parent="#sidebar"
+            >
+              <li class="sidebar-item">
+                <a
+                  href="{% url 'employees:employee-create' %}"
+                  class="sidebar-link"
+                  ><i class="bi bi-check-circle-fill"></i> Employee Management
+                </a>
+              </li>
+
+              <li class="sidebar-item">
+                <a
+                  href="{% url 'leave:leaveApplication' %}"
+                  class="sidebar-link"
+                  ><i class="bi bi-check-circle-fill"></i> Leave Management
+                </a>
+              </li>
+
+              <li class="sidebar-item">
+                <a
+                  href="{% url 'documents:joining-form-list' %}"
+                  class="sidebar-link"
+                  ><i class="bi bi-check-circle-fill"></i> Document Management
+                </a>
+              </li>
+            </ul>
+          </li>
+
+          <!-- Report -->
+          <li class="sidebar-item">
+            <a
+              href="#"
+              class="sidebar-link collapsed has-dropdown"
+              data-bs-toggle="collapse"
+              data-bs-target="#report"
+              aria-expanded="false"
+              aria-controls="report"
+            >
+              <i class="bi bi-stack"></i>
+              <span>Report</span>
+            </a>
+            <ul
+              id="report"
+              class="sidebar-dropdown list-unstyled collapse"
+              data-bs-parent="#sidebar"
+            >
+              <li class="sidebar-item">
+                <a
+                  href="{% url 'documents:Candidate_report' %}"
+                  class="sidebar-link"
+                  ><i class="bi bi-check-circle-fill"></i>Report</a
+                >
+              </li>
+            </ul>
+          </li>
+          <!-- end report -->
+
+          <!-- Process -->
+          <li class="sidebar-item">
+            <a
+              href="#"
+              class="sidebar-link collapsed has-dropdown"
+              data-bs-toggle="collapse"
+              data-bs-target="#process"
+              aria-expanded="false"
+              aria-controls="process"
+            >
+              <i class="bi bi-gear"></i>
+              <span>Process Data</span>
+            </a>
+            <ul
+              id="process"
+              class="sidebar-dropdown list-unstyled collapse"
+              data-bs-parent="#sidebar"
+            >
+              <li class="sidebar-item">
+                <a
+                  id="process_employee_data"
+                  href="{% url 'employees:emp-details' %}"
+                  class="sidebar-link"
+                  ><i class="bi bi-check-circle-fill"></i>Employee Details</a
+                >
+              </li>
+              <li class="sidebar-item">
+                <a
+                  id="process_candidate_data"
+                  href="{% url 'candidates:update_candidate_details' %}"
+                  class="sidebar-link"
+                  ><i class="bi bi-check-circle-fill"></i>Candidate Details</a
+                >
+              </li>
+            </ul>
+          </li>
+          <!-- end process -->
+
+          <li class="sidebar-item">
+            <a
+              href="{% url 'report:daily_joining_list' %}"
+              class="sidebar-link collapsed"
+            >
+              <i class="bi bi-calendar-check"></i>
+              <span>Daily Joining</span>
+            </a>
+          </li>
+        </ul>
+
+        <div class="sidebar-footer">
+          <li class="sidebar-item">
+            <a
+              href="#"
+              class="sidebar-link collapsed has-dropdown"
+              data-bs-toggle="collapse"
+              data-bs-target="#account"
+              aria-expanded="false"
+              aria-controls="account"
+            >
+              <i class="bi bi-person-fill" width="32" height="32"></i>
+              <span>{{user.first_name}}</span>
+            </a>
+            <ul
+              id="account"
+              class="sidebar-dropdown list-unstyled collapse"
+              data-bs-parent="#sidebar"
+            >
+              <li class="sidebar-item">
+                {% if user.is_authenticated %}
+                <form
+                  action="{% url 'jobs:logout' %}"
+                  method="post"
+                  style="display: inline"
+                >
+                  {% csrf_token %}
+                  <button
+                    class="btn sidebar-link"
+                    type="submit"
+                    style="padding-left: 30px"
+                  >
+                    <i class="bi bi-box-arrow-right"></i> Logout
+                  </button>
+                </form>
+                {% else %}
+                <a href="{% url 'jobs:login' %}" class="sidebar-link"
+                  ><i class="bi bi-box-arrow-in-left"></i>Login</a
+                >
+                {% endif %}
+              </li>
+            </ul>
+          </li>
         </div>
-        <div id="progress-container">
-            <div id="progress-bar"></div>
+      </aside>
+      <!-- main-content -->
+      <div class="main p-3">
+        {% if messages %} {%for message in messages%}
+        <div class="alert alert-{{message.tags}} text-center">{{message}}</div>
+        {% endfor %} {% endif %} {%block content%} {%endblock%}
+      </div>
+      <div
+        id="loadingOverlay"
+        style="
+          display: none;
+          position: fixed;
+          z-index: 9999;
+          top: 0;
+          left: 0;
+          width: 100%;
+          height: 100%;
+          background-color: rgba(255, 255, 255, 0.8);
+          text-align: center;
+          padding-top: 20%;
+          font-size: 24px;
+          color: #333;
+        "
+      >
+        <div class="spinner-border" role="status">
+          <span class="visually-hidden">Loading...</span>
         </div>
+      </div>
+
+      <div id="progress-container">
+        <div id="progress-bar"></div>
+      </div>
     </div>
     <!-- Addition js -->
     <script src="https://cdn.jsdelivr.net/npm/select2@4.1.0-rc.0/dist/js/select2.min.js"></script>
@@ -390,44 +581,51 @@
     <script src="{% static 'jobs/jquery-3.7.1.min.js' %}"></script>
     <script src="{% static 'jobs/assets/dist/js/bootstrap.bundle.min.js' %}"></script>
     <script src="{% static 'jobs/script.js' %}"></script>
-    
 
-    {{ form.media.js }}
-
-
-    {% block extra_scripts %}{% endblock %}
+    {{ form.media.js }} {% block extra_scripts %}{% endblock %}
 
     <script>
-        $(document).ready(function () {
-            // Function to handle AJAX request for both employee and candidate data
-            function handleDataRequest(url) {
-                $.ajax({
-                    url: url,
-                    type: 'GET',
-                    success: function (data) {
-                        var alertMessage = data.alert_messages.join('\n');
-                        alert(alertMessage);
-                    },
-                    error: function (xhr, status, error) {
-                        alert("An error occurred: " + error);
-                    }
-                });
-            }
+      $(document).ready(function () {
+        // Show loader
+        function showLoader() {
+          $("#loadingOverlay").show();
+        }
 
-            // Click handler for processing employee data
-            $('#process_employee_data').click(function (event) {
-                event.preventDefault(); // Prevent the default click action
-                handleDataRequest('/employee_details/');
-            });
+        // Hide loader
+        function hideLoader() {
+          $("#loadingOverlay").hide();
+        }
 
-            // Click handler for processing candidate data
-            $('#process_candidate_data').click(function (event) {
-                event.preventDefault(); // Prevent the default click action
-                handleDataRequest('/update-candidate-details/');
-            });
+        // Function to handle AJAX request for both employee and candidate data
+        function handleDataRequest(url) {
+          showLoader();
+          $.ajax({
+            url: url,
+            type: "GET",
+            success: function (data) {
+              hideLoader();
+              var alertMessage = data.alert_messages.join("\n");
+              alert(alertMessage);
+            },
+            error: function (xhr, status, error) {
+              hideLoader();
+              alert("An error occurred: " + error);
+            },
+          });
+        }
+
+        // Click handler for processing employee data
+        $("#process_employee_data").click(function (event) {
+          event.preventDefault();
+          handleDataRequest("/employee_details/");
         });
+
+        // Click handler for processing candidate data
+        $("#process_candidate_data").click(function (event) {
+          event.preventDefault();
+          handleDataRequest("/update-candidate-details/");
+        });
+      });
     </script>
-
-</body>
-
+  </body>
 </html>
