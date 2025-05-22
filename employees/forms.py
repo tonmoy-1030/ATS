@@ -1,6 +1,6 @@
 from django import forms
 from django_select2 import forms as s2forms
-from .models import Employee, SeperationStatus, EmployeeConfirmation, TransferOrder, PostingOrder, SalaryInfo
+from .models import Employee, SeperationStatus, EmployeeConfirmation, TransferOrder, PostingOrder, SalaryInfo, OfficialDocument
 import django_filters
 
 
@@ -214,3 +214,42 @@ class SalaryInfoForm(forms.ModelForm):
             'salary': forms.NumberInput(attrs={'class':'form-control'})
         }
 
+
+
+class OfficialDocumentForm(forms.ModelForm):
+    class Meta:
+        model = OfficialDocument
+        fields = ['employee', 'document_type', 'issue_date', 'reason', 'remarks', 'document']
+        widgets = {
+            'employee': EmployeeWidgets,
+            'document_type': forms.TextInput(attrs={'class': 'form-control'}),
+            'issue_date': forms.DateInput(attrs={'type': 'date', 'class': 'form-control'}),
+            'reason': forms.TextInput(attrs={'class': 'form-control'}),
+            'remarks': forms.Textarea(attrs={'class': 'form-control', 'rows': 3}),
+            'document': forms.FileInput(attrs={
+                'class': 'form-control',
+                'accept': '.pdf,.doc,.docx,.jpg,.jpeg,.png'
+            })
+        }
+        labels = {
+            'employee': 'Select Employee',
+            'document_type': 'Document Type',
+            'issue_date': 'Issue Date',
+            'reason': 'Reason',
+            'document': 'Upload Document',
+            'remarks': 'Remarks'
+        }
+
+    def clean_document(self):
+        document = self.cleaned_data.get('document')
+        if document:
+            # Get the file extension
+            ext = document.name.split('.')[-1].lower()
+            # Define allowed file types
+            allowed_types = ['pdf', 'doc', 'docx', 'jpg', 'jpeg', 'png']
+            if ext not in allowed_types:
+                raise forms.ValidationError('Only PDF, Word documents and images (JPG, PNG) are allowed.')
+            # Check file size (max 5MB)
+            if document.size > 5 * 1024 * 1024:
+                raise forms.ValidationError('File size must be no more than 5MB.')
+        return document

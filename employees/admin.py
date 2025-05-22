@@ -1,6 +1,6 @@
 from django.contrib import admin
 from .models import (Employee, EmployeeDetails, SeperationStatus, 
-                     EmployeeConfirmation, TransferOrder, PostingOrder, SalaryInfo)
+                     EmployeeConfirmation, TransferOrder, PostingOrder, SalaryInfo, OfficialDocument)
 
 # Register your models here.
 @admin.register(Employee)
@@ -46,3 +46,8 @@ class SalaryInfoAdmin(admin.ModelAdmin):
     search_fields = ('employee__name', 'employee__EID')
     ordering = ('-employee__DOJ',)
 
+@admin.register(OfficialDocument)
+class OfficialDocumentAdmin(admin.ModelAdmin):
+    list_display = ('employee', 'document_type', 'uploaded_at')
+    search_fields = ('employee__name', 'employee__EID')
+    ordering = ('-uploaded_at',)

@@ -665,6 +665,7 @@ def is_admin(user):
 
 
 @user_passes_test(is_admin, login_url="/accounts/login", redirect_field_name="next")
+
 # Employee List for Appointment Letter
 def appointment_letter_list(request):
 

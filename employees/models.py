@@ -341,6 +341,19 @@ class SalaryInfo(models.Model):
         if hasattr(self.employee, 'save'):
             self.employee.save()
             
+
+class OfficialDocument(models.Model):
+    employee = models.ForeignKey(Employee, on_delete=models.CASCADE, related_name='documents')
+    issue_date = models.DateField()
+    document_type = models.CharField(max_length=100)
+    reason = models.CharField(max_length=100)
+    remarks = models.CharField(max_length=255, blank=True, null=True)
+    document = models.FileField(upload_to='official_docs/', blank=True, null=True)
+    uploaded_at = models.DateTimeField(auto_now_add=True)
+
+
+
+            
 auditlog.register(Employee)
 auditlog.register(EmployeeDetails)
 auditlog.register(SeperationStatus)
@@ -348,3 +361,4 @@ auditlog.register(EmployeeConfirmation)
 auditlog.register(TransferOrder)
 auditlog.register(PostingOrder)
 auditlog.register(SalaryInfo)
+auditlog.register(OfficialDocument)

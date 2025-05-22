@@ -1,0 +1,461 @@
+{% extends 'jobs/base.html' %} {% load crispy_forms_tags %} {% block content %}
+
+<style>
+  /* Modal container */
+  .custom-modal {
+    display: none; /* Hidden by default */
+    position: fixed;
+    z-index: 1000;
+    left: 0;
+    top: 0;
+    width: 100%;
+    height: 100%;
+    overflow: auto;
+    background-color: rgba(0, 0, 0, 0.5); /* Black background with opacity */
+  }
+
+  /* Modal content */
+  .custom-modal-content {
+    background-color: #fff;
+    margin: 10% auto;
+    padding: 20px;
+    border: 1px solid #888;
+    width: 50%;
+    border-radius: 8px;
+    box-shadow: 0 4px 8px rgba(0, 0, 0, 0.2);
+  }
+
+  /* Close button */
+  .close-btn {
+    color: #aaa;
+    float: right;
+    font-size: 28px;
+    font-weight: bold;
+    cursor: pointer;
+  }
+
+  .close-btn:hover,
+  .close-btn:focus {
+    color: black;
+    text-decoration: none;
+  }
+
+  /* Select2 Custom Styles */
+  .select2-container--default {
+    width: 100% !important;
+  }
+
+  .select2-container--default .select2-selection--single {
+    height: 38px;
+    padding: 5px;
+    border: 1px solid #ced4da;
+    border-radius: 4px;
+  }
+
+  .select2-container--default
+    .select2-selection--single
+    .select2-selection__rendered {
+    line-height: 28px;
+    color: #495057;
+    padding-left: 5px;
+  }
+
+  .select2-dropdown {
+    border: 1px solid #ced4da;
+    border-radius: 4px;
+    box-shadow: 0 2px 4px rgba(0, 0, 0, 0.1);
+    z-index: 9999;
+  }
+
+  .select2-container--default .select2-search--dropdown .select2-search__field {
+    border: 1px solid #ced4da;
+    border-radius: 4px;
+    padding: 6px;
+  }
+
+  .select2-container--default
+    .select2-results__option--highlighted[aria-selected] {
+    background-color: #007bff;
+  }
+
+  /* Ensure Select2 dropdown appears above modal */
+  .select2-container--bootstrap-5 .select2-dropdown {
+    z-index: 1056;
+  }
+</style>
+
+<!-- Main Container -->
+<div class="container-fluid">
+  <div class="row">
+    <!-- Left Sidebar -->
+    <div class="col-md-3">
+      {% include 'employees/EmployeesManuBar.html' %}
+    </div>
+
+    <!-- Main Content -->
+    <div class="col-md-9">
+      <div class="card">
+        <div class="card-body">          <!-- Header with Search -->
+          <div class="d-flex justify-content-between align-items-center mb-3">
+            <h4 class="card-title mb-0">Employee Documents</h4>
+            <div class="d-flex gap-2">
+              <!-- Search Form -->
+              <form class="d-flex" method="GET">
+                <div class="input-group">
+                  <input
+                    type="search"
+                    class="form-control"
+                    name="q"
+                    value="{{ search_query }}"
+                    placeholder="Search by name, ID, document type..."
+                    aria-label="Search documents"
+                    style="width: 250px;"
+                  />
+                  <button class="btn btn-primary" type="submit">
+                    <i class="bi bi-search"></i>
+                  </button>
+                  {% if search_query %}
+                  <a href="{% url 'employees:employee_documents' %}" class="btn btn-outline-secondary">
+                    <i class="bi bi-x"></i>
+                  </a>
+                  {% endif %}
+                </div>
+              </form>
+              <!-- New Entry Button -->
+              <button id="openModalBtn" class="btn btn-primary">
+                <i class="bi bi-plus"></i> New Entry
+              </button>
+            </div>
+          </div>
+
+        {% if search_query %}
+        <div class="col-auto">
+          <a
+            href="{% url 'employees:employee_documents' %}"
+            class="btn btn-outline-secondary"
+          >
+            <i class="fas fa-times"></i> Clear
+          </a>
+        </div>
+        {% endif %}
+      </form>
+    </div>
+
+    <!-- Modal Structure -->
+    <div id="customModal" class="custom-modal">
+      <div class="custom-modal-content">
+        <span id="closeModalBtn" class="close-btn">&times;</span>
+        <h5>Upload Document</h5>
+        <form
+          method="POST"
+          enctype="multipart/form-data"
+          action="{% url 'employees:employee_documents' %}"
+          id="uploadForm"
+          class="needs-validation"
+          novalidate
+        >
+          {% csrf_token %} {{ form|crispy }}
+
+          <div class="mt-4 text-end">
+            <button type="button" id="cancelModalBtn" class="btn btn-secondary">
+              Cancel
+            </button>
+            <button type="submit" class="btn btn-primary">Upload</button>
+          </div>
+        </form>
+      </div>
+    </div>
+
+    <!-- table -->
+    <div class="table-responsive">
+      <table class="table table-bordered">
+        <thead>
+          <tr>
+            <th>SL</th>
+            <th>EID</th>
+            <th>Name</th>
+            <th>Designation</th>
+            <th>Department</th>
+            <th>Document type</th>
+            <th>Document</th>
+            <th>Actions</th>
+          </tr>
+        </thead>
+        <tbody>
+          {% for document in documents %}
+          <tr>
+            <td>{{ forloop.counter }}</td>
+            <td>{{ document.employee.EID }}</td>
+            <td>{{ document.employee.name }}</td>
+            <td>{{ document.employee.designation }}</td>
+            <td>{{ document.employee.department }}</td>
+            <td>{{ document.document_type }}</td>
+            <td>
+              {% if document.document %}
+              <a
+                href="{{ document.document.url }}"
+                class="btn btn-info btn-sm"
+                target="_blank"
+              >
+                <i class="fas fa-download"></i> Download
+              </a>
+              {% else %} No document {% endif %}
+            </td>
+            <td>
+              <button
+                type="button"
+                class="btn btn-warning btn-sm me-1"
+                data-bs-toggle="modal"
+                data-bs-target="#editModal-{{document.id}}"
+              >
+                <i class="fas fa-edit"></i> Edit
+              </button>
+              <button
+                type="button"
+                class="btn btn-danger btn-sm"
+                data-bs-toggle="modal"
+                data-bs-target="#deleteModal-{{document.id}}"
+              >
+                <i class="fas fa-trash"></i> Delete
+              </button>
+
+              <!-- Edit Modal -->
+              <div
+                class="modal fade"
+                id="editModal-{{document.id}}"
+                tabindex="-1"
+                aria-labelledby="editModalLabel-{{document.id}}"
+                aria-hidden="true"
+              >
+                <div class="modal-dialog">
+                  <div class="modal-content">
+                    <div class="modal-header">
+                      <h5
+                        class="modal-title"
+                        id="editModalLabel-{{document.id}}"
+                      >
+                        Edit Document
+                      </h5>
+                      <button
+                        type="button"
+                        class="btn-close"
+                        data-bs-dismiss="modal"
+                        aria-label="Close"
+                      ></button>
+                    </div>
+                    <div class="modal-body">
+                      <form
+                        method="POST"
+                        enctype="multipart/form-data"
+                        action="{% url 'employees:employee_document_update' document.id %}"
+                        class="needs-validation"
+                        novalidate
+                      >
+                        {% csrf_token %}
+                        <div class="mb-3">
+                          <label
+                            for="document_type-{{document.id}}"
+                            class="form-label"
+                            >Document Type</label
+                          >
+                          <input
+                            type="text"
+                            class="form-control"
+                            id="document_type-{{document.id}}"
+                            name="document_type"
+                            value="{{ document.document_type }}"
+                            required
+                          />
+                        </div>
+                        <div class="mb-3">
+                          <label
+                            for="remarks-{{document.id}}"
+                            class="form-label"
+                            >Remarks</label
+                          >
+                          <textarea
+                            class="form-control"
+                            id="remarks-{{document.id}}"
+                            name="remarks"
+                            rows="3"
+                          >
+{{ document.remarks }}</textarea
+                          >
+                        </div>
+                        <div class="mb-3">
+                          <label
+                            for="document-{{document.id}}"
+                            class="form-label"
+                            >Upload New Document (Optional)</label
+                          >
+                          <input
+                            type="file"
+                            class="form-control"
+                            id="document-{{document.id}}"
+                            name="document"
+                            accept=".pdf,.doc,.docx,.jpg,.jpeg,.png"
+                          />
+                          <small class="text-muted"
+                            >Leave empty to keep the existing document</small
+                          >
+                        </div>
+                        <div class="mt-4 text-end">
+                          <button
+                            type="button"
+                            class="btn btn-secondary"
+                            data-bs-dismiss="modal"
+                          >
+                            Cancel
+                          </button>
+                          <button type="submit" class="btn btn-primary">
+                            Save Changes
+                          </button>
+                        </div>
+                      </form>
+                    </div>
+                  </div>
+                </div>
+              </div>
+
+              <!-- Delete Modal -->
+              <div
+                class="modal fade"
+                id="deleteModal-{{document.id}}"
+                tabindex="-1"
+                aria-labelledby="deleteModalLabel-{{document.id}}"
+                aria-hidden="true"
+              >
+                <div class="modal-dialog modal-dialog-centered">
+                  <div class="modal-content">
+                    <div class="modal-header">
+                      <h5
+                        class="modal-title"
+                        id="deleteModalLabel-{{document.id}}"
+                      >
+                        Confirm Delete
+                      </h5>
+                      <button
+                        type="button"
+                        class="btn-close"
+                        data-bs-dismiss="modal"
+                        aria-label="Close"
+                      ></button>
+                    </div>
+                    <div class="modal-body">
+                      <p>
+                        Are you sure you want to delete document for employee
+                        "{{ document.employee.name }}"?
+                      </p>
+                      <small class="text-muted">
+                        Document Type: {{ document.document_type }}<br />
+                        Employee ID: {{ document.employee.EID }}
+                      </small>
+                    </div>
+                    <div class="modal-footer">
+                      <button
+                        type="button"
+                        class="btn btn-secondary"
+                        data-bs-dismiss="modal"
+                      >
+                        Cancel
+                      </button>
+                      <form
+                        method="post"
+                        action="{% url 'employees:employee_document_delete' document.id %}"
+                        class="d-inline"
+                      >
+                        {% csrf_token %}
+                        <button type="submit" class="btn btn-danger">
+                          Delete
+                        </button>
+                      </form>
+                    </div>
+                  </div>
+                </div>
+              </div>
+            </td>
+          </tr>
+          {% endfor %}        </tbody>
+      </table>
+    </div>
+          </div>
+        </div>
+      </div>
+    </div>
+  </div>
+</div>
+
+<script>
+  // Get modal elements
+  const modal = document.getElementById("customModal");
+  const openModalBtn = document.getElementById("openModalBtn");
+  const closeModalBtn = document.getElementById("closeModalBtn");
+  const cancelModalBtn = document.getElementById("cancelModalBtn");
+
+  // Open modal
+  openModalBtn.addEventListener("click", () => {
+    modal.style.display = "block";
+  });
+
+  // Close modal
+  closeModalBtn.addEventListener("click", () => {
+    modal.style.display = "none";
+  });
+
+  // Cancel button also closes modal
+  cancelModalBtn.addEventListener("click", () => {
+    modal.style.display = "none";
+  });
+
+  // Close modal when clicking outside of it
+  window.addEventListener("click", (event) => {
+    if (event.target === modal) {
+      modal.style.display = "none";
+    }
+  });
+
+  $(document).ready(function () {
+    // Initialize Select2
+    $("#id_employee").select2({
+      theme: "bootstrap-5",
+      dropdownParent: $("#customModal .custom-modal-content"),
+      width: "100%",
+      placeholder: "Select Employee.......",
+      allowClear: true,
+      templateResult: formatResult,
+      templateSelection: formatSelection,
+    });
+
+    // Format the results
+    function formatResult(result) {
+      if (!result.id) return result.text;
+      return $("<span>" + result.text + "</span>");
+    }
+
+    // Format the selected option
+    function formatSelection(result) {
+      if (!result.id) return result.text;
+      return result.text;
+    }
+
+    // Reset Select2 when modal is closed
+    $("#closeModalBtn, #cancelModalBtn").on("click", function () {
+      $("#id_employee").val(null).trigger("change");
+    });
+  });
+
+  document.addEventListener("DOMContentLoaded", function () {
+    // Ensure Select2 is initialized correctly
+    const $select = $("#id_employee");
+    if ($select.length) {
+      $select.select2({
+        dropdownParent: $("#customModal"), // Attach dropdown to modal to avoid z-index issues
+        width: "100%", // Ensure the dropdown matches the input width
+      });
+    } else {
+      console.error("Select2 field #id_employee not found in the DOM.");
+    }
+  });
+</script>
+
+{% endblock %}

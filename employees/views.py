@@ -5,12 +5,12 @@ from django.contrib.messages.views import SuccessMessageMixin
 from django.views.generic import ListView, CreateView, UpdateView, DetailView, DeleteView
 from .models import (Employee, SeperationStatus, 
                      EmployeeDetails,EmployeeConfirmation,
-                     TransferOrder, PostingOrder, SalaryInfo)
+                     TransferOrder, PostingOrder, SalaryInfo, OfficialDocument)
 from .forms import (UploadFileForm, SeperationForm, 
                     EmployeeEntryForm, EmployeeFilter, 
                     TransferOrderForm, EmployeeConfirmationForm, 
                     PostingOrderForm, SalaryInfoForm, TransferOrderUpdateForm,
-                    PostingOrderUpdateForm, SeparationFilter)
+                    PostingOrderUpdateForm, SeparationFilter, OfficialDocumentForm)
 from django.contrib.auth.decorators import user_passes_test
 from django.db.models import Q
 from datetime import datetime, timedelta
@@ -526,3 +526,46 @@ def unit_based_employee_search(request):
         results = {}
 
     return JsonResponse({'results': results})
+
+
+class OfficialDocumentCreateView(SuccessMessageMixin, CreateView):
+    model = OfficialDocument
+    form_class = OfficialDocumentForm  # ✅ use the form, not the model
+    template_name = "employees/official_document.html"
+    success_message = "Official Document Created Successfully"
+
+    def get_success_url(self):
+        return reverse("employees:employee_documents")    
+    
+    def get_context_data(self, **kwargs):
+        context = super().get_context_data(**kwargs)
+        search_query = self.request.GET.get('q', '')
+        if search_query:
+            context['documents'] = OfficialDocument.objects.filter(
+                Q(employee__name__icontains=search_query) |
+                Q(employee__EID__icontains=search_query) |
+                Q(document_type__icontains=search_query) |
+                Q(employee__department__icontains=search_query) |
+                Q(employee__designation__icontains=search_query)
+            ).select_related('employee').order_by('-uploaded_at')
+        else:
+            context['documents'] = OfficialDocument.objects.all().select_related('employee').order_by('-uploaded_at')
+        context['search_query'] = search_query
+        return context
+
+
+class OfficialDocumentUpdateView(SuccessMessageMixin, UpdateView):
+    model = OfficialDocument
+    form_class = OfficialDocumentForm  # ✅ use the form, not the model
+    template_name = "employees/official_document.html"
+    success_message = "Official Document Updated Successfully"
+
+    def get_success_url(self):
+        return reverse("employees:employee_documents")
+    
+class OfficialDocumentDeleteView(SuccessMessageMixin, DeleteView):
+    model = OfficialDocument
+    success_message = "Official Document Deleted Successfully"
+
+    def get_success_url(self):
+        return reverse("employees:employee_documents")
