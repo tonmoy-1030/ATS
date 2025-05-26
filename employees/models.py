@@ -138,16 +138,20 @@ class SeperationStatus(models.Model):
         return f"Separation Status for {self.employee}"
     
     
-@receiver(post_save, sender=SeperationStatus)
-def update_employee_active_status(sender, instance, created, **kwargs):
-    if created:
-        instance.employee.active_status = False
-        instance.employee.save()
+    
+    def save(self, *args, **kwargs):
+        super().save(*args, **kwargs)
+        # Mark employee as inactive
+        if self.employee.active_status:  # only update if needed
+            self.employee.active_status = False
+            self.employee.save(update_fields=['active_status'])
+
+    def delete(self, *args, **kwargs):
+        # Mark employee as active again before deletion
+        self.employee.active_status = True
+        self.employee.save(update_fields=['active_status'])
+        super().delete(*args, **kwargs)
         
-@receiver(pre_delete, sender=SeperationStatus)
-def update_employee_active_status(sender, instance, **kwargs):
-    instance.employee.active_status = True
-    instance.employee.save()
 
 class EmployeeConfirmation(models.Model):
     employee = models.ForeignKey(Employee, on_delete=models.CASCADE, related_name="confirmation")
