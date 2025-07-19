@@ -611,7 +611,7 @@ def candidate_csv_download(request):
     header_row = [
         'SL','Name', 'Mobile', 'Email', 'Attendance Status', 'Invitation Status',
         'Initial Interview Status', 'Final Interview Attendance', 'Final Interview Status',
-        'Job', 'Date of Birth', 'Blood Group', 'Religion', 'NID', 'Marital Status',
+        'Job', 'Unit', 'Date of Birth', 'Blood Group', 'Religion', 'NID', 'Marital Status',
         'Present Village', 'Present Post Office', 'Present Police Station', 'Present District',
         'Permanent Village', 'Permanent Post Office', 'Permanent Police Station', 'Permanent District',
         'Highest Degree', 'Degree Name', 'Subject (Highest Degree)', 'Institution (Highest Degree)', 'Passing Year (Highest Degree)', 'Division or GPA (Highest Degree)',
@@ -634,7 +634,8 @@ def candidate_csv_download(request):
             candidate.initial_interview_status,
             candidate.final_interview_attendance,
             candidate.final_interview_status,
-            candidate.job.first().job_title,
+            candidate.job.first().job_title if candidate.job.exists() else '',
+            candidate.job.first().unit if candidate.job.exists() else '',
             details.date_of_birth if details else '',
             details.blood_group if details else '',
             details.religion if details else '',
