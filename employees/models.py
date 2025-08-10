@@ -308,7 +308,7 @@ class SalaryInfo(models.Model):
     salary = models.IntegerField()
     report_to = models.CharField(max_length=255)
     place_of_posting = models.CharField(max_length=255, default="Dhaka")
-    notice_period = models.IntegerField(default=1)
+    notice_period = models.IntegerField(default=2)
     director_signature = models.CharField(max_length=255, default="Business Director (Group-1)", blank=True, null=True)
     CC1 = models.CharField(max_length=255, default="Business Director (Group-1)")
     CC2 = models.CharField(max_length=255, default="Business Director (Group-2)")
