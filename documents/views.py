@@ -29,6 +29,7 @@ from .utils.confirmation_document import (
 )
 from .utils.transfer_posting_order import transfer_letter, posting_letter
 from .utils.number2text import format_number, convert_to_words
+from .utils.interview_summary import InterviewSummary
 from .forms import (
     EmployeeFilter,
     EmployeeConfirmationFilter,
@@ -1267,3 +1268,58 @@ def auto_span_units_and_departments(pivot_table):
     )  # Span last group for Dept
 
     return unit_span_styles + department_span_styles
+
+
+from candidates.models import Candidate
+from jobs.models import InterviewSchedule
+
+
+def Interview_Summary(request, final_interview_id):
+    candidates = Candidate.objects.filter(final_interview_id=final_interview_id)
+
+    # Logic to generate interview summary will go here
+    for candidate in candidates:
+        interview_summary = {
+            "date": candidate.final_interview.interview_date.strftime("%d-%b-%y"),
+            "unit": candidate.job.first().unit.short_name,
+            "position": candidate.job.first().job_title,
+            "total_applicant_in_initial_interview": Candidate.objects.filter(
+                interview_schedule_id=candidate.interview_schedule.id
+            ).count(),
+            "total_applicant_absent_in_initial_interview": Candidate.objects.filter(
+                interview_schedule_id=candidate.interview_schedule.id,
+                attendance_status="Absent",
+            ).count(),
+            "total_applicant_interviewed_in_initial_interview": Candidate.objects.filter(
+                interview_schedule_id=candidate.interview_schedule.id,
+                attendance_status="Present",
+            ).count(),
+            "total_applicant_shortlisted_in_final_interview": candidates.count(),
+            "total_applicant_present_in_final_interview": Candidate.objects.filter(
+                final_interview_id=final_interview_id,
+                final_interview_attendance="Present",
+            ).count(),
+            "total_applicant_absent_in_final_interview": Candidate.objects.filter(
+                final_interview_id=final_interview_id,
+                final_interview_attendance="Absent",
+            ).count(),
+            "total_vacancy": sum(
+                job.available_positions() for job in candidate.job.all()
+            ),
+            "interviewed_by": "\n".join(
+                f"{i+1}. {interviewer.name}, {interviewer.designation}"
+                for i, interviewer in enumerate(
+                    candidate.interview_schedule.interviewer.all()
+                )
+            ),
+        }
+
+       
+
+        buffer = BytesIO()
+        InterviewSummary(file_path=buffer, interview_summary=interview_summary)
+        buffer.seek(0)
+
+    response = HttpResponse(buffer, content_type="application/pdf")
+    response["Content-Disposition"] = 'inline; filename="Interview_Summary.pdf"'
+    return response

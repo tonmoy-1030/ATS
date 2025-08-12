@@ -37,6 +37,7 @@ urlpatterns = [
     path('report/Candidate_report/', candidateReport, name='Candidate_report'),
     path('report/employee_list/', employeeList, name='employee_download'),
     path('export/jobs/pdf/', views.generate_jobs_pdf, name='export_jobs_pdf'),
-    
+    path('report/interview_summary/<int:final_interview_id>/', views.Interview_Summary, name='interview_summary'),
+
 ]
 
