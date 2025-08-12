@@ -14,7 +14,7 @@ def InterviewSummary(file_path, interview_summary):
         leftMargin=40,
         topMargin=50,
         bottomMargin=20,
-        title="Interview Summary"
+        title="Interview Summary",
     )
 
     # Styles
@@ -25,19 +25,19 @@ def InterviewSummary(file_path, interview_summary):
         fontName="Times-Bold",
         fontSize=14,
         leftIndent=20,
-        leading=20
+        leading=20,
     )
-    
+
     list_style = ParagraphStyle(
         "LabelStyle",
         parent=styles["Normal"],
         fontName="Times-Bold",
         fontSize=14,
         leftIndent=50,
-        leading=20
+        leading=20,
     )
 
-    # Flowables list 
+    # Flowables list
     elements = []
 
     # Main data table
@@ -74,7 +74,17 @@ def InterviewSummary(file_path, interview_summary):
 
     table_data = []
     for label, key in data_labels:
-        table_data.append([label, interview_summary[key]])
+        value = interview_summary[key]
+
+        # If this field has a percentage, append it in parentheses
+        if key == "total_applicant_absent_in_initial_interview" and "absent(%)" in interview_summary:
+            value = f"{value} ({interview_summary['absent(%)']}%)"
+        elif key == "total_applicant_interviewed_in_initial_interview" and "interviewed_initial(%)" in interview_summary:
+            value = f"{value} ({interview_summary['interviewed_initial(%)']}%)"
+        elif key == "total_applicant_shortlisted_in_final_interview" and "total_applicant_shortlisted_in_final_interview(%)" in interview_summary:
+            value = f"{value} ({interview_summary['total_applicant_shortlisted_in_final_interview(%)']}%)"
+
+        table_data.append([label, value])
 
     main_table = Table(table_data, colWidths=[500, 200])
     main_table.setStyle(
@@ -88,16 +98,18 @@ def InterviewSummary(file_path, interview_summary):
                 ("BOTTOMPADDING", (0, 0), (-1, -1), 10),
                 ("TOPPADDING", (0, 0), (-1, -1), 10),
                 ("ALIGN", (-1, 0), (-1, -1), "CENTER"),
+                ("FONTNAME", (-1, 0), (-1, -1), "Times-Roman"),
             ]
         )
     )
     elements.append(main_table)
-    elements.append(Spacer(20,20))
+    elements.append(Spacer(20, 20))
     elements.append(Paragraph("Interviewed by:", label_style))
-    elements.append(Spacer(20,20))
-    interviewed_by_text = f"{interview_summary['interviewed_by'].replace('\n', '<br/>')}"
+    elements.append(Spacer(20, 20))
+    interviewed_by_text = (
+        f"{interview_summary['interviewed_by'].replace('\n', '<br/>')}"
+    )
     elements.append(Paragraph(interviewed_by_text, list_style))
-    
+
     # Build PDF
     doc.build(elements)
-

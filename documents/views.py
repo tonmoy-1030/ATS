@@ -1279,22 +1279,30 @@ def Interview_Summary(request, final_interview_id):
 
     # Logic to generate interview summary will go here
     for candidate in candidates:
+        total_initial = Candidate.objects.filter(
+            interview_schedule_id=candidate.interview_schedule.id
+        ).count()
+
+        absent_initial = Candidate.objects.filter(
+            interview_schedule_id=candidate.interview_schedule.id,
+            attendance_status="Absent",
+        ).count()
+
+        interviewed_initial = Candidate.objects.filter(
+            interview_schedule_id=candidate.interview_schedule.id,
+            attendance_status="Present",
+        ).count()
+
+        shortlisted_final = candidates.count()
+
         interview_summary = {
             "date": candidate.final_interview.interview_date.strftime("%d-%b-%y"),
             "unit": candidate.job.first().unit.short_name,
             "position": candidate.job.first().job_title,
-            "total_applicant_in_initial_interview": Candidate.objects.filter(
-                interview_schedule_id=candidate.interview_schedule.id
-            ).count(),
-            "total_applicant_absent_in_initial_interview": Candidate.objects.filter(
-                interview_schedule_id=candidate.interview_schedule.id,
-                attendance_status="Absent",
-            ).count(),
-            "total_applicant_interviewed_in_initial_interview": Candidate.objects.filter(
-                interview_schedule_id=candidate.interview_schedule.id,
-                attendance_status="Present",
-            ).count(),
-            "total_applicant_shortlisted_in_final_interview": candidates.count(),
+            "total_applicant_in_initial_interview": total_initial,
+            "total_applicant_absent_in_initial_interview": absent_initial,
+            "total_applicant_interviewed_in_initial_interview": interviewed_initial,
+            "total_applicant_shortlisted_in_final_interview": shortlisted_final,
             "total_applicant_present_in_final_interview": Candidate.objects.filter(
                 final_interview_id=final_interview_id,
                 final_interview_attendance="Present",
@@ -1312,10 +1320,23 @@ def Interview_Summary(request, final_interview_id):
                     candidate.interview_schedule.interviewer.all()
                 )
             ),
+            # Percentages (safe division)
+            "absent(%)": (
+                round((absent_initial / total_initial) * 100, 2) if total_initial else 0
+            ),
+            "interviewed_initial(%)": (
+                round((interviewed_initial / total_initial) * 100, 2)
+                if total_initial
+                else 0
+            ),
+            "total_applicant_shortlisted_in_final_interview(%)": (
+                round((shortlisted_final / total_initial) * 100, 2)
+                if total_initial
+                else 0
+            ),
         }
 
-       
-
+        print(interview_summary)
         buffer = BytesIO()
         InterviewSummary(file_path=buffer, interview_summary=interview_summary)
         buffer.seek(0)
