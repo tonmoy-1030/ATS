@@ -24,8 +24,10 @@ from django.forms import modelformset_factory
 from django.contrib.auth.mixins import UserPassesTestMixin, LoginRequiredMixin
 from django.utils import timezone
 from jobs.models import BusinessUnit
-
-
+import requests
+from django.core.files.base import ContentFile
+from io import BytesIO
+from PIL import Image
 
 
 class EmployeeListView(ListView):
@@ -311,9 +313,6 @@ def separate_upload_file(request):
 
 
 #update Employee Details
-import requests
-from django.core.files.base import ContentFile
-
 def employee_details(request):
     alert_messages = []
     employees_data = NewEmployeeData()
@@ -372,18 +371,35 @@ def employee_details(request):
                    
                     
                     file_id = details.get('Upload Your Passport Size Photo(Formal Photo)', "").split('id=')[-1]
-                    file_url =  f'https://drive.usercontent.google.com/download?id={file_id}&export=view&authuser=0'
+                    file_url =  f'https://drive.usercontent.google.com/download?id={file_id}'
 
-                    
-                    employee.details.profile_picture = file_url
+                   
+                    file_url = employee.details.profile_picture
+
                     if not employee.details.profile_image:
-                        response = requests.get(file_url)
-                        if response.status_code == 200:
-                            image_name = f"{employee.EID}-{employee.name}.jpg"
-                            employee.details.profile_image.save(image_name, ContentFile(response.content), save=True)
-                            employee.details.save() 
+                        response = requests.get(file_url, stream=True)
+                        content_type = response.headers.get("Content-Type", "")
+                        
+                        if response.status_code == 200 and "image" in content_type:
+                            try:
+                                # Open image from response
+                                img = Image.open(BytesIO(response.content))
+                                img_format = img.format.lower()  # jpg, png, etc.
+                                
+                                # Save directly to Django ImageField
+                                image_io = BytesIO()
+                                img.save(image_io, format=img.format)
+                                image_name = f"{employee.EID}-{employee.name}.{img_format}"
+                                
+                                employee.details.profile_image.save(
+                                    image_name, ContentFile(image_io.getvalue()), save=True
+                                )
+                                print(f"✅ Saved image for {employee.name}")
+                                
+                            except Exception as e:
+                                print(f"❌ Error decoding image for {employee.name}: {e}")
                         else:
-                            print(f"{employee.name}-Failed to retrieve image, status code: {response.status_code}")
+                            print(f"❌ {employee.name} - Failed to retrieve image, status code: {response.status_code}, content-type: {content_type}")
 
                     employee.email = employee.candidate.email
                     employee.save()
