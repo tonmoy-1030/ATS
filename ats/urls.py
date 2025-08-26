@@ -31,6 +31,8 @@ urlpatterns = [
     path("select2/", include("django_select2.urls")),
     path('explorer/', include('explorer.urls')),
     
-] + static(settings.STATIC_URL, document_root=settings.STATIC_ROOT)
+] 
 
-# debug media files
+if settings.DEBUG:
+    urlpatterns += static(settings.STATIC_URL, document_root=settings.STATIC_ROOT)
+    urlpatterns += static(settings.MEDIA_URL, document_root=settings.MEDIA_ROOT)

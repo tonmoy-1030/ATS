@@ -1,22 +1,31 @@
 {% extends 'jobs/base.html' %}
+{% load custom_filters %}
 
 {% block content %}
-<div class="container">
-    <div class="card">
-        <div class="card-header d-flex align-items-center">
-            {% if object.details.profile_image %}
-                <img src="{{ object.details.profile_image.url }}" alt="No image available" width="200" height="200" style="border-radius: 60%; margin-right: 20px;">
-            {% else %}
-                <img src="" alt="No image available" width="200" height="200" style="border-radius: 60%; margin-right: 20px; border: 0pt;">
-            {% endif %}
-            <div>
-                <h2>{{ object.name }}</h2>
-                <p>Vill: {{ object.details.present_vill }}, PO: {{ object.details.present_po }}, PS: {{ object.details.present_ps }}, Dist: {{ object.details.present_dist }}</p>
-                <p>{{ object.mobile_no }}</p>
-                <p>{{ object.email }}</p>
+<div class="container-fluid">
+    <div class="row">
+        <!-- Main Content Column -->
+        <div class="col-md-8">
+            <div class="card">
+                <div class="card-header d-flex align-items-center">
+                    {% if object.details.profile_image %}
+                        <img src="{{ object.details.profile_image.url }}" alt="No image available" width="200" height="200" style="border-radius: 60%; margin-right: 20px;">
+                    {% else %}
+                        <img src="" alt="No image available" width="200" height="200" style="border-radius: 60%; margin-right: 20px; border: 0pt;">
+                    {% endif %}
+                    <div>
+                        <h2>{{ object.name }}</h2>
+                        <p>Vill: {{ object.details.present_vill }}, PO: {{ object.details.present_po }}, PS: {{ object.details.present_ps }}, Dist: {{ object.details.present_dist }}</p>
+                        <p>{{ object.mobile_no }}</p>
+                        <p>{{ object.email }}</p>
+                        {% if object.personal_file %}
+                        <a href="{{ object.personal_file.url }}" class="btn btn-sm btn-primary" target="_blank">Download Resume</a>
+                        {% else %}
+                            <span class="text-muted">No resume uploaded</span>
+                        {% endif %}
+                    </div>
+                </div>
             </div>
-        </div>
-    </div>
     
 
     
@@ -89,4 +98,45 @@
             </div>
         </div>
         {% endif %}
+    </div>
+    <!-- PDF Viewer Sidebar -->
+    <div class="col-md-4">
+        <div class="card sticky-top" style="top: 20px; max-height: calc(100vh - 40px); overflow-y: auto;">
+            <div class="card-header">
+                <h5 class="card-title mb-0">Personal File Viewer</h5>
+            </div>
+            <div class="card-body p-0">
+                {% if object.personal_file %}
+                    {% with file_url=object.personal_file.url %}
+                        {% if '.pdf' in file_url|lower %}
+                            <object data="{{ file_url }}" type="application/pdf" width="100%" height="800px">
+                                <p>It appears your browser doesn't support embedded PDFs. You can 
+                                    <a href="{{ file_url }}" target="_blank">download the PDF</a> instead.
+                                </p>
+                            </object>
+                        {% else %}
+                            <div class="p-3">
+                                <p class="text-muted">This file type cannot be previewed. Please 
+                                    <a href="{{ file_url }}" target="_blank">click here</a> to view or download the file.
+                                </p>
+                            </div>
+                        {% endif %}
+                    {% endwith %}
+                {% else %}
+                    <div class="p-3">
+                        <p class="text-muted">No personal file has been uploaded for this employee.</p>
+                    </div>
+                {% endif %}
+            </div>
+        </div>
+    </div>
+</div>
+{% endblock %}
+
+{% block extra_css %}
+<style>
+    .sticky-top {
+        z-index: 100;
+    }
+</style>
 {% endblock %}

@@ -10,7 +10,8 @@ from .forms import (UploadFileForm, SeperationForm,
                     EmployeeEntryForm, EmployeeFilter, 
                     TransferOrderForm, EmployeeConfirmationForm, 
                     PostingOrderForm, SalaryInfoForm, TransferOrderUpdateForm,
-                    PostingOrderUpdateForm, SeparationFilter, OfficialDocumentForm)
+                    PostingOrderUpdateForm, SeparationFilter, OfficialDocumentForm, 
+                    salesOfficerInfoFormset, salesOfficerLocationFormset)
 from django.contrib.auth.decorators import user_passes_test
 from django.db.models import Q
 from datetime import datetime, timedelta
@@ -19,6 +20,7 @@ from django.conf import settings
 from django.db import IntegrityError
 from candidates.models import Candidate
 from .utls.google_form_Employees import NewEmployeeData
+from .utls.consumer_so import consumer_so_data
 from django.contrib import messages
 from django.forms import modelformset_factory
 from django.contrib.auth.mixins import UserPassesTestMixin, LoginRequiredMixin
@@ -377,7 +379,7 @@ def employee_details(request):
                     file_url = employee.details.profile_picture
 
                     if not employee.details.profile_image:
-                        response = requests.get(file_url, stream=True)
+                        response = requests.get(file_url)
                         content_type = response.headers.get("Content-Type", "")
                         
                         if response.status_code == 200 and "image" in content_type:
@@ -585,3 +587,49 @@ class OfficialDocumentDeleteView(SuccessMessageMixin, DeleteView):
 
     def get_success_url(self):
         return reverse("employees:employee_documents")
+
+def Sales_Officer_Google_Sheet(request):
+    sales_officer_data = consumer_so_data(request.GET.get('unit_id', ""))
+    existing_emp = Employee.objects.values_list('EID', flat=True)
+    filtered_data = {k: v for k, v in sales_officer_data.items() if k not in existing_emp}
+    return JsonResponse({"results": filtered_data}, safe=False)
+
+class SalesOfficerCreateView(CreateView, SuccessMessageMixin):
+    model = Employee
+    form_class = EmployeeEntryForm
+    template_name = 'employees/sales_officer_CreateForm.html'
+    success_url = '/employee/sales_officer/create'
+    success_message = "Sales Officer Created Successfully"
+
+    def get_context_data(self, **kwargs):
+        context = super().get_context_data(**kwargs)
+        business_unit = BusinessUnit.objects.all()
+        context['business_units'] = business_unit
+
+        if self.request.POST:
+            context['salary_formset'] = salesOfficerInfoFormset(self.request.POST)
+            context['location_formset'] = salesOfficerLocationFormset(self.request.POST)
+        else:
+            context['salary_formset'] = salesOfficerInfoFormset()
+            context['location_formset'] = salesOfficerLocationFormset()
+
+        return context
+
+    def form_valid(self, form):
+        context = self.get_context_data()
+        salary_formset = context['salary_formset']
+        location_formset = context['location_formset']
+
+        if salary_formset.is_valid() and location_formset.is_valid():
+            self.object = form.save()
+
+            # attach the Employee to formsets
+            salary_formset.instance = self.object
+            location_formset.instance = self.object
+
+            salary_formset.save()
+            location_formset.save()
+
+            return redirect(self.success_url)
+
+        return self.render_to_response(self.get_context_data(form=form))

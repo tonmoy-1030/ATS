@@ -1,0 +1,163 @@
+{% extends "jobs/base.html" %}
+{% load crispy_forms_tags %}
+{% block content %}
+<div class="container-fluid">
+  <div class="row">
+    <div class="col-md-3">{% include 'employees/EmployeesManuBar.html' %}</div>
+    <div class="col-md-9">
+      <div style="max-width: 600px">
+        <legend class="text-center">Sales Officer Info Form</legend>
+
+        <!-- Candidate selection form -->
+        <form id="candidateform">
+          <div class="form-group row">
+            <div class="form-group col-md-6 mt-2 mb-2">
+              <label for="unit">Unit</label>
+              <select class="form-select" name="unit" id="unit">
+                <option selected disabled>Choose unit</option>
+                {% for unit in business_units %}
+                <option value="{{ unit.id }}">{{ unit.short_name }}</option>
+                {% endfor %}
+              </select>
+            </div>
+            <div class="form-group col-md-6 mt-2 mb-2">
+              <label for="candidate">Sales Officer</label>
+              <select class="form-select" name="candidate" id="candidate">
+                <option selected disabled>Choose Selected Sales Officer</option>
+              </select>
+            </div>
+          </div>
+        </form>
+
+        <!-- Main employee form -->
+        <form action="" method="post">
+          {% csrf_token %}
+          <fieldset>
+            <div class="form-group row">
+              <div class="form-group col-md-6">{{ form.EID | as_crispy_field }}</div>
+              <div class="form-group col-md-6">{{ form.name | as_crispy_field }}</div>
+              <div class="form-group col-md-6">{{ form.designation | as_crispy_field }}</div>
+              <div class="form-group col-md-6">{{ form.department | as_crispy_field }}</div>
+              <div class="form-group col-md-6">{{ form.DOJ | as_crispy_field }}</div>
+              <div class="form-group col-md-6">{{ form.job_location | as_crispy_field }}</div>
+              <div class="form-group col-md-6">{{ form.mobile_no | as_crispy_field }}</div>
+              <div class="form-group col-md-6">{{ form.email | as_crispy_field }}</div>
+              <div class="form-group col-md-6">{{ form.unit | as_crispy_field }}</div>
+                            <!-- Location Formset -->
+              {{ location_formset.management_form }}
+              {% for loc_form in location_formset %}
+                  <div class="form-group col-md-6">{{ loc_form.area|as_crispy_field }}</div>
+                  <div class="form-group col-md-6">{{ loc_form.region|as_crispy_field }}</div>
+                  <div class="form-group col-md-6">{{ loc_form.zone|as_crispy_field }}</div>
+                  <div class="form-group col-md-6">{{ loc_form.distributor_name|as_crispy_field }}</div>
+              {% endfor %}
+              
+              <!-- Salary Formset -->
+            {{ salary_formset.management_form }}
+            {% for salary_form in salary_formset %}
+                <div class="form-group col-md-6">
+                    {% for field in salary_form %}
+                        {{ field|as_crispy_field }}
+                    {% endfor %}
+                </div>
+            {% endfor %}
+            <div class="form-group col-md-12">{{ form.personal_file | as_crispy_field }}</div>
+            </div>
+          </fieldset>
+          <button class="btn btn-primary btn-sm mt-4" type="submit">Submit</button>
+        </form>
+      </div>
+    </div>
+  </div>
+</div>
+{% endblock %}
+
+{% block extra_scripts %}
+<script>
+$(document).ready(function () {
+
+    function formatDate(inputDate) {
+    if (!inputDate || typeof inputDate !== "string") return "";
+
+    const months = {
+      Jan: "01", Feb: "02", Mar: "03", Apr: "04", May: "05", Jun: "06",
+      Jul: "07", Aug: "08", Sep: "09", Oct: "10", Nov: "11", Dec: "12"
+    };
+
+    const parts = inputDate.split("-");
+    if (parts.length !== 3) return "";
+
+    const [dayPart, monthPart, yearPart] = parts;
+
+    const day = dayPart ? dayPart.padStart(2, "0") : "";
+    const month = months[monthPart] || "";
+    const year = yearPart
+      ? (yearPart.length === 2 ? "20" + yearPart : yearPart)
+      : "";
+
+    if (!day || !month || !year) return "";
+
+    return `${year}-${month}-${day}`;
+  }
+
+  // Unit dropdown change
+  $("#unit").change(function () {
+    const unit_id = $(this).val();
+    $.ajax({
+      url: "/employee/sales_officer/google_sheet",
+      type: "GET",
+      data: { unit_id: unit_id },
+      success: function (data) {
+        $("#candidate").empty().append($("<option>").val("").text("Choose Selected Sales Officer"));
+        $.each(data.results, function (index, item) {
+          $("#candidate").append(
+            $("<option>")
+              .val(item.EID)
+              .text(item.EID + " - " + item.Name)
+              .attr("data-name", item.Name)
+              .attr("data-eid", item.EID)
+              .attr("data-designation", item.Designation)
+              .attr("data-department", "Sales")
+              .attr("data-doj", item["Joining Date"])
+              .attr("data-mobile", item["Phone No."])
+              .attr("data-email", item["Email Address"])
+              .attr("data-area", item["Area"])
+              .attr("data-region", item["Region"])
+              .attr("data-zone", item["Zone"])
+              .attr("data-distributor", item["Distributor Name"])
+          );
+        });
+
+        // Clear all fields
+        $("#id_name, #id_EID, #id_designation, #id_department, #id_DOJ, #id_job_location, #id_mobile_no, #id_email, #id_unit, #id_candidate, #id_sales_officer_location-0-area, #id_sales_officer_location-0-region, #id_sales_officer_location-0-zone, #id_sales_officer_location-0-distributor_name").val("");
+      },
+      error: function (xhr, status, error) {
+        console.log("Error: " + error);
+      }
+    });
+  });
+
+  // Candidate dropdown change
+  $("#candidate").change(function () {
+    const selected = $(this).find("option:selected");
+    if (!selected.val()) return;
+
+    $("#id_name").val(selected.data("name"));
+    $("#id_EID").val(selected.data("eid"));
+    $("#id_designation").val(selected.data("designation"));
+    $("#id_department").val(selected.data("department"));
+    $("#id_DOJ").val(formatDate(selected?.data("doj")));
+    $("#id_job_location").val(selected.data("area")); // optional if needed
+    $("#id_mobile_no").val(selected.data("mobile"));
+    $("#id_email").val(selected.data("email"));
+    $("#id_unit").val($("#unit").val()); // ForeignKey
+
+    $("#id_sales_officer_location-0-area").val(selected.data("area"));
+    $("#id_sales_officer_location-0-region").val(selected.data("region"));
+    $("#id_sales_officer_location-0-zone").val(selected.data("zone"));
+    $("#id_sales_officer_location-0-distributor_name").val(selected.data("distributor"));
+  });
+
+});
+</script>
+{% endblock %}

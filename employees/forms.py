@@ -1,6 +1,6 @@
 from django import forms
 from django_select2 import forms as s2forms
-from .models import Employee, SeperationStatus, EmployeeConfirmation, TransferOrder, PostingOrder, SalaryInfo, OfficialDocument
+from .models import Employee, SeperationStatus, EmployeeConfirmation, TransferOrder, PostingOrder, SalaryInfo, OfficialDocument, SalesOfficerLocation
 import django_filters
 
 
@@ -42,7 +42,8 @@ class EmployeeEntryForm(forms.ModelForm):
         widgets = {
             'DOJ' : forms.DateInput(attrs={'type':'date', 'class':'form-control'}),
             'EID': forms.TextInput(attrs={'class':'form-control'}),
-            'name': forms.TextInput(attrs={'class':'form-control'})
+            'name': forms.TextInput(attrs={'class':'form-control'}),
+            'personal_file': forms.ClearableFileInput(attrs={'class':'form-control'})
         }
  
  
@@ -253,3 +254,16 @@ class OfficialDocumentForm(forms.ModelForm):
             if document.size > 5 * 1024 * 1024:
                 raise forms.ValidationError('File size must be no more than 5MB.')
         return document
+    
+
+salesOfficerInfoFormset = forms.inlineformset_factory(
+    Employee, SalaryInfo, fields=['salary',], extra=1, can_delete=False
+)
+
+salesOfficerLocationFormset = forms.inlineformset_factory(
+    Employee,
+    SalesOfficerLocation,
+    fields=['area', 'region', 'zone', 'distributor_name'],
+    extra=1,
+    can_delete=False
+)

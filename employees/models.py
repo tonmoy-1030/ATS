@@ -98,7 +98,7 @@ class Employee(models.Model):
     active_status = models.BooleanField(default=True)
     candidate = models.OneToOneField("candidates.candidate", on_delete=models.CASCADE, null=True, blank=True)
     job = models.ForeignKey(Job, on_delete=models.CASCADE, verbose_name='Job', null=True, blank=True)
-    
+    personal_file = models.FileField(upload_to='personal_files/', blank=True, null=True, verbose_name='Personal File')
     
     def save(self, *args, **kwargs):
         if not self.pk and not self.confirmation_date:
@@ -108,8 +108,7 @@ class Employee(models.Model):
     class Meta:
         verbose_name = 'Employee'
         verbose_name_plural = 'Employees'
-        
-        
+              
 
     def __str__(self):
         return f"{self.name} - {self.designation}-{self.department}-{self.unit}"
@@ -325,8 +324,13 @@ class SalaryInfo(models.Model):
     def save(self, *args, **kwargs):
         if not self.issue_date:
             self.issue_date = timezone.now()
-
-        if self.reference_number is None:
+            
+        if self.employee.designation.lower() == 'so':
+            self.report_to = ""
+            self.director_signature = ""
+            self.CC1 = self.CC2 = self.CC3 = self.CC4 = self.CC5 = self.CC6 = self.CC7 = ""
+        
+        if self.reference_number is None and self.employee.designation.lower() != "so":
             current_month = self.issue_date.month
             current_year = self.issue_date.year
             unit = self.employee.unit
@@ -356,6 +360,14 @@ class OfficialDocument(models.Model):
     uploaded_at = models.DateTimeField(auto_now_add=True)
 
 
+class SalesOfficerLocation(models.Model):
+    employee = models.OneToOneField(Employee, on_delete=models.CASCADE, related_name='sales_officer_location')
+    area = models.CharField(max_length=255, blank=True, null=True)
+    region = models.CharField(max_length=255, blank=True, null=True)
+    zone = models.CharField(max_length=255, blank=True, null=True)
+    distributor_name = models.CharField(max_length=255, blank=True, null=True)
+    def __str__(self):
+        return f'Sales Officer Location for {self.employee.name}'
 
             
 auditlog.register(Employee)

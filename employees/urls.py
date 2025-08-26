@@ -46,4 +46,6 @@ urlpatterns = [
     path('employees/documents', views.OfficialDocumentCreateView.as_view(), name='employee_documents'),
     path('employees/documents/<int:pk>/update', views.OfficialDocumentUpdateView.as_view(), name='employee_document_update'),
     path('employees/documents/<int:pk>/delete', views.OfficialDocumentDeleteView.as_view(), name='employee_document_delete'),
+    path('employee/sales_officer/google_sheet', views.Sales_Officer_Google_Sheet, name='sales_officer_google_sheet'),
+    path('employee/sales_officer/create', views.SalesOfficerCreateView.as_view(), name='sales_officer_create')
 ] + static(settings.MEDIA_URL, document_root=settings.MEDIA_ROOT)
