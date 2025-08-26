@@ -376,10 +376,10 @@ def employee_details(request):
                     file_url =  f'https://drive.usercontent.google.com/download?id={file_id}'
 
                    
-                    file_url = employee.details.profile_picture
+                    employee.details.profile_picture = file_url
 
                     if not employee.details.profile_image:
-                        response = requests.get(file_url)
+                        response = requests.get(file_url, stream=True)
                         content_type = response.headers.get("Content-Type", "")
                         
                         if response.status_code == 200 and "image" in content_type:
