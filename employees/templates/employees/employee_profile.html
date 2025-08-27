@@ -18,11 +18,6 @@
                         <p>Vill: {{ object.details.present_vill }}, PO: {{ object.details.present_po }}, PS: {{ object.details.present_ps }}, Dist: {{ object.details.present_dist }}</p>
                         <p>{{ object.mobile_no }}</p>
                         <p>{{ object.email }}</p>
-                        {% if object.personal_file %}
-                        <a href="{{ object.personal_file.url }}" class="btn btn-sm btn-primary" target="_blank">Download Resume</a>
-                        {% else %}
-                            <span class="text-muted">No resume uploaded</span>
-                        {% endif %}
                     </div>
                 </div>
             </div>
