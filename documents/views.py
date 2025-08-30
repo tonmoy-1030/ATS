@@ -671,7 +671,7 @@ def is_admin(user):
 def appointment_letter_list(request):
 
     employee_filter = AppointmentLetterFilter(
-        request.GET, queryset=SalaryInfo.objects.all().order_by("-issue_date")
+        request.GET, queryset=SalaryInfo.objects.filter(reference_number__isnull=False).order_by("-issue_date")
     )
     paginator = Paginator(employee_filter.qs, 10)
     page_number = request.GET.get("page")

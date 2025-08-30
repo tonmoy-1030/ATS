@@ -37,7 +37,7 @@ def appointment_letter(appointment_info, pdf_file):
     # Page Break to 4th Page
     
     
-    doc = SimpleDocTemplate(pdf_file, pagesize=letter, rightMargin=.5*inch)
+    doc = SimpleDocTemplate(pdf_file, pagesize=letter, rightMargin=.5*inch, buttonMargin=.5*inch)
     doc.build(flowables, onFirstPage=lambda canvas, doc: onfirstpage(canvas, doc, appointment_info), 
               onLaterPages=lambda canvas, doc: OnLaterPager(canvas, doc, appointment_info))
 
@@ -130,7 +130,10 @@ def onfirstpage(canvas, doc, appointment_info):
                                        Customs and Practices of <b>{appointment_info['policy']}.</b> 
                                        You will report to <b>{appointment_info['report_to']}</b>.
                                        """, normal_style)], canvas)
-    
+
+    page_no_frame = Frame(x1=3.8*inch, y1=0.3*inch, width=1*inch, height=.5*inch, showBoundary=0)
+    page_no_frame.addFromList([Paragraph("Page 1 of 2", normal_style)], canvas)
+
 def OnLaterPager(canvas, doc, appointment_info):
     
     style = getSampleStyleSheet()
@@ -220,6 +223,9 @@ def OnLaterPager(canvas, doc, appointment_info):
                                         {CC4_CC5}
 
                                     """, normal_style)], canvas)
+    
+    page_no_frame = Frame(x1=3.8*inch, y1=0.3*inch, width=1*inch, height=.5*inch, showBoundary=0)
+    page_no_frame.addFromList([Paragraph("Page 2 of 2", normal_style)], canvas)
     
     canvas.showPage()
     
@@ -329,6 +335,8 @@ def OnLaterPager(canvas, doc, appointment_info):
                                        You will report to <b>{appointment_info['report_to']}</b>.
                                        """, normal_style)], canvas)
     
+    page_no_frame = Frame(x1=3.8*inch, y1=0.3*inch, width=1*inch, height=.5*inch, showBoundary=0)
+    page_no_frame.addFromList([Paragraph("Page 1 of 2", normal_style)], canvas)
     
     # 4th Page
     canvas.showPage()
@@ -427,3 +435,5 @@ def OnLaterPager(canvas, doc, appointment_info):
 
                                     """, normal_style)], canvas)
     
+    page_no_frame = Frame(x1=3.8*inch, y1=0.3*inch, width=1*inch, height=.5*inch, showBoundary=0)
+    page_no_frame.addFromList([Paragraph("Page 2 of 2", normal_style)], canvas)
