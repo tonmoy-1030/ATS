@@ -514,7 +514,7 @@ def EmployeeListReportWithSalary(request):
     # Define headers with necessary fields
     headers = [
         'EID', 'Name', 'Designation', 'Department', 
-        'Date of Joining', 'Job Location', 'Salary', 'Business Unit'
+        'Date of Joining', 'Job Location','Zone','Region','Area','Distributor', 'Salary', 'Business Unit'
     ]
     
     # Add headers
@@ -548,9 +548,20 @@ def EmployeeListReportWithSalary(request):
         for row_idx, employee in enumerate(employees, 2):
             # Safely access salary information
             salary = ''
+            area= ''
+            region = ''
+            zone = ''
+            distributor = ''
+            
             if hasattr(employee, 'salary'):
                 salary = employee.salary.salary
-                
+            
+            if hasattr(employee, 'sales_officer_location'):
+                area = employee.sales_officer_location.area
+                region = employee.sales_officer_location.region
+                zone = employee.sales_officer_location.zone
+                distributor = employee.sales_officer_location.distributor_name
+
             # Populate cells
             ws.cell(row=row_idx, column=1, value=employee.EID or '')
             ws.cell(row=row_idx, column=2, value=employee.name or '')
@@ -558,9 +569,13 @@ def EmployeeListReportWithSalary(request):
             ws.cell(row=row_idx, column=4, value=employee.department or '')
             ws.cell(row=row_idx, column=5, value=employee.DOJ.strftime('%Y-%m-%d') if employee.DOJ else '')
             ws.cell(row=row_idx, column=6, value=employee.job_location or '')
-            ws.cell(row=row_idx, column=7, value=salary)
-            ws.cell(row=row_idx, column=8, value=employee.unit.name if employee.unit else '')
-        
+            ws.cell(row=row_idx, column=7, value=zone)
+            ws.cell(row=row_idx, column=8, value=region)
+            ws.cell(row=row_idx, column=9, value=area)
+            ws.cell(row=row_idx, column=10, value=distributor)
+            ws.cell(row=row_idx, column=11, value=salary)
+            ws.cell(row=row_idx, column=12, value=employee.unit.name if employee.unit else '')
+
         # Adjust column widths
         for col in ws.columns:
             max_length = max(len(str(cell.value)) for cell in col)
