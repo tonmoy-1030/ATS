@@ -30,6 +30,7 @@ import requests
 from django.core.files.base import ContentFile
 from io import BytesIO
 from PIL import Image
+from django.core.cache import cache
 
 
 class EmployeeListView(ListView):
@@ -589,9 +590,22 @@ class OfficialDocumentDeleteView(SuccessMessageMixin, DeleteView):
         return reverse("employees:employee_documents")
 
 def Sales_Officer_Google_Sheet(request):
-    sales_officer_data = consumer_so_data(request.GET.get('unit_id', ""))
+    unit_id = request.GET.get('unit_id', "")
+    cache_key = f"sales_officer_data_{unit_id}"
+
+    # Try Redis cache first
+    sales_officer_data = cache.get(cache_key)
+
+    if sales_officer_data is None:
+        # Fetch fresh from Google Sheets
+        sales_officer_data = consumer_so_data(unit_id)
+        # Cache for 1 hour (3600 seconds)
+        cache.set(cache_key, sales_officer_data, timeout=3600)
+
+    # Exclude existing employees
     existing_emp = Employee.objects.values_list('EID', flat=True)
     filtered_data = {k: v for k, v in sales_officer_data.items() if k not in existing_emp}
+
     return JsonResponse({"results": filtered_data}, safe=False)
 
 class SalesOfficerCreateView(CreateView, SuccessMessageMixin):
