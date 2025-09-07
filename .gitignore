@@ -43,7 +43,6 @@ employees/utls/credentials.json
 employees/utls/token.json
 candidates/utls/token.json
 candidates/utls/credentials.json
-employees/utls/google_form_Employees.py
 candidates/utls/google_form_Candidates.py
 candidates/utls/google_sheet_Candidates.py
 
