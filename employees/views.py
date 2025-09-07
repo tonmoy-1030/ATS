@@ -20,7 +20,6 @@ from django.conf import settings
 from django.db import IntegrityError
 from candidates.models import Candidate
 from .utls.google_form_Employees import NewEmployeeData
-from .utls.consumer_so import consumer_so_data
 from django.contrib import messages
 from django.forms import modelformset_factory
 from django.contrib.auth.mixins import UserPassesTestMixin, LoginRequiredMixin
@@ -318,7 +317,7 @@ def separate_upload_file(request):
 #update Employee Details
 def employee_details(request):
     alert_messages = []
-    employees_data = NewEmployeeData()
+    employees_data = NewEmployeeData().get_employee_data()
     if employees_data:
         for key, details in employees_data.items():
             try:
@@ -598,7 +597,7 @@ def Sales_Officer_Google_Sheet(request):
 
     if sales_officer_data is None:
         # Fetch fresh from Google Sheets
-        sales_officer_data = consumer_so_data(unit_id)
+        sales_officer_data = NewEmployeeData().consumer_so_data(unit_id)
         # Cache for 1 hour (3600 seconds)
         cache.set(cache_key, sales_officer_data, timeout=3600)
 

@@ -65,9 +65,14 @@ MIDDLEWARE = [
     "django.middleware.clickjacking.XFrameOptionsMiddleware",
     "django_plotly_dash.middleware.BaseMiddleware",
     "whitenoise.middleware.WhiteNoiseMiddleware",
-    "ats.middleware.LoginRequiredMiddleware",
     "auditlog.middleware.AuditlogMiddleware",
 ]
+
+
+login_middleware = config("LOGIN_REQUIRED_MIDDLEWARE", default=None, cast=str)
+
+if login_middleware:
+    MIDDLEWARE.append(login_middleware)
 
 ROOT_URLCONF = "ats.urls"
 

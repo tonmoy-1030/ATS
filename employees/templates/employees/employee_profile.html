@@ -1,137 +1,289 @@
 {% extends 'jobs/base.html' %}
 {% load custom_filters %}
 
+{% block extra_css %}
+<style>
+    .profile-header {
+        background: linear-gradient(135deg, #3498db, #6dd5fa, #2980b9);
+        color: white;
+        padding: 2rem;
+        border-radius: 15px;
+        margin-bottom: 2rem;
+        box-shadow: 0 6px 20px rgba(0,0,0,0.15);
+    }
+    .profile-header img {
+        transition: 0.3s ease;
+        border: 4px solid #fff;
+    }
+    .profile-header img:hover {
+        transform: scale(1.05);
+        box-shadow: 0 0 20px rgba(255,255,255,0.8);
+    }
+    .info-card {
+        transition: transform 0.2s, box-shadow 0.2s;
+        border: none;
+        border-radius: 12px;
+    }
+    .info-card:hover {
+        transform: translateY(-5px);
+        box-shadow: 0 6px 15px rgba(0,0,0,0.1);
+    }
+    .icon-circle {
+        width: 42px;
+        height: 42px;
+        border-radius: 50%;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        margin-right: 0.75rem;
+        background: rgba(52, 152, 219, 0.12);
+        color: #3498db;
+        font-size: 18px;
+    }
+    .list-group-item {
+        border-left: 4px solid #3498db10;
+        margin-bottom: 0.5rem;
+        padding-left: 1rem;
+    }
+    .badge-custom {
+        background: rgba(255,255,255,0.15);
+        padding: 0.5rem 0.9rem;
+        border-radius: 50px;
+        font-size: 0.85rem;
+    }
+    .sticky-top {
+        z-index: 100;
+    }
+    .card-header {
+        background: linear-gradient(135deg, #f9f9f9, #f1f1f1);
+        border-radius: 12px 12px 0 0;
+    }
+    .doc-preview {
+        border: 2px dashed #3498db50;
+        border-radius: 10px;
+        padding: 1rem;
+        text-align: center;
+        background: #f8fbff;
+    }
+</style>
+{% endblock %}
+
 {% block content %}
-<div class="container-fluid">
+<div class="container-fluid py-4">
     <div class="row">
         <!-- Main Content Column -->
         <div class="col-md-8">
-            <div class="card">
-                <div class="card-header d-flex align-items-center">
-                    {% if object.details.profile_image %}
-                        <img src="{{ object.details.profile_image.url }}" alt="No image available" width="200" height="200" style="border-radius: 60%; margin-right: 20px;">
-                    {% else %}
-                        <img src="" alt="No image available" width="200" height="200" style="border-radius: 60%; margin-right: 20px; border: 0pt;">
-                    {% endif %}
-                    <div>
-                        <h2>{{ object.name }}</h2>
-                        <p>Vill: {{ object.details.present_vill }}, PO: {{ object.details.present_po }}, PS: {{ object.details.present_ps }}, Dist: {{ object.details.present_dist }}</p>
-                        <p>{{ object.mobile_no }}</p>
-                        <p>{{ object.email }}</p>
+            <div class="profile-header shadow">
+                <div class="d-flex flex-column flex-md-row align-items-center align-items-md-start">
+                    <div class="text-center mb-3 mb-md-0 me-md-4">
+                        {% if object.details.profile_image %}
+                            <img src="{{ object.details.profile_image.url }}" alt="{{ object.name }}" 
+                                class="rounded-circle bg-white p-1" width="180" height="180" 
+                                style="object-fit: cover;">
+                        {% else %}
+                            <div class="rounded-circle bg-white d-flex align-items-center justify-content-center"
+                                style="width: 180px; height: 180px;">
+                                <i class="bi bi-person-circle text-secondary" style="font-size: 4rem;"></i>
+                            </div>
+                        {% endif %}
+                    </div>
+                    <div class="flex-grow-1 text-center text-md-start">
+                        <h2 class="mb-1 fw-bold">{{ object.name }}</h2>
+                        <p class="mb-2 opacity-75">
+                            <span class="badge-custom"><i class="bi bi-briefcase me-2"></i>{{ object.designation }}</span>
+                            <span class="badge-custom ms-2"><i class="bi bi-building me-2"></i>{{ object.unit }}</span>
+                        </p>
+                        <div class="d-flex flex-column flex-md-row gap-3 mb-3">
+                            <div class="d-flex align-items-center">
+                                <div class="icon-circle">
+                                    <i class="bi bi-geo-alt"></i>
+                                </div>
+                                <span>{{ object.details.present_vill }}, {{ object.details.present_po }}</span>
+                            </div>
+                            <div class="d-flex align-items-center">
+                                <div class="icon-circle">
+                                    <i class="bi bi-telephone"></i>
+                                </div>
+                                <span>{{ object.mobile_no }}</span>
+                            </div>
+                            <div class="d-flex align-items-center">
+                                <div class="icon-circle">
+                                    <i class="bi bi-envelope"></i>
+                                </div>
+                                <span>{{ object.email }}</span>
+                            </div>
+                        </div>
                     </div>
                 </div>
             </div>
-    
 
-    
         {% if object.details %}
-        <h3 class="text-center mt-2">Employee Details:</h3>
-        <div class="row">
-            <div class="col-3 mt-2">
-                <div class="card mt-3">
+        <div class="row g-4">
+            <div class="col-md-6">
+                <div class="card shadow-sm info-card h-100">
                     <div class="card-header">
-                        <h6 class="card-title">Personal Information:</h6>
+                        <div class="d-flex align-items-center">
+                            <div class="icon-circle">
+                                <i class="bi bi-person-badge"></i>
+                            </div>
+                            <h5 class="card-title mb-0">Personal Information</h5>
+                        </div>
                     </div>
-                    <div class="card-body">
-                        <ul class="list-group">
-                            <li class="list-group-item"><strong>Permanent Address:</strong> vill: {{object.details.permanent_vill}}, PO:{{object.details.permanent_po}},  PS:{{object.details.permanent_ps}}, Dist:{{object.details.permanent_dist}}</li>
-                            <li class="list-group-item"><strong>Date of Birth:</strong> 
-                                {{object.details.date_of_birth}}</li>
-                            <li class="list-group-item"><strong>Blood Group:</strong> {{ object.details.blood_group }}
-                            </li>
-                            <li class="list-group-item"><strong>NID:</strong> {{ object.details.nid}}</li>
-                            <li class="list-group-item"><strong>Marital Status:</strong> {{object.details.marital_status }}</li>
-                        </ul>
+                    <div class="card-body pt-0">
+                        <div class="list-group list-group-flush">
+                            <div class="list-group-item">
+                                <small class="text-muted d-block">Permanent Address</small>
+                                <span>{{object.details.permanent_vill}}, {{object.details.permanent_po}}, {{object.details.permanent_ps}}, {{object.details.permanent_dist}}</span>
+                            </div>
+                            <div class="list-group-item">
+                                <small class="text-muted d-block">Date of Birth</small>
+                                <span>{{object.details.date_of_birth}}</span>
+                            </div>
+                            <div class="list-group-item">
+                                <small class="text-muted d-block">Blood Group</small>
+                                <span class="badge bg-danger">{{ object.details.blood_group }}</span>
+                            </div>
+                            <div class="list-group-item">
+                                <small class="text-muted d-block">NID</small>
+                                <span>{{ object.details.nid}}</span>
+                            </div>
+                            <div class="list-group-item">
+                                <small class="text-muted d-block">Marital Status</small>
+                                <span>{{object.details.marital_status }}</span>
+                            </div>
+                        </div>
                     </div>
                 </div>
             </div>
-            <div class="col-3 mt-2">
-                <div class="card mt-3">
+            
+            <div class="col-md-6">
+                <div class="card shadow-sm info-card h-100">
                     <div class="card-header">
-                        <h6 class="card-title">Eduction Qualification:</h6>
+                        <div class="d-flex align-items-center">
+                            <div class="icon-circle">
+                                <i class="bi bi-mortarboard"></i>
+                            </div>
+                            <h5 class="card-title mb-0">Education Qualification</h5>
+                        </div>
                     </div>
-                    <div class="card-body">
-                        <ul class="list-group">
-                            <li class="list-group-item"><strong>Highest Education:</strong> {{ object.details.highest_degree}}</li>
-                            <li class="list-group-item"><strong>Degree Name:</strong> {{ object.details.degree_name }}
-                            </li>
-                            <li class="list-group-item"><strong>Subject:</strong> {{object.details.subject_highest_degree}}</li>
-                            <li class="list-group-item"><strong>Inistitution:</strong> {{ object.details.institution_highest_degree }}</li>
-                            <li class="list-group-item"><strong>Passing Year:</strong> {{object.details.passing_year_highest_degree }}</li>
-                            <li class="list-group-item"><strong>GPA/CGPA/Devision:</strong> {{object.details.division_or_gpa_highest_degree }}</li>
-                        </ul>
+                    <div class="card-body pt-0">
+                        <div class="list-group list-group-flush">
+                            <div class="list-group-item">
+                                <small class="text-muted d-block">Highest Education</small>
+                                <span>{{ object.details.highest_degree}}</span>
+                            </div>
+                            <div class="list-group-item">
+                                <small class="text-muted d-block">Degree & Subject</small>
+                                <span>{{ object.details.degree_name }} in {{object.details.subject_highest_degree}}</span>
+                            </div>
+                            <div class="list-group-item">
+                                <small class="text-muted d-block">Institution</small>
+                                <span>{{ object.details.institution_highest_degree }}</span>
+                            </div>
+                            <div class="list-group-item">
+                                <small class="text-muted d-block">Passing Year</small>
+                                <span>{{object.details.passing_year_highest_degree }}</span>
+                            </div>
+                            <div class="list-group-item">
+                                <small class="text-muted d-block">GPA/CGPA/Division</small>
+                                <span>{{object.details.division_or_gpa_highest_degree }}</span>
+                            </div>
+                        </div>
                     </div>
                 </div>
             </div>
-            <div class="col-3 mt-2">
-                <div class="card mt-3">
+            
+            <div class="col-md-6">
+                <div class="card shadow-sm info-card h-100">
                     <div class="card-header">
-                        <h6 class="card-title">Experience:</h6>
+                        <div class="d-flex align-items-center">
+                            <div class="icon-circle">
+                                <i class="bi bi-briefcase"></i>
+                            </div>
+                            <h5 class="card-title mb-0">Professional Experience</h5>
+                        </div>
                     </div>
-                    <div class="card-body">
-                        <ul class="list-group">
-                            <li class="list-group-item"><strong>Current Designation:</strong> {{object.candidate.details.current_designation}}</li>
-                            <li class="list-group-item"><strong>Current Organization:</strong> {{object.candidate.details.current_organization }}</li>
-                            <li class="list-group-item"><strong>Total Experience:</strong> {{object.candidate.details.total_experience}}</li>
-                        </ul>
+                    <div class="card-body pt-0">
+                        <div class="list-group list-group-flush">
+                            <div class="list-group-item">
+                                <small class="text-muted d-block">Current Designation</small>
+                                <span>{{object.candidate.details.current_designation}}</span>
+                            </div>
+                            <div class="list-group-item">
+                                <small class="text-muted d-block">Current Organization</small>
+                                <span>{{object.candidate.details.current_organization }}</span>
+                            </div>
+                            <div class="list-group-item">
+                                <small class="text-muted d-block">Total Experience</small>
+                                <span>{{object.candidate.details.total_experience}}</span>
+                            </div>
+                        </div>
                     </div>
                 </div>
             </div>
-            <div class="col-3 mt-2">
-                <div class="card mt-3">
+            
+            <div class="col-md-6">
+                <div class="card shadow-sm info-card h-100">
                     <div class="card-header">
-                        <h6 class="card-title">Personal Detials:</h6>
+                        <div class="d-flex align-items-center">
+                            <div class="icon-circle">
+                                <i class="bi bi-file-earmark-text"></i>
+                            </div>
+                            <h5 class="card-title mb-0">Documents</h5>
+                        </div>
                     </div>
-                    <div class="card-body">
-                        <ul class="list-group">
-                            
-                            <li class="list-group-item"><strong>Current Organization:</strong> {{object.candidate.details.current_organization }}</li>
-                            <li class="list-group-item"><strong>Total Experience:</strong> {{object.candidate.details.total_experience}}</li>
-                        </ul>
+                    <div class="card-body pt-0">
+                        <div class="list-group list-group-flush">
+                            {% if object.personal_file %}
+                            <div class="list-group-item doc-preview">
+                                <small class="text-muted d-block">Resume/CV</small>
+                                <a href="{{ object.personal_file.url }}" class="btn btn-sm btn-primary mt-2" target="_blank">
+                                    <i class="bi bi-download me-2"></i>Download
+                                </a>
+                            </div>
+                            {% else %}
+                            <div class="list-group-item">
+                                <span class="text-muted">No documents available</span>
+                            </div>
+                            {% endif %}
+                        </div>
                     </div>
                 </div>
             </div>
         </div>
         {% endif %}
     </div>
+    
     <!-- PDF Viewer Sidebar -->
     <div class="col-md-4">
-        <div class="card sticky-top" style="top: 20px; max-height: calc(100vh - 40px); overflow-y: auto;">
+        <div class="card sticky-top shadow" style="top: 20px; max-height: calc(100vh - 40px); overflow-y: auto;">
             <div class="card-header">
-                <h5 class="card-title mb-0">Personal File Viewer</h5>
+                <h5 class="card-title mb-0"><i class="bi bi-eye me-2"></i>Personal File Viewer</h5>
             </div>
             <div class="card-body p-0">
                 {% if object.personal_file %}
                     {% with file_url=object.personal_file.url %}
                         {% if '.pdf' in file_url|lower %}
-                            <object data="{{ file_url }}" type="application/pdf" width="100%" height="800px">
-                                <p>It appears your browser doesn't support embedded PDFs. You can 
-                                    <a href="{{ file_url }}" target="_blank">download the PDF</a> instead.
+                            <object data="{{ file_url }}" type="application/pdf" width="100%" height="800px" style="border-radius: 0 0 12px 12px;">
+                                <p>Your browser doesn't support embedded PDFs.  
+                                    <a href="{{ file_url }}" target="_blank">Download PDF</a>.
                                 </p>
                             </object>
                         {% else %}
-                            <div class="p-3">
-                                <p class="text-muted">This file type cannot be previewed. Please 
-                                    <a href="{{ file_url }}" target="_blank">click here</a> to view or download the file.
+                            <div class="doc-preview">
+                                <p class="text-muted">Preview unavailable.  
+                                    <a href="{{ file_url }}" target="_blank">Click here</a> to view/download.
                                 </p>
                             </div>
                         {% endif %}
                     {% endwith %}
                 {% else %}
-                    <div class="p-3">
-                        <p class="text-muted">No personal file has been uploaded for this employee.</p>
+                    <div class="doc-preview">
+                        <p class="text-muted">No personal file has been uploaded.</p>
                     </div>
                 {% endif %}
             </div>
         </div>
     </div>
 </div>
-{% endblock %}
-
-{% block extra_css %}
-<style>
-    .sticky-top {
-        z-index: 100;
-    }
-</style>
 {% endblock %}
