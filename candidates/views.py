@@ -2,9 +2,9 @@ from django.db.models.query import QuerySet
 from django.http import  HttpResponse, HttpResponseNotFound, JsonResponse
 from django.shortcuts import render, redirect, get_object_or_404
 from django.urls import reverse
-from .utls.data_extraction import DataExtraction
-from .utls.text_converter import TextConverter
-from .utls.data import DataFromCV
+from .utils.data_extraction import DataExtraction
+from .utils.text_converter import TextConverter
+from .utils.data import DataFromCV
 from .forms import (FileFieldForm,  InitialCandidateUpdateForm ,
                     FinalCandidateUpdateForm,JobOfferForm, JobOfferCreateForm,
                     JobOfferFilter)  
@@ -24,7 +24,7 @@ from django.conf import settings
 from .models import Candidate, Offer, CandidatesDetails
 from jobs.models import InterviewSchedule, Job, FinalInterviewSchedule
 from django.forms import modelformset_factory
-from .utls.google_form_Candidates import process_responses, get_authenticated_service, get_form_responses
+from .utils.google_form_Candidates import process_responses, get_authenticated_service, get_form_responses
 import csv
 from django.contrib import messages
 import logging
@@ -33,7 +33,7 @@ from requests.exceptions import RequestException
 
 
 from employees.models import Employee
-from .utls.google_sheet_Candidates import candidateDate
+from .utils.google_sheet_Candidates import candidateDate
 from datetime import datetime        
 import json 
 logger = logging.getLogger(__name__)

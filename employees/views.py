@@ -19,7 +19,7 @@ import csv, os, re
 from django.conf import settings
 from django.db import IntegrityError
 from candidates.models import Candidate
-from .utls.google_form_Employees import NewEmployeeData
+from .utils.google_form_Employees import NewEmployeeData
 from django.contrib import messages
 from django.forms import modelformset_factory
 from django.contrib.auth.mixins import UserPassesTestMixin, LoginRequiredMixin

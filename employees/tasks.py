@@ -1,4 +1,4 @@
-from .utls.google_form_Employees import NewEmployeeData
+from .utils.google_form_Employees import NewEmployeeData
 from celery import shared_task
 
 
