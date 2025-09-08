@@ -16,7 +16,7 @@ class BaseGoogleSheetAuthentication():
     """
     
     # If modifying these scopes, delete the file token.json.
-    SCOPES = ["https://www.googleapis.com/auth/spreadsheets.readonly"]
+    SCOPES = ["https://www.googleapis.com/auth/spreadsheets"]
 
 # The ID and range of a sample spreadsheet.
     SPREADSHEET_ID = config("EMPLOYEE_SPREADSHEET_ID")
@@ -136,3 +136,62 @@ class NewEmployeeData(BaseGoogleSheetAuthentication):
         except HttpError as err:
             print(err)
             return {}
+        
+    def update_joining_date(self, unit_id, employee_id, joining_date):
+        CONS_RANGE_NAME = "Cons_SO_ID!A1:R"
+        PCL_RANGE_NAME = "PCL_SO_ID!A1:R"
+        TK_Food_RANGE_NAME = "SO_ID!A1:R"
+        CONS_SPREADSHEET_ID = config("CONS_SPREADSHEET_ID")
+        TK_Food_SPREADSHEET_ID = config("TK_Food_SPREADSHEET_ID")
+        
+        unit_id = int(unit_id)
+        if unit_id == 1:
+            self.RANGE_NAME = CONS_RANGE_NAME
+            self.SPREADSHEET_ID = CONS_SPREADSHEET_ID
+        elif unit_id == 3:
+            self.RANGE_NAME = PCL_RANGE_NAME
+            self.SPREADSHEET_ID = CONS_SPREADSHEET_ID
+        elif unit_id == 2:
+            self.RANGE_NAME = TK_Food_RANGE_NAME
+            self.SPREADSHEET_ID = TK_Food_SPREADSHEET_ID
+        else:
+            return {'error': 'Invalid unit_id'}
+
+        try:
+            service = build("sheets", "v4", credentials=self.creds)
+            sheet = service.spreadsheets()
+
+            # Fetch all values
+            result = sheet.values().get(
+                spreadsheetId=self.SPREADSHEET_ID,
+                range=self.RANGE_NAME
+            ).execute()
+            
+            values = result.get("values", [])
+            if not values:
+                return {"error": "No data found"}
+                
+            # Find employee row
+            employee_row = None
+            for idx, row in enumerate(values, start=1):  # start=1 → matches Google Sheet rows
+                if row and row[0] == str(employee_id):  # assuming employee_id in col A
+                    employee_row = idx
+                    break
+                    
+            if employee_row is None:
+                return {"error": f"Employee ID {employee_id} not found"}
+                
+            # Update joining date in column P (16th column)
+            update_range = f"{self.RANGE_NAME.split('!')[0]}!P{employee_row}"
+             # Prepare the update request
+            result = sheet.values().update(
+                spreadsheetId=self.SPREADSHEET_ID,
+                range=update_range,
+                valueInputOption="USER_ENTERED",
+                body={"values": [[joining_date]]}
+            ).execute()
+            
+            return {"status": "success", "updatedCells": result.get("updatedCells")}
+        
+        except HttpError as err:
+            return {"error": str(err)}

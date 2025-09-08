@@ -30,6 +30,7 @@ from django.core.files.base import ContentFile
 from io import BytesIO
 from PIL import Image
 from django.core.cache import cache
+from .tasks import update_sales_officer_joining_date_task
 
 
 class EmployeeListView(ListView):
@@ -643,6 +644,11 @@ class SalesOfficerCreateView(CreateView, SuccessMessageMixin):
             salary_formset.save()
             location_formset.save()
 
+            unit_id = self.object.unit.id
+            employee_id = self.object.EID
+            joining_date = self.object.DOJ.strftime('%Y-%m-%d')
+            update_sales_officer_joining_date_task.delay(unit_id, employee_id, joining_date)
+            print("update successful")
             return redirect(self.success_url)
 
         return self.render_to_response(self.get_context_data(form=form))
