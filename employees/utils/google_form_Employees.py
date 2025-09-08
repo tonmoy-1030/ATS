@@ -23,8 +23,8 @@ class BaseGoogleSheetAuthentication():
     RANGE_NAME = "Form Responses 1!A1:AG"
     settings_dir = os.path.dirname(__file__)
     project_root = os.path.abspath(os.path.dirname(settings_dir))
-    candidates_token = os.path.join(project_root, 'utls/token.json')
-    credentials_files = os.path.join(project_root, 'utls/credentials.json')
+    candidates_token = os.path.join(project_root, 'utils/token.json')
+    credentials_files = os.path.join(project_root, 'utils/credentials.json')
 
     def __init__(self):
         self.creds = None
