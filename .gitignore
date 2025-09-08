@@ -39,12 +39,8 @@ $RECYCLE.BIN/
 */migrations/*.py
 
 # Credentials and scripts
-employees/utls/credentials.json
-employees/utls/token.json
-candidates/utls/token.json
-candidates/utls/credentials.json
-candidates/utls/google_form_Candidates.py
-candidates/utls/google_sheet_Candidates.py
+candidates/utils/google_form_Candidates.py
+candidates/utils/google_sheet_Candidates.py
 
 # Jasper report
 report/resources/.settings/
@@ -53,3 +49,8 @@ report/resources/.project/
 staticfiles/
 media/
 report/resources/
+employees/utils/credentials.json
+employees/utils/token.json
+candidates/utils/candidates_token.json
+candidates/utils/credentials.json
+candidates/utils/token.json
