@@ -40,7 +40,6 @@ $RECYCLE.BIN/
 
 # Credentials and scripts
 candidates/utils/google_form_Candidates.py
-candidates/utils/google_sheet_Candidates.py
 
 # Jasper report
 report/resources/.settings/
