@@ -1336,7 +1336,6 @@ def Interview_Summary(request, final_interview_id):
             ),
         }
 
-        print(interview_summary)
         buffer = BytesIO()
         InterviewSummary(file_path=buffer, interview_summary=interview_summary)
         buffer.seek(0)

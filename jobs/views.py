@@ -452,7 +452,8 @@ def display_candidates(request, pk):
 
     interview_schedule = get_object_or_404(InterviewSchedule, id=pk)
     interview_jobs = interview_schedule.job.all()
-
+    
+   
     # Query shortlisted candidates for the same jobs, exclude already added ones
     qs = (
         CandidateInitialInformation.objects
@@ -461,7 +462,6 @@ def display_candidates(request, pk):
         .prefetch_related("jobs")
         .distinct()
     )
-
     candidates = list({c.id: c for c in qs}.values())
 
     data = [

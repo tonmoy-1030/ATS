@@ -767,14 +767,15 @@ def include_in_interview_schedule(request):
 
     added_count = 0
     for candidate_info in candidates:
+        email = candidate_info.email if candidate_info.email else "notfound@gmail.com"
         candidate, created = Candidate.objects.get_or_create(
-            email=candidate_info.email,   # use unique field
+            email=email,   # use unique field
             mobile=candidate_info.mobile_no,
             interview_schedule=interview_schedule,
-            candidate_initial_info=candidate_info,
             defaults={
                 'name': candidate_info.name,
-                'attendance_status': 'absent'
+                'attendance_status': 'absent',
+                'candidate_initial_info':candidate_info,
             }
         )
         # Always sync jobs
