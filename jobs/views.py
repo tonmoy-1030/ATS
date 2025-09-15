@@ -449,7 +449,7 @@ def display_candidates(request, pk):
     existing_candidates = Candidate.objects.filter(
         interview_schedule_id=pk
     ).values_list("candidate_initial_info__id", flat=True)
-
+    existing_candidates = [eid for eid in existing_candidates if eid is not None]
     interview_schedule = get_object_or_404(InterviewSchedule, id=pk)
     interview_jobs = interview_schedule.job.all()
     
