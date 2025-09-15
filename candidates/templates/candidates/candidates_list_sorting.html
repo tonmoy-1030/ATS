@@ -1,0 +1,941 @@
+{% extends "jobs/base.html" %}
+
+{% block content %}
+
+{% block style %}
+<style>
+    /* Basic Reset & Body Styles */
+    * {
+        margin: 0;
+        padding: 0;
+        box-sizing: border-box;
+    }
+
+    body {
+        font-family: 'Inter', -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;
+        background: #f8fafc;
+        color: #1e293b;
+        line-height: 1.6;
+    }
+
+    /* Main Container */
+    .container {
+        max-width: 1600px;
+        margin: 0 auto;
+        background: white;
+        min-height: 100vh;
+    }
+
+    /* New Header Wrapper */
+    .header-and-stats {
+        display: flex;
+        justify-content: space-between;
+        align-items: center;
+        flex-wrap: wrap;
+        gap: 40px;
+        padding: 24px 40px;
+        background: linear-gradient(135deg, #0f172a 0%, #1e293b 100%);
+        border-bottom: 1px solid #334155;
+    }
+
+    /* Header */
+    .header {
+        color: white;
+        flex: 1;
+        min-width: 300px;
+    }
+
+    .header h1 {
+        font-size: 24px;
+        font-weight: 600;
+        letter-spacing: -0.025em;
+        margin-bottom: 4px;
+    }
+
+    .header p {
+        color: #94a3b8;
+        font-size: 16px;
+        font-weight: 400;
+    }
+
+    /* Controls Bar */
+    .controls {
+        display: flex;
+        justify-content: space-between;
+        align-items: center;
+        padding: 24px 40px;
+        background: white;
+        border-bottom: 1px solid #e2e8f0;
+        gap: 24px;
+        flex-wrap: wrap;
+    }
+
+    .left-controls {
+        display: flex;
+        align-items: center;
+        gap: 24px;
+        flex-wrap: wrap;
+    }
+
+    .job-selector {
+        display: flex;
+        align-items: center;
+        gap: 12px;
+    }
+
+    .job-selector label {
+        font-weight: 500;
+        color: #374151;
+        font-size: 14px;
+    }
+
+    select {
+        padding: 10px 16px;
+        border: 1px solid #d1d5db;
+        border-radius: 8px;
+        font-size: 14px;
+        color: #374151;
+        background: white;
+        min-width: 220px;
+        transition: all 0.2s ease;
+        cursor: pointer;
+    }
+
+    select:focus {
+        outline: none;
+        border-color: #3b82f6;
+        box-shadow: 0 0 0 3px rgba(59, 130, 246, 0.1);
+    }
+
+    .status-filters {
+        display: flex;
+        gap: 2px;
+        background: #f1f5f9;
+        border-radius: 8px;
+        padding: 4px;
+    }
+
+    .filter-btn {
+        padding: 8px 16px;
+        border: none;
+        border-radius: 6px;
+        font-weight: 500;
+        cursor: pointer;
+        transition: all 0.2s ease;
+        font-size: 14px;
+        color: #64748b;
+        background: transparent;
+    }
+
+    .filter-btn:hover {
+        background: white;
+        color: #374151;
+    }
+
+    .filter-btn.active {
+        background: white;
+        color: #1e293b;
+        box-shadow: 0 1px 2px rgba(0, 0, 0, 0.05);
+    }
+
+    /* Search Box */
+    .search-box {
+        position: relative;
+    }
+
+    .search-input {
+        padding: 10px 16px 10px 40px;
+        border: 1px solid #d1d5db;
+        border-radius: 8px;
+        font-size: 14px;
+        width: 280px;
+        transition: all 0.2s ease;
+    }
+
+    .search-input:focus {
+        outline: none;
+        border-color: #3b82f6;
+        box-shadow: 0 0 0 3px rgba(59, 130, 246, 0.1);
+    }
+
+    .search-icon {
+        position: absolute;
+        left: 12px;
+        top: 50%;
+        transform: translateY(-50%);
+        color: #9ca3af;
+        width: 16px;
+        height: 16px;
+    }
+    
+    /* Table Styling */
+    .table-container {
+        overflow-x: auto;
+        background: white;
+    }
+
+    table {
+        width: 100%;
+        border-collapse: collapse;
+        background: white;
+    }
+
+    th {
+        background: #f8fafc;
+        color: #374151;
+        padding: 16px 24px;
+        text-align: left;
+        font-weight: 600;
+        font-size: 12px;
+        text-transform: uppercase;
+        letter-spacing: 0.05em;
+        border-bottom: 1px solid #e2e8f0;
+        white-space: nowrap;
+        position: sticky;
+        top: 0;
+        z-index: 5;
+    }
+
+    td {
+        padding: 20px 24px;
+        border-bottom: 1px solid #f1f5f9;
+        vertical-align: middle;
+        font-size: 14px;
+    }
+
+    tr:hover {
+        background: #f8fafc;
+    }
+
+    .email {
+        color: #3b82f6;
+        font-family: 'SF Mono', Monaco, 'Cascadia Code', monospace;
+        font-size: 13px;
+    }
+
+    .mobile {
+        color: #64748b;
+        font-size: 13px;
+        margin-top: 4px;
+    }
+
+    .name {
+        font-weight: 600;
+        color: #1e293b;
+        font-size: 15px;
+    }
+
+    .education, .degree {
+        color: #64748b;
+        font-size: 14px;
+    }
+
+    .experience-list {
+        line-height: 1.5;
+        display: flex;
+        flex-direction: column;
+        gap: 12px;
+    }
+
+    .experience-item { display: block; }
+    .company { font-weight: 600; color: #1e293b; font-size: 14px; }
+    .position { color: #64748b; font-size: 13px; margin-top: 2px; }
+    .duration { color: #94a3b8; font-size: 12px; margin-top: 4px; }
+
+    /* Status Badges */
+    .status {
+        display: inline-flex;
+        align-items: center;
+        padding: 4px 12px;
+        border-radius: 20px;
+        font-size: 12px;
+        font-weight: 500;
+        text-transform: capitalize;
+        letter-spacing: 0.025em;
+    }
+
+    .status-New { background: #f0f9ff; color: #0369a1; border: 1px solid #bae6fd; }
+    .status-Shortlisted { background: #f0fdf4; color: #166534; border: 1px solid #bbf7d0; }
+    .status-Rejected { background: #fef2f2; color: #dc2626; border: 1px solid #fecaca; }
+
+    /* Action Buttons */
+    .actions {
+        display: flex;
+        gap: 8px;
+        align-items: center;
+    }
+
+    .action-btn {
+        padding: 6px 12px;
+        border: 1px solid transparent;
+        border-radius: 6px;
+        cursor: pointer;
+        font-size: 12px;
+        font-weight: 500;
+        transition: all 0.2s ease;
+        text-transform: uppercase;
+        letter-spacing: 0.025em;
+    }
+
+    .btn-view { background: #f8fafc; color: #475569; border-color: #e2e8f0; }
+    .btn-view:hover { background: #f1f5f9; border-color: #cbd5e1; }
+    .btn-transfer { background: #3b82f6; color: white; }
+    .btn-transfer:hover { background: #2563eb; }
+    .btn-shortlist { background: #16a34a; color: white; }
+    .btn-shortlist:hover { background: #15803d; }
+    .btn-reject { background: #dc2626; color: white; }
+    .btn-reject:hover { background: #b91c1c; }
+
+    /* Stats Section */
+    .stats {
+        display: grid;
+        grid-template-columns: repeat(4, 1fr);
+        gap: 16px;
+        flex: 2;
+    }
+
+    .stat-card {
+        background: rgba(255, 255, 255, 0.05);
+        padding: 16px;
+        border-radius: 8px;
+        border: 1px solid #334155;
+        text-align: center;
+        transition: background 0.2s ease;
+    }
+    
+    .stat-card:hover {
+        background: rgba(255, 255, 255, 0.1);
+    }
+
+    .stat-number {
+        font-size: 28px;
+        font-weight: 700;
+        color: #f8fafc;
+        margin-bottom: 4px;
+        font-variant-numeric: tabular-nums;
+    }
+
+    .stat-label {
+        color: #94a3b8;
+        font-size: 12px;
+        font-weight: 500;
+        text-transform: uppercase;
+        letter-spacing: 0.05em;
+    }
+    
+    /* Utility States */
+    .empty-state {
+        text-align: center;
+        padding: 80px 40px;
+        color: #64748b;
+    }
+
+    .empty-state h3 {
+        font-size: 18px;
+        margin-bottom: 8px;
+        color: #374151;
+    }
+    
+    /* Modal Styles */
+    .modal-overlay {
+        display: none;
+        position: fixed;
+        top: 0;
+        left: 0;
+        width: 100%;
+        height: 100%;
+        background: rgba(0, 0, 0, 0.6);
+        justify-content: center;
+        align-items: center;
+        z-index: 100;
+        opacity: 0;
+        transition: opacity 0.3s ease;
+    }
+
+    .modal-overlay.modal-active {
+        display: flex;
+        opacity: 1;
+    }
+
+    .modal-content {
+        background: white;
+        padding: 24px;
+        border-radius: 12px;
+        width: 90%;
+        max-width: 800px;
+        display: flex;
+        flex-direction: column;
+        box-shadow: 0 10px 25px rgba(0,0,0,0.1);
+        transform: scale(0.95);
+        transition: transform 0.3s ease;
+    }
+    .modal-active .modal-content {
+        transform: scale(1);
+    }
+
+    #resumeModal .modal-content {
+        height: 90vh;
+    }
+
+    .modal-header {
+        display: flex;
+        justify-content: space-between;
+        align-items: center;
+        border-bottom: 1px solid #e2e8f0;
+        padding-bottom: 16px;
+        margin-bottom: 16px;
+    }
+
+    .modal-header h2 {
+        font-size: 20px;
+        color: #1e293b;
+    }
+
+    .close-modal {
+        background: none;
+        border: none;
+        font-size: 28px;
+        cursor: pointer;
+        color: #64748b;
+    }
+
+    .modal-body {
+        flex-grow: 1;
+        overflow-y: auto;
+    }
+    
+    .modal-body iframe {
+        border: none;
+        width: 100%;
+        height: 100%;
+    }
+
+    .modal-footer {
+        border-top: 1px solid #e2e8f0;
+        padding-top: 16px;
+        margin-top: 16px;
+        text-align: right;
+    }
+
+    .form-group {
+        margin-bottom: 16px;
+        text-align: left;
+    }
+
+    .form-group label {
+        display: block;
+        margin-bottom: 8px;
+        font-weight: 500;
+    }
+    
+    .checkbox-list-container {
+        border: 1px solid #d1d5db;
+        border-radius: 8px;
+        max-height: 250px;
+        overflow-y: auto;
+    }
+
+    /* Styles for Transfer Modal Table */
+    .job-transfer-table {
+        width: 100%;
+        border-collapse: collapse;
+    }
+    .job-transfer-table th,
+    .job-transfer-table td {
+        padding: 12px;
+        text-align: left;
+        border-bottom: 1px solid #f1f5f9;
+    }
+    .job-transfer-table th {
+        font-size: 12px;
+        font-weight: 600;
+        color: #64748b;
+        text-transform: uppercase;
+        background-color: #f8fafc;
+    }
+    .job-transfer-table tbody tr {
+        cursor: pointer;
+        transition: background-color 0.2s ease;
+    }
+    .job-transfer-table tbody tr:hover {
+        background-color: #f1f5f9;
+    }
+    .job-transfer-table input[type="checkbox"] {
+        cursor: pointer;
+        vertical-align: middle;
+    }
+    
+    /* Toast Notification */
+    #toast-notification {
+        position: fixed;
+        bottom: 20px;
+        right: 20px;
+        padding: 12px 20px;
+        border-radius: 8px;
+        color: white;
+        font-weight: 500;
+        box-shadow: 0 4px 12px rgba(0,0,0,0.15);
+        z-index: 200;
+        opacity: 0;
+        transform: translateY(20px);
+        transition: all 0.3s ease;
+    }
+    #toast-notification.show {
+        opacity: 1;
+        transform: translateY(0);
+    }
+    #toast-notification.success { background-color: #16a34a; }
+    #toast-notification.error { background-color: #dc2626; }
+
+    /* Responsive Design */
+    @media (max-width: 1024px) {
+        .container { margin: 0; }
+        .header-and-stats {
+            flex-direction: column;
+            align-items: stretch;
+            gap: 24px;
+        }
+        .header, .controls, .stats { padding-left: 24px; padding-right: 24px; }
+        th, td { padding: 12px 16px; }
+    }
+
+    @media (max-width: 768px) {
+        .controls { flex-direction: column; align-items: stretch; gap: 16px; }
+        .left-controls { flex-direction: column; align-items: stretch; gap: 16px; }
+        .status-filters { justify-content: center; }
+        .search-input { width: 100%; }
+        .stats { 
+            grid-template-columns: repeat(auto-fit, minmax(140px, 1fr));
+            padding-left: 0;
+            padding-right: 0;
+        }
+        table { font-size: 13px; }
+    }
+</style>
+{% endblock %}
+
+<div class="container">
+    <div class="header-and-stats">
+        <div class="header">
+            <h1>Candidate Management</h1>
+            <p>Streamline your recruitment process with advanced filtering and selection tools</p>
+        </div>
+        <div class="stats">
+            <div class="stat-card">
+                <div class="stat-number" id="totalCandidates">0</div>
+                <div class="stat-label">Total Apps</div>
+            </div>
+            <div class="stat-card">
+                <div class="stat-number" id="newCandidates">0</div>
+                <div class="stat-label">New</div>
+            </div>
+            <div class="stat-card">
+                <div class="stat-number" id="shortlistedCandidates">0</div>
+                <div class="stat-label">Shortlisted</div>
+            </div>
+            <div class="stat-card">
+                <div class="stat-number" id="rejectedCandidates">0</div>
+                <div class="stat-label">Rejected</div>
+            </div>
+        </div>
+    </div>
+    <div class="controls">
+        <div class="left-controls">
+            <div class="job-selector">
+                <label for="jobSelect">Position:</label>
+                <select id="jobSelect">
+                    <option value="">-- Select a Job --</option>
+                </select>
+            </div>
+            <div class="status-filters">
+                <button class="filter-btn active" data-status="all">All</button>
+                <button class="filter-btn" data-status="New">New</button>
+                <button class="filter-btn" data-status="Shortlisted">Shortlisted</button>
+                <button class="filter-btn" data-status="Rejected">Rejected</button>
+            </div>
+        </div>
+        <div class="search-box">
+            <svg class="search-icon" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M21 21l-6-6m2-5a7 7 0 11-14 0 7 7 0 0114 0z"/>
+            </svg>
+            <input type="text" class="search-input" placeholder="Search candidates..." id="searchInput">
+        </div>
+    </div>
+    <div class="table-container">
+        <table>
+            <thead>
+                <tr>
+                    <th>Candidate Information</th>
+                    <th>Education</th>
+                    <th>Professional Background</th>
+                    <th>Experience</th>
+                    <th>Status</th>
+                    <th>Actions</th>
+                </tr>
+            </thead>
+            <tbody id="candidatesTable">
+                <!-- Candidates will be populated here -->
+            </tbody>
+        </table>
+        <div id="emptyState" class="empty-state">
+            <h3>Select a job to view candidates</h3>
+            <p>Once you select a job, applications will appear here.</p>
+        </div>
+    </div>
+</div>
+
+<!-- Resume Modal -->
+<div id="resumeModal" class="modal-overlay">
+    <div class="modal-content">
+        <div class="modal-header">
+            <h2 id="resumeCandidateName">Candidate Resume</h2>
+            <button class="close-modal">&times;</button>
+        </div>
+        <div class="modal-body">
+            <!-- Resume content will be loaded here -->
+        </div>
+    </div>
+</div>
+
+<!-- Transfer Candidate Modal -->
+<div id="transferModal" class="modal-overlay">
+    <div class="modal-content">
+        <div class="modal-header">
+            <h2 id="transferCandidateName">Transfer Candidate</h2>
+            <button class="close-modal">&times;</button>
+        </div>
+        <div class="modal-body">
+            <input type="hidden" id="transferCandidateId">
+            <div class="form-group">
+                <label>Select job(s) to transfer the candidate to:</label>
+                <div id="transferJobCheckboxes" class="checkbox-list-container">
+                    <!-- Job table will be populated here -->
+                </div>
+            </div>
+        </div>
+        <div class="modal-footer">
+            <button class="action-btn btn-view close-modal">Cancel</button>
+            <button class="action-btn btn-transfer" id="confirmTransferBtn">Confirm Transfer</button>
+        </div>
+    </div>
+</div>
+
+<!-- Toast Notification -->
+<div id="toast-notification"></div>
+
+
+<!-- jQuery -->
+<script src="https://code.jquery.com/jquery-3.7.0.min.js"></script>
+<script>
+$(document).ready(function() {
+    let allCandidates = [];
+    let allJobs = [];
+    let currentStatusFilter = 'all';
+    let currentSearchQuery = '';
+
+    // --- Toast Notification Logic ---
+    function showToast(message, type = 'success') {
+        const toast = $('#toast-notification');
+        toast.text(message).removeClass('success error').addClass(type).addClass('show');
+        setTimeout(() => {
+            toast.removeClass('show');
+        }, 3000);
+    }
+
+    // Load jobs for dropdown
+    $.get("/api/jobs/", function(data) {
+        allJobs = data;
+        data.forEach(job => {
+            $("#jobSelect").append(`<option value="${job.id}">${job.job_title}-${job.unit__short_name}</option>`);
+        });
+    });
+
+    // Load candidates when a job is selected
+    $("#jobSelect").change(function() {
+        let selectedJob = $(this).val();
+        if (!selectedJob) {
+            allCandidates = [];
+            renderFilteredCandidates();
+            return;
+        }
+
+        $.get(`/api/candidates/${selectedJob}/`, function(data) {
+            allCandidates = data;
+            renderFilteredCandidates();
+        });
+    });
+
+    // Handle status filter clicks
+    $(".filter-btn").click(function() {
+        currentStatusFilter = $(this).data("status");
+        $(".filter-btn").removeClass("active");
+        $(this).addClass("active");
+        renderFilteredCandidates();
+    });
+
+    // Handle search input
+    $("#searchInput").on('input', function() {
+        currentSearchQuery = $(this).val().toLowerCase();
+        renderFilteredCandidates();
+    });
+
+    // Main function to render candidates based on filters
+    function renderFilteredCandidates() {
+        const tableBody = $('#candidatesTable');
+        const emptyState = $('#emptyState');
+        tableBody.html('');
+
+        const filteredCandidates = allCandidates.filter(c => {
+            const statusMatch = currentStatusFilter === 'all' || c.status === currentStatusFilter;
+            const searchMatch = currentSearchQuery === '' ||
+                c.name.toLowerCase().includes(currentSearchQuery) ||
+                c.email.toLowerCase().includes(currentSearchQuery) ||
+                (c.mobile_no && c.mobile_no.toLowerCase().includes(currentSearchQuery)) ||
+                (c.experience && c.experience.some(exp =>
+                    exp.Company.toLowerCase().includes(currentSearchQuery) ||
+                    exp.Position.toLowerCase().includes(currentSearchQuery)
+                ));
+            return statusMatch && searchMatch;
+        });
+        
+        if (allCandidates.length === 0) {
+             emptyState.html('<h3>Select a job to view candidates</h3><p>Once you select a job, applications will appear here.</p>').show();
+        } else if (filteredCandidates.length === 0) {
+            emptyState.html('<h3>No candidates found</h3><p>Try adjusting your filters or search criteria.</p>').show();
+        } else {
+            emptyState.hide();
+        }
+
+        filteredCandidates.forEach(c => {
+            const experienceHTML = (c.experience && Array.isArray(c.experience) && c.experience.length > 0)
+                ? c.experience.map(exp => `
+                    <div class="experience-item">
+                        <div class="company">${exp.Company}</div>
+                        <div class="position">${exp.Position}</div>
+                        <div class="duration">${exp.Duration}</div>
+                    </div>
+                `).join('')
+                : 'Not specified';
+
+            let actionButtonsHTML = '';
+            if (c.status === 'New') {
+                actionButtonsHTML = `
+                    <button class="action-btn btn-shortlist change-status" data-status="Shortlisted">Shortlist</button>
+                    <button class="action-btn btn-reject change-status" data-status="Rejected">Reject</button>
+                `;
+            } else if (c.status === 'Shortlisted') {
+                actionButtonsHTML = `<button class="action-btn btn-reject change-status" data-status="Rejected">Reject</button>`;
+            } else if (c.status === 'Rejected') {
+                actionButtonsHTML = `<button class="action-btn btn-shortlist change-status" data-status="Shortlisted">Shortlist</button>`;
+            }
+
+            const row = `
+                <tr data-id="${c.id}">
+                    <td>
+                        <div class="name">${c.name}</div>
+                        <div class="email">${c.email}</div>
+                        <div class="mobile">${c.mobile_no || ''}</div>
+                    </td>
+                    <td>
+                        <div class="education">${c.highest_education_degree}</div>
+                    </td>
+                    <td>
+                        <div class="degree">${c.professional_education_degree}</div>
+                    </td>
+                    <td class="experience-list">
+                        ${experienceHTML}
+                    </td>
+                    <td>
+                        <span class="status status-${c.status}">${c.status}</span>
+                    </td>
+                    <td>
+                        <div class="actions">
+                            <button class="action-btn btn-view" data-candidate-id="${c.id}">View</button>
+                            <button class="action-btn btn-transfer" data-candidate-id="${c.id}">Transfer</button>
+                            ${actionButtonsHTML}
+                        </div>
+                    </td>
+                </tr>
+            `;
+            tableBody.append(row);
+        });
+        updateStats();
+    }
+    
+    // Update candidate status on the server
+    $(document).on("click", ".change-status", function() {
+        const tr = $(this).closest("tr");
+        const candidateId = tr.data("id");
+        const newStatus = $(this).data("status");
+
+        $.post(`/api/candidate/update/${candidateId}/`, {
+            status: newStatus,
+            csrfmiddlewaretoken: '{{ csrf_token }}'
+        }, function(resp) {
+            if (resp.success) {
+                const candidate = allCandidates.find(c => c.id === candidateId);
+                if (candidate) {
+                    candidate.status = resp.new_status;
+                }
+                renderFilteredCandidates();
+            }
+        });
+    });
+
+    function updateStats() {
+        const total = allCandidates.length;
+        const newCount = allCandidates.filter(c => c.status === 'New').length;
+        const shortlisted = allCandidates.filter(c => c.status === 'Shortlisted').length;
+        const rejected = allCandidates.filter(c => c.status === 'Rejected').length;
+
+        $('#totalCandidates').text(total);
+        $('#newCandidates').text(newCount);
+        $('#shortlistedCandidates').text(shortlisted);
+        $('#rejectedCandidates').text(rejected);
+    }
+    
+    // --- Resume Modal Logic ---
+    $(document).on("click", ".btn-view", function() {
+        const candidateId = $(this).data("candidate-id");
+        const candidate = allCandidates.find(c => c.id === candidateId);
+
+        if (candidate) {
+            const modal = $('#resumeModal');
+            modal.find('#resumeCandidateName').text(`${candidate.name}'s Resume`);
+            modal.find('.modal-body').html('<p>Loading resume...</p>');
+            modal.addClass('modal-active');
+            
+            const resumeEmbed = `<iframe src="/media/${candidate.resume}" frameborder="0"></iframe>`;
+            setTimeout(() => {
+                modal.find('.modal-body').html(resumeEmbed);
+            }, 500);
+        }
+    });
+
+    // --- Transfer Modal Logic ---
+    $(document).on("click", ".btn-transfer", function() {
+        const candidateId = $(this).data("candidate-id");
+        const candidate = allCandidates.find(c => c.id === candidateId);
+        const currentJobId = $("#jobSelect").val();
+
+        if (candidate) {
+            const modal = $('#transferModal');
+            modal.find('#transferCandidateName').text(`Transfer ${candidate.name}`);
+            modal.find('#transferCandidateId').val(candidateId);
+
+            const jobCheckboxesContainer = modal.find('#transferJobCheckboxes');
+            jobCheckboxesContainer.html(''); // Reset
+
+            const tableHTML = `
+                <table class="job-transfer-table">
+                    <thead>
+                        <tr>
+                            <th style="width: 40px;"></th>
+                            <th>Job Title</th>
+                            <th>Department</th>
+                            <th>Location</th>
+                            <th>Unit</th>
+                        </tr>
+                    </thead>
+                    <tbody></tbody>
+                </table>
+            `;
+            jobCheckboxesContainer.html(tableHTML);
+            const tableBody = jobCheckboxesContainer.find('tbody');
+
+            allJobs.forEach(job => {
+                const unitName = job.unit__short_name || 'N/A';
+                if (job.id.toString() !== currentJobId) {
+                    const jobRowHTML = `
+                        <tr class="job-item-row">
+                            <td><input type="checkbox" value="${job.id}"></td>
+                            <td>${job.job_title}</td>
+                            <td>${job.department || 'N/A'}</td>
+                            <td>${job.job_location || 'N/A'}</td>
+                            <td>${unitName}</td>
+                        </tr>
+                    `;
+                    tableBody.append(jobRowHTML);
+                }
+            });
+            
+            modal.addClass('modal-active');
+        }
+    });
+
+    $("#confirmTransferBtn").click(function() {
+        const candidateId = $("#transferCandidateId").val();
+        const selectedJobIds = $('#transferJobCheckboxes input:checked').map(function() {
+            return $(this).val();
+        }).get();
+
+        if (selectedJobIds.length === 0) {
+            showToast("Please select at least one job.", "error");
+            return;
+        }
+
+        const transferPromises = selectedJobIds.map(jobId => {
+            return $.post(`/api/candidate/transfer/`, {
+                candidate_id: candidateId,
+                job_id: jobId,
+                csrfmiddlewaretoken: '{{ csrf_token }}'
+            });
+        });
+
+        Promise.all(transferPromises)
+            .then(responses => {
+                const allSuccess = responses.every(resp => resp.success);
+                if (allSuccess) {
+                    showToast(`Successfully transferred candidate to ${responses.length} job(s).`, "success");
+                    $('#transferModal').removeClass('modal-active');
+                    
+                    allCandidates = allCandidates.filter(c => c.id.toString() !== candidateId);
+                    renderFilteredCandidates();
+                } else {
+                    showToast("Some transfers failed. Please check the console.", "error");
+                    console.error("Failed responses:", responses.filter(r => !r.success));
+                }
+            })
+            .catch(error => {
+                showToast("An error occurred during the transfer.", "error");
+                console.error("Transfer error:", error);
+            });
+    });
+
+    // Makes table rows in transfer modal clickable
+    $(document).on('click', '.job-item-row', function(e) {
+        // Prevent toggle when clicking directly on the checkbox
+        if (e.target.type !== 'checkbox') {
+            const checkbox = $(this).find('input[type="checkbox"]');
+            checkbox.prop('checked', !checkbox.prop('checked'));
+        }
+    });
+
+    // General Modal Closing Logic
+    function closeModal(modal) {
+        modal.removeClass('modal-active');
+        // Clear iframe src to stop video/audio on close
+        setTimeout(() => {
+            if(modal.attr('id') === 'resumeModal'){
+                 modal.find('.modal-body').html('');
+            }
+        }, 300);
+    }
+
+    $(document).on("click", ".close-modal", function() {
+        closeModal($(this).closest('.modal-overlay'));
+    });
+    
+    $('.modal-overlay').on('click', function(e) {
+        if (e.target === this) {
+            closeModal($(this));
+        }
+    });
+
+    // Initial render
+    renderFilteredCandidates();
+});
+</script>
+
+{% endblock %}
+

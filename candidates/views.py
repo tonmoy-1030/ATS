@@ -21,33 +21,42 @@ import os
 from django.db.models import Count, Q
 from django.contrib.messages.views import SuccessMessageMixin
 from django.conf import settings  
-from .models import Candidate, Offer, CandidatesDetails
+from .models import Candidate, Offer, CandidatesDetails, CandidateInitialInformation
 from jobs.models import InterviewSchedule, Job, FinalInterviewSchedule
 from django.forms import modelformset_factory
-from .utils.google_form_Candidates import process_responses, get_authenticated_service, get_form_responses
-import csv
 from django.contrib import messages
 import logging
 import time
 from requests.exceptions import RequestException
-
-
+from .utils.google_sheet_Candidates import CandidateGoogleSheet 
 from employees.models import Employee
-from .utils.google_sheet_Candidates import candidateDate
 from datetime import datetime        
-import json 
+import json
+from django.db.models import Case, When, Value, IntegerField
+
+
+ 
 logger = logging.getLogger(__name__)
 
 
 TextConverter = TextConverter()
 DataExtraction = DataExtraction()
+candidate_google_sheet = CandidateGoogleSheet()
 
 def Resume_Date_As_JSON(prompts):
   genai.configure(api_key="AIzaSyB_WKoQ8d27_Zo9lNhOpH3zdRuf0XJ1EEc")
+  generation_config = {
+            "temperature": 1,
+            "top_p": 0.95,
+            "top_k": 40,
+            "max_output_tokens": 8192,
+            "response_mime_type": "application/json",
+        }
   model = genai.GenerativeModel(
-  model_name="gemini-2.0-flash-lite",
-  generation_config={"response_mime_type": "application/json",}
-  )
+            model_name="gemini-2.5-flash-lite",
+            generation_config=generation_config
+        )
+
   chat_session = model.start_chat(
             history=[
                 {
@@ -496,7 +505,7 @@ def CandidateDetailsUpdate(request):
     }
 
     alert_messages = []
-    candidate_data = candidateDate()  # Fetch data from Google Sheet
+    candidate_data = candidate_google_sheet.candidate_details_data # Fetch data from Google Sheet
     if candidate_data:
 
         for mobile, details in candidate_data.items():
@@ -569,7 +578,6 @@ def CandidateDetailsUpdate(request):
         alert_messages.append("All Candidate details updated successfully.")
 
     return JsonResponse({'alert_messages': alert_messages})
-
 
 
 class CandidateDetailsListView(ListView):
@@ -665,3 +673,116 @@ def candidate_csv_download(request):
         ]
         writer.writerow(row)
     return response
+
+def candidate_list_google_sheet(request, pk):
+    try:
+        job = get_object_or_404(Job, id=pk)
+
+        # filter jobs with same google_sheet_id
+        jobs = Job.objects.filter(google_sheet_id=job.google_sheet_id)
+
+        qs = CandidateInitialInformation.objects.filter(jobs__in=jobs).distinct()
+
+        # extra filters (from query params)
+        status = request.GET.get("status")
+        if status:
+            qs = qs.filter(status=status)  # assumes you have a 'status' field
+
+        candidate_data = list(qs.values("id", "name", "email", "status"))  # select only useful fields
+
+    except Exception as e:
+        return JsonResponse([{"error": f"an error occurred: {e}"}], safe=False)
+    return JsonResponse(candidate_data, safe=False)
+
+def candidates_api(request, job_id):
+    job = get_object_or_404(Job, id=job_id)
+    candidates = CandidateInitialInformation.objects.filter(jobs=job).distinct().order_by(
+        Case(
+            When(status="New", then=Value(0)),   # New comes first
+            default=Value(1),
+            output_field=IntegerField(),
+        ),
+        "-upload_date",  # then order by latest updated
+    )
+    status = request.GET.get('status')
+    if status:
+        candidates = candidates.filter(status=status)
+
+    data = list(candidates.values())
+    return JsonResponse(data, safe=False)
+
+class CandidatesList(ListView):
+    model = CandidateInitialInformation
+    template_name = "candidates/candidates_list_sorting.html"
+    context_object_name = "candidates"
+
+    def get_context_data(self, **kwargs):
+        context = super().get_context_data(**kwargs)
+        context["jobs"] = Job.objects.all()  # for dropdown filter
+        return context
+
+def jobs_api(request):
+    # Only jobs that have a Google Sheet linked
+    jobs = list(Job.objects.filter(google_sheet_id__isnull=False).values("id", "job_title", "department", "job_location", "unit__short_name"))
+    return JsonResponse(jobs, safe=False)
+
+def update_candidate_status(request, candidate_id):
+    if request.method == 'POST':
+        candidate = get_object_or_404(CandidateInitialInformation, id=candidate_id)
+        new_status = request.POST.get('status')
+        candidate.status = new_status
+        candidate.save()
+        return JsonResponse({'success': True, 'new_status': new_status})
+    return JsonResponse({'success': False}, status=400)
+
+def transfer_candidate_for_another_job(request):
+    if request.method == "POST":
+        candidate_id = request.POST.get("candidate_id")
+        new_job_ids = request.POST.getlist("job_id")
+        
+
+        if not candidate_id or not new_job_ids:
+            return JsonResponse({"success": False, "error": "Candidate or job not provided"}, status=400)
+
+        candidate = get_object_or_404(CandidateInitialInformation, id=candidate_id)
+        new_jobs = Job.objects.filter(id__in=new_job_ids)
+
+        # Add candidate to the new job (ManyToMany)
+        candidate.jobs.set(new_jobs)
+        candidate.save()
+
+        return JsonResponse({"success": True, "message": f"{candidate.name} transferred to {', '.join(job.job_title for job in new_jobs)}"})
+
+    return JsonResponse({"success": False, "error": "Invalid request method"}, status=400)
+
+
+def include_in_interview_schedule(request):
+    if request.method != "POST":
+        return JsonResponse({"success": False, "error": "Invalid request method"}, status=400)
+    interview_id = request.GET.get('interview_id')
+    interview_schedule = get_object_or_404(InterviewSchedule, id=interview_id)
+    candidate_ids = request.GET.getlist("candidate_ids")
+    
+    candidates = CandidateInitialInformation.objects.filter(id__in=candidate_ids)
+
+    added_count = 0
+    for candidate_info in candidates:
+        candidate, created = Candidate.objects.get_or_create(
+            email=candidate_info.email,   # use unique field
+            mobile=candidate_info.mobile_no,
+            interview_schedule=interview_schedule,
+            candidate_initial_info=candidate_info,
+            defaults={
+                'name': candidate_info.name,
+                'attendance_status': 'absent'
+            }
+        )
+        # Always sync jobs
+        candidate.job.set(candidate_info.jobs.all())
+        if created:
+            added_count += 1
+
+    return JsonResponse({
+        "success": True,
+        "message": f"{added_count} candidates added to the interview schedule."
+    })

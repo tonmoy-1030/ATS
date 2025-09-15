@@ -72,7 +72,7 @@ class HCRFFilter(django_filters.FilterSet):
 class RequisitionForm(forms.ModelForm):
     class Meta:
         model = Job
-        fields = ['job_title', 'department', 'unit', 'job_location', 'posting_date','types', 'no_of_position', 'remarks']
+        fields = ['job_title', 'department', 'unit', 'job_location', 'posting_date','types', 'no_of_position','google_sheet_id', 'remarks']
         widgets = { 
                    'posting_date' : DatePickerInput(),
                    'remarks': forms.Textarea(attrs={'rows':2}),

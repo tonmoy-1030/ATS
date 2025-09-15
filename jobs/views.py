@@ -4,7 +4,7 @@ from django.shortcuts import render, redirect, get_object_or_404
 from django.contrib.messages.views import SuccessMessageMixin
 from .models import Job, InterviewSchedule, FinalInterviewSchedule, BusinessUnit
 from django.views.generic import DetailView, CreateView, UpdateView, ListView, DeleteView
-from candidates.models import Candidate, Offer
+from candidates.models import Candidate, Offer, CandidateInitialInformation
 from django.urls import reverse
 from django.db.models import Count, Subquery
 from django.http import HttpResponse, JsonResponse
@@ -444,3 +444,36 @@ def load_jobs(request):
         job_list.append(job_dict)
     return JsonResponse(job_list, safe=False)
 
+def display_candidates(request, pk):
+    # Already assigned candidates for this interview
+    existing_candidates = Candidate.objects.filter(
+        interview_schedule_id=pk
+    ).values_list("candidate_initial_info__id", flat=True)
+
+    interview_schedule = get_object_or_404(InterviewSchedule, id=pk)
+    interview_jobs = interview_schedule.job.all()
+
+    # Query shortlisted candidates for the same jobs, exclude already added ones
+    qs = (
+        CandidateInitialInformation.objects
+        .filter(jobs__in=interview_jobs, status="shortlisted")
+        .exclude(id__in=existing_candidates)
+        .prefetch_related("jobs")
+        .distinct()
+    )
+
+    candidates = list({c.id: c for c in qs}.values())
+
+    data = [
+        {
+            "id": c.id,
+            "name": c.name,
+            "mobile_no": c.mobile_no,
+            "email": c.email,
+            "status": c.status,
+            "job_titles": c.jobs.first().job_title,
+        }
+        for c in candidates
+    ]
+
+    return JsonResponse({"candidates": data}, safe=False)

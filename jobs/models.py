@@ -38,10 +38,11 @@ class Job(models.Model):
     posting_date = models.DateField(null=False)
     types = models.CharField(max_length=255, choices=JOB_TYPES, null=False)
     no_of_position = models.IntegerField(null=False)
+    google_sheet_id = models.CharField(max_length=255, null=True, blank=True)
     closing_date = models.DateField(null=True, blank=True)
     remarks = models.TextField(null=True, blank=True)
     open_status = models.BooleanField(default=True)
-    
+        
     def filled_positions(self):
         return Offer.objects.filter(job=self, offer_status='Accepted').count()
 
@@ -63,8 +64,6 @@ class Job(models.Model):
     def __str__(self):
         return f"{self.id}, {self.unit.name}, {self.department}, {self.job_title}, {self.job_location}"
 
-
-    
 class InterviewSchedule(models.Model):
 
     interview_type = models.CharField(max_length=255, default='Initial', null=False)

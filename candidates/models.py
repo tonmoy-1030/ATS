@@ -5,6 +5,46 @@ from django.core.exceptions import ValidationError
 from auditlog.registry import auditlog
 
 
+class CandidateInitialInformation(models.Model):
+        name = models.CharField(max_length=255, null=True, blank=True)
+        mobile_no = models.CharField(max_length=255, null=True, blank=True)
+        email = models.CharField(max_length=255, null=True, blank=True)
+        highest_education_degree = models.CharField(max_length=255, null=True, blank=True)
+        highest_education_degree_institution = models.CharField(max_length=255, null=True, blank=True)
+        professional_education_degree = models.CharField(max_length=255, null=True, blank=True)
+        passing_year = models.CharField(max_length=255, null=True, blank=True)
+        experience = models.JSONField(null=True, blank=True)
+        address = models.TextField(null=True, blank=True)
+        resume = models.FileField(upload_to='resumes/', null=True, blank=True)
+        upload_date = models.DateTimeField(auto_now_add=True)
+        status = models.CharField(choices=(('New', 'New'), ('shortlisted', 'shortlisted'), ('rejected', 'rejected')), max_length=20, default='New')
+        jobs = models.ManyToManyField("jobs.Job",related_name="initial_applications", blank=True )
+       
+        def __str__(self):
+            return f'{self.name}-{self.mobile_no}-{self.jobs if self.jobs else "No Job"}'
+        
+        # restrict duplicate entries based on name, mobile_no, and job
+        class Meta:
+            constraints = [
+                models.UniqueConstraint(
+                    fields=['name', 'mobile_no'],
+                    name='unique_candidate_per_contact'
+                ),
+                models.CheckConstraint(
+                    check=~models.Q(name="") & ~models.Q(mobile_no=""),
+                    name='valid_candidate_info'
+                )
+            ]
+            
+        def save(self, *args, **kwargs):
+            super().save(*args, **kwargs)
+            for job in self.jobs.all():
+                if CandidateInitialInformation.objects.filter(
+                    name=self.name,
+                    mobile_no=self.mobile_no,
+                    jobs=job
+                ).exclude(id=self.id).exists():
+                    raise ValueError("This candidate already exists for this job")
 
 class Candidate(models.Model):
     ATTENDANCE_STATUS = [
@@ -48,6 +88,7 @@ class Candidate(models.Model):
     initial_interview_status = models.CharField(max_length=255, choices=INITIAL_INTERVIEW_STATUS, null=True, blank=True)
     final_interview_attendance = models.CharField(max_length=255, choices=ATTENDANCE_STATUS, null=True, blank=True)
     final_interview_status = models.CharField(max_length=255, choices=FINAL_INTERVIEW_STATUS, null=True, blank=True)
+    candidate_initial_info = models.ForeignKey(CandidateInitialInformation, on_delete=models.SET_NULL, null=True, blank=True, related_name='candidates')
     job = models.ManyToManyField("jobs.Job", related_name='candidates')
     interview_schedule = models.ForeignKey("jobs.InterviewSchedule", on_delete = models.CASCADE, null=True, blank=True)
     final_interview = models.ForeignKey("jobs.FinalInterviewSchedule", on_delete=models.CASCADE, null=True, blank=True)
@@ -188,7 +229,18 @@ class Offer(models.Model):
             
     def __str__(self):
         return f"Job Offer for {self.candidate.name} for {self.offered_designation}"
-    
+
+
+
+class SpreadSheetTracker(models.Model):
+    sheet_id = models.CharField(max_length=255, unique=True)
+    last_row = models.PositiveBigIntegerField(default=1)
+
+    def __str__(self):
+        return self.sheet_id
+
 auditlog.register(Candidate)
 auditlog.register(CandidatesDetails)
 auditlog.register(Offer)
+auditlog.register(CandidateInitialInformation)
+auditlog.register(SpreadSheetTracker)

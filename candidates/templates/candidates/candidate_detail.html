@@ -40,8 +40,15 @@
                         <td>{{ occurrence.initial_interview_status}}</td>
                         <td>{{ occurrence.final_interview_attendance}}</td>
                         <td>{{ occurrence.final_interview_status}}</td>
-                        <td>{{ occurrence.offer.offer_status}}</td>
-
+                        <td>
+                            {% if occurrence.offer %}
+                                <a href="{% url 'candidates:offer-update' occurrence.offer.id %}?next={{ request.path }}">
+                                    {{ occurrence.offer.offer_status }}
+                                </a>
+                            {% else %}
+                                N/A
+                            {% endif %}
+                        </td>
 
 
                     </tr>

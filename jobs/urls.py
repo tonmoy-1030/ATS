@@ -40,6 +40,7 @@ urlpatterns = [
     path('job/expend/vacancy', views.expands_requisition.as_view(), name='expend_requisition'),
     path('job/expend/joining', views.expands_joining_list.as_view(), name='expend_joining'),
     path('user/unauthorized', views.unauthorized, name='unauthorized'),
+    path('interview/candidates/<int:pk>', views.display_candidates, name='display_candidates'),
     
 
 ]   

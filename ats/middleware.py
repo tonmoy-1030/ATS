@@ -26,8 +26,8 @@ class LoginRequiredMiddleware:
             'food-gazipur-hr': ['daily_joining', 'daily_joining_update', 'daily_joining_delete', 'daily_joining_list'],
             'food-narsigdi-hr': ['daily_joining', 'daily_joining_update', 'daily_joining_delete', 'daily_joining_list'],
             'food-potiya-hr': ['daily_joining', 'daily_joining_update', 'daily_joining_delete', 'daily_joining_list'],
-            
-            
+            'hobiganj-hr': ['daily_joining', 'daily_joining_update', 'daily_joining_delete', 'daily_joining_list'],
+                       
             # Add more users and their allowed URLs
         }
 
