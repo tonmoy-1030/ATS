@@ -33,6 +33,9 @@ from employees.models import Employee
 from datetime import datetime        
 import json
 from django.db.models import Case, When, Value, IntegerField
+from django.http import JsonResponse
+from django.shortcuts import get_object_or_404
+from django.db.models import Case, When, Value, IntegerField
 
 
  
@@ -694,8 +697,10 @@ def candidate_list_google_sheet(request, pk):
         return JsonResponse([{"error": f"an error occurred: {e}"}], safe=False)
     return JsonResponse(candidate_data, safe=False)
 
+
 def candidates_api(request, job_id):
     job = get_object_or_404(Job, id=job_id)
+
     candidates = CandidateInitialInformation.objects.filter(jobs=job).distinct().order_by(
         Case(
             When(status="New", then=Value(0)),   # New comes first
@@ -704,12 +709,47 @@ def candidates_api(request, job_id):
         ),
         "-upload_date",  # then order by latest updated
     )
-    status = request.GET.get('status')
+
+    status = request.GET.get("status")
     if status:
         candidates = candidates.filter(status=status)
 
-    data = list(candidates.values())
+    data = []
+    for candidate in candidates:
+        candidate_dict = {
+            "id": candidate.id,
+            "name": candidate.name,
+            "mobile_no": candidate.mobile_no,
+            "email": candidate.email,
+            "highest_education_degree": candidate.highest_education_degree,
+            "highest_education_degree_institution": candidate.highest_education_degree_institution,
+            "professional_education_degree": candidate.professional_education_degree,
+            "passing_year": candidate.passing_year,
+            "experience": candidate.experience,
+            "address": candidate.address,
+            "resume": candidate.resume.url if candidate.resume else None,
+            "upload_date": candidate.upload_date,
+            "status": candidate.status,
+        }
+
+        existing_candidate = Candidate.objects.filter(mobile=candidate.mobile_no).first()
+        if existing_candidate:
+            candidate_dict.update({
+                "invitation_status": existing_candidate.invitation_status,
+                'interview_date': existing_candidate.interview_schedule.interview_date.isoformat() if existing_candidate.interview_schedule else None,
+                "interview_attendance": existing_candidate.attendance_status,
+                "interview_status": existing_candidate.initial_interview_status,
+            })
+        else:
+            candidate_dict.update({
+                "interview_date": None,
+                "interview_attendance": None,
+                "interview_status": None,
+            })
+
+        data.append(candidate_dict)
     return JsonResponse(data, safe=False)
+
 
 class CandidatesList(ListView):
     model = CandidateInitialInformation
