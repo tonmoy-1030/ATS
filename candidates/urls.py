@@ -20,7 +20,8 @@ from .views import (FileFieldFormView,
                     jobs_api
                     )
 from . import views
-
+from django.conf import settings
+from django.conf.urls.static import static
 
 app_name = 'candidates'
 
@@ -49,4 +50,4 @@ urlpatterns = [
     path("api/candidate/update/<int:candidate_id>/", views.update_candidate_status, name="update-candidate-status"),
     path("api/candidate/transfer/", views.transfer_candidate_for_another_job, name="transfer-candidate"),
     path("api/interview/candidates/", views.include_in_interview_schedule, name="include-in-interview-schedule"),
-]
+]+ static(settings.MEDIA_URL, document_root=settings.MEDIA_ROOT)
