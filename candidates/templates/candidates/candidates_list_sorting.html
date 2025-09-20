@@ -867,7 +867,7 @@ $(document).ready(function() {
             modal.find('.modal-body').html('<p>Loading resume...</p>');
             modal.addClass('modal-active');
             
-            const resumeEmbed = `<iframe src="/media/${candidate.resume}" frameborder="0"></iframe>`;
+           const resumeEmbed = `<iframe src="${candidate.resume}" frameborder="0" style="width:100%; height:600px;"></iframe>`;
             setTimeout(() => {
                 modal.find('.modal-body').html(resumeEmbed);
             }, 500);
