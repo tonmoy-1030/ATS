@@ -38,16 +38,15 @@ class EmployeeListView(ListView):
     paginate_by = 12
     template_name = 'employees/employees.html'
     context_object_name = 'employee_list'
-    
-    
+
     def get_queryset(self):
-        queryset = super().get_queryset()
-        filter = EmployeeFilter(self.request.GET, queryset=Employee.objects.all())
-        return filter.qs
-    
+        queryset = super().get_queryset().order_by("unit__short_name","EID")
+        self.filterset = EmployeeFilter(self.request.GET, queryset=queryset)
+        return self.filterset.qs
+
     def get_context_data(self, **kwargs):
         context = super().get_context_data(**kwargs)
-        context['filter'] = EmployeeFilter(self.request.GET, queryset=self.get_queryset())
+        context['filter'] = self.filterset
         return context
     
    
