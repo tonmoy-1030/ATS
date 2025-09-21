@@ -62,7 +62,7 @@ class EmployeeFilter(django_filters.FilterSet):
             Q(name__icontains=value) |
             Q(EID__icontains=value) |
             Q(designation__icontains=value) |
-            Q(mobile_no_icontains=value) 
+            Q(mobile_no__icontains=value) 
         )
 
     def __init__(self, *args, **kwargs):
