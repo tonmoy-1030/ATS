@@ -2,7 +2,7 @@ from django import forms
 from django_select2 import forms as s2forms
 from .models import Employee, SeperationStatus, EmployeeConfirmation, TransferOrder, PostingOrder, SalaryInfo, OfficialDocument, SalesOfficerLocation
 import django_filters
-
+from django.db.models import Q
 
 class UploadFileForm(forms.Form):
     file = forms.FileField()
@@ -48,9 +48,22 @@ class EmployeeEntryForm(forms.ModelForm):
  
  
 class EmployeeFilter(django_filters.FilterSet):
-    name = django_filters.CharFilter(lookup_expr='icontains', label="Name")
-    department = django_filters.CharFilter(lookup_expr='icontains', label='Department')
-    unit = django_filters.ChoiceFilter(choices=[], label='Unit')
+    search = django_filters.CharFilter(
+        method='filter_search', 
+        label='Search'
+    )
+    unit = django_filters.ChoiceFilter(choices=[], field_name='unit__id', label='Unit')
+
+    def filter_search(self, queryset, name, value):
+        """
+        Custom filter: search 'value' in name, EID, or designation
+        """
+        return queryset.filter(
+            Q(name__icontains=value) |
+            Q(EID__icontains=value) |
+            Q(designation__icontains=value) |
+            Q(mobile_no_icontains=value) 
+        )
 
     def __init__(self, *args, **kwargs):
         super().__init__(*args, **kwargs)
@@ -60,6 +73,10 @@ class EmployeeFilter(django_filters.FilterSet):
         unique_units = Employee.objects.values_list('unit__id', 'unit__name').distinct()
         choices = [(unit_id, unit_name) for (unit_id, unit_name) in unique_units]
         return choices
+
+    class Meta:
+        model = Employee
+        fields = ['search', 'unit']
     
 class SeparationFilter(django_filters.FilterSet):
     name = django_filters.CharFilter(field_name='employee__name',lookup_expr='icontains', label="Name")

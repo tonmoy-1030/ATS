@@ -31,7 +31,8 @@ from io import BytesIO
 from PIL import Image
 from django.core.cache import cache
 from .tasks import update_sales_officer_joining_date_task
-
+from django.db.models import IntegerField, F
+from django.db.models.functions import Cast, Substr, Length
 
 class EmployeeListView(ListView):
     model = Employee
@@ -40,9 +41,20 @@ class EmployeeListView(ListView):
     context_object_name = 'employee_list'
 
     def get_queryset(self):
-        queryset = super().get_queryset().order_by("unit__short_name","EID")
+        queryset = super().get_queryset()
+        unit_id = self.request.GET.get("unit")
+
+        if unit_id in ["3", "4"]:
+            # Take numeric part starting from position 6 (after "PCL-C" or "PCL-P")
+            queryset = queryset.annotate(
+                numeric_part=Cast(Substr("EID", 6), IntegerField())
+            ).order_by("numeric_part")
+        else:
+            queryset = queryset.order_by("unit__name", "EID")
+
         self.filterset = EmployeeFilter(self.request.GET, queryset=queryset)
         return self.filterset.qs
+
 
     def get_context_data(self, **kwargs):
         context = super().get_context_data(**kwargs)
