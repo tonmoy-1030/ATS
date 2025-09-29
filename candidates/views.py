@@ -767,7 +767,7 @@ class CandidatesList(ListView):
 
 def jobs_api(request):
     # Only jobs that have a Google Sheet linked
-    jobs = list(Job.objects.filter(google_sheet_id__isnull=False, open_status=True).values("id", "job_title", "department", "job_location", "unit__short_name"))
+    jobs = list(Job.objects.filter(google_sheet_id__isnull=False, open_status=True).distinct().values("id", "job_title", "department", "job_location", "unit__short_name"))
     return JsonResponse(jobs, safe=False)
 
 def update_candidate_status(request, candidate_id):
