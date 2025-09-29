@@ -724,6 +724,10 @@ def candidates_api(request, job_id):
             "highest_education_degree": candidate.highest_education_degree,
             "highest_education_degree_institution": candidate.highest_education_degree_institution,
             "professional_education_degree": candidate.professional_education_degree,
+            "total_experience": candidate.total_experience,
+            "current_designation": candidate.current_designation,
+            "current_organization": candidate.current_organization,
+            "current_location": candidate.current_location,
             "passing_year": candidate.passing_year,
             "experience": candidate.experience,
             "address": candidate.address,
@@ -763,7 +767,7 @@ class CandidatesList(ListView):
 
 def jobs_api(request):
     # Only jobs that have a Google Sheet linked
-    jobs = list(Job.objects.filter(google_sheet_id__isnull=False).values("id", "job_title", "department", "job_location", "unit__short_name"))
+    jobs = list(Job.objects.filter(google_sheet_id__isnull=False, open_status=True).values("id", "job_title", "department", "job_location", "unit__short_name"))
     return JsonResponse(jobs, safe=False)
 
 def update_candidate_status(request, candidate_id):

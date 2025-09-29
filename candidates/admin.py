@@ -25,13 +25,14 @@ class CandidatesDetailsAdmin(admin.ModelAdmin):
 
 @admin.register(CandidateInitialInformation)
 class CandidateInitialInformationAdmin(admin.ModelAdmin):
-    list_display = ('name', 'mobile_no', 'email', 'highest_education_degree', 'display_jobs')
+    list_display = ('name', 'mobile_no', 'email', 'highest_education_degree','current_designation','total_experience', 'current_organization','current_location', 'display_jobs')
     search_fields = ('name', 'mobile_no')
 
     
     @admin.display(description="Jobs Applied")
     def display_jobs(self, obj):
-        return obj.jobs.first().job_title
+        job = obj.jobs.first()
+        return job.job_title if job else "No Job"
     
 @admin.register(SpreadSheetTracker)
 class SpreadSheetTrackerAdmin(admin.ModelAdmin):

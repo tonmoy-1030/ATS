@@ -15,13 +15,21 @@ class CandidateInitialInformation(models.Model):
         passing_year = models.CharField(max_length=255, null=True, blank=True)
         experience = models.JSONField(null=True, blank=True)
         address = models.TextField(null=True, blank=True)
+        total_experience = models.CharField(max_length=255, null=True, blank=True)
+        current_designation= models.CharField(max_length=255, null=True, blank=True)
+        current_organization = models.CharField(max_length=255, null=True, blank=True)
+        current_location = models.CharField(max_length=255, null=True, blank=True)
         resume = models.FileField(upload_to='resumes/', null=True, blank=True)
         upload_date = models.DateTimeField(auto_now_add=True)
         status = models.CharField(choices=(('New', 'New'), ('shortlisted', 'shortlisted'), ('rejected', 'rejected')), max_length=20, default='New')
         jobs = models.ManyToManyField("jobs.Job",related_name="initial_applications", blank=True )
        
         def __str__(self):
-            return f'{self.name}-{self.mobile_no}-{self.jobs if self.jobs else "No Job"}'
+            try:
+                job = self.jobs.first() if hasattr(self, "jobs") else None
+                return f"{self.name}-{self.mobile_no}-{job.title if job else 'No Job'}"
+            except Exception as e:
+                return f"{self.name}-{self.mobile_no}-Error: {e}"
         
         # restrict duplicate entries based on name, mobile_no, and job
         class Meta:

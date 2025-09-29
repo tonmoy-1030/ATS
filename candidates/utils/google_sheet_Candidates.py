@@ -98,13 +98,11 @@ class CandidateGoogleSheet(BaseGoogleSheetAuthentication):
                 rows = values[self.Last_row:]
                 data_list = []
                 for row in rows:
-                    file_id = row[9].split("=", 1)[1]
                     data = {
                         headers[i]: (row[i] if i < len(row) else None)
                         for i in range(len(headers))
                     }
 
-                    data.update({"file_id": file_id})
                     data_list.append(data)
                 return data_list
 

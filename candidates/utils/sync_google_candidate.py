@@ -8,7 +8,7 @@ from .text_converter import TextConverter
 import logging
 
 TestConverter = TextConverter()
-
+logger = logging.getLogger(__name__)
 
 def Candidate_GoogleSheet_Data(sheet_id):
     # Fetch the Job object (only open jobs with Google Sheet ID)
@@ -28,6 +28,8 @@ def Candidate_GoogleSheet_Data(sheet_id):
     candidateInfo = CandidateGoogleSheet().get_candidate_data_google_sheet(
         spreadsheet_id=jobs.first().google_sheet_id, last_row=last_row
     )
+    
+    
 
     for data in candidateInfo:
         try:
@@ -39,25 +41,33 @@ def Candidate_GoogleSheet_Data(sheet_id):
                 )
             except phonenumbers.phonenumberutil.NumberParseException:
                 continue
+            
+            name = (data.get('Name') or "").strip()
+            if not name:
+                logger.warning(f"Skipping row {last_row + 1} — missing Name")
+                continue  # skip row if name is empty
 
-            # Check for duplicate candidate
             exists = CandidateInitialInformation.objects.filter(
-                name=data["Name "].title(), mobile_no=data["Mobile No."], jobs=job
+                name=name.title(),
+                mobile_no=data["Mobile No."],
+                jobs=job
             ).exists()
-
+            # Check for duplicate candidate
+            file_id = data['Upload Your Resume'].split("=", 1)[1]
             # Create candidate if not duplicate
             if not exists:
                 candidate = CandidateInitialInformation(
-                    name=data["Name "].title(),
+                    name=name.title(),
                     mobile_no=data["Mobile No."],
-                    resume=CandidateGoogleSheet().download_resume(
-                        file_id=data["file_id"]
-                    ),
-                )
-
+                    email=data.get('Email', ''),
+                    current_designation=data.get('Current Position', ''),
+                    current_organization=data.get('Current Organization', ''),
+                    current_location=data.get('Current Location (Work Place)', ''),
+                    total_experience=data.get('Total Experience (Years)', ''),
+                    resume=CandidateGoogleSheet().download_resume(file_id=file_id))
                 candidate.save()
                 candidate.jobs.add(*jobs)
-
+                
                 # Extract resume data
                 try:
                     if candidate.resume.path.endswith(".pdf"):
@@ -88,22 +98,15 @@ def Candidate_GoogleSheet_Data(sheet_id):
 
                 extracted_text = TextConverter.pdf_to_text(candidate.resume.path)
                 response = Resume_Date_As_JSON("\n".join(extracted_text))
-                candidate.email = response.get("Email")
-                candidate.highest_education_degree = response.get(
-                    "Highest_Educational_Degree"
-                )
-                candidate.highest_education_degree_institution = response.get(
-                    "Highest_Education_Degree_Institution"
-                )
+                candidate.highest_education_degree = response.get("Highest_Educational_Degree")
+                candidate.highest_education_degree_institution = response.get("Highest_Education_Degree_Institution")
                 candidate.passing_year = response.get("Passing_Year")
-                candidate.professional_education_degree = response.get(
-                    "Professional_Degree"
-                )
+                candidate.professional_education_degree = response.get("Professional_Degree")
                 candidate.experience = response.get("Experience")
                 candidate.address = response.get("Permanent_Address")
                 candidate.save()
             else:
-                print(f"Duplicate found: {data['Name ']}, {data['Mobile No.']}")
+                print(f"Duplicate found: {data['Name']}, {data['Mobile No.']}")
 
         except Exception as e:
             print(f"{e} on row {last_row + 1}")
