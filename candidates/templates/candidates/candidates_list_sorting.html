@@ -139,6 +139,48 @@
         box-shadow: 0 1px 2px rgba(0, 0, 0, 0.05);
     }
 
+    /* Multi-select Dropdown */
+    .multi-select-container { 
+        position: relative; 
+        display: inline-block; 
+        min-width: 220px;
+    }
+    .multi-select-button {
+        padding: 10px 16px;
+        border: 1px solid #d1d5db;
+        border-radius: 8px;
+        font-size: 14px;
+        color: #374151;
+        background: white;
+        width: 100%;
+        cursor: pointer;
+        text-align: left;
+        display: block;
+    }
+    .checkbox-container {
+        display: none;
+        position: absolute;
+        background-color: white;
+        width: 100%;
+        box-shadow: 0px 8px 16px 0px rgba(0,0,0,0.2);
+        z-index: 10;
+        border: 1px solid #e2e8f0;
+        border-radius: 8px;
+        max-height: 250px;
+        overflow-y: auto;
+        padding: 8px 0;
+    }
+    .checkbox-container label {
+        display: block;
+        padding: 8px 16px;
+        cursor: pointer;
+        font-size: 14px;
+        white-space: nowrap;
+    }
+    .checkbox-container label:hover { background-color: #f1f5f9; }
+    .checkbox-container input { margin-right: 8px; vertical-align: middle; }
+
+
     /* Search Box */
     .search-box {
         position: relative;
@@ -585,10 +627,13 @@
                 </select>
             </div>
             <div class="location-selector">
-                <label for="locationSelect">Location:</label>
-                <select id="locationSelect">
-                    <option value="all">All Locations</option>
-                </select>
+                <label>Location:</label>
+                <div class="multi-select-container">
+                    <button id="locationMultiSelectButton" class="multi-select-button">All Locations</button>
+                    <div id="locationCheckboxes" class="checkbox-container">
+                        <!-- Location checkboxes will be populated here -->
+                    </div>
+                </div>
             </div>
             <div class="status-filters">
                 <button class="filter-btn active" data-status="all">All</button>
@@ -670,8 +715,8 @@
 <script src="https://code.jquery.com/jquery-3.7.0.min.js"></script>
 <script>
 $(document).ready(function() {
-    let allCandidates = []; // This will hold the master list from all jobs
-    let displayedCandidates = []; // This holds the list currently being shown/filtered
+    let allCandidates = []; // This holds the list for the current view (all or single job)
+    let displayedCandidates = []; // This holds the list after client-side filters are applied
     let allJobs = [];
     
     // --- Toast Notification Logic ---
@@ -687,8 +732,7 @@ $(document).ready(function() {
             allJobs = jobs;
             populateJobFilter();
         });
-        // Initially load all candidates
-        fetchCandidates();
+        fetchCandidates(); // Initially load all candidates
     }
 
     function fetchCandidates(jobId = null) {
@@ -696,7 +740,7 @@ $(document).ready(function() {
         $('#emptyState').html('<h3>Loading candidates...</h3>').show();
         
         $.get(url).done(candidates => {
-            allCandidates = candidates; // This is our source of truth for current view
+            allCandidates = candidates;
             if (!jobId) { // Only repopulate location filter when showing all candidates
                 populateLocationFilter();
             }
@@ -715,19 +759,21 @@ $(document).ready(function() {
     }
 
     function populateLocationFilter() {
-        const locationSelect = $("#locationSelect");
-        locationSelect.html('<option value="all">All Locations</option>');
+        const locationContainer = $("#locationCheckboxes");
+        locationContainer.html(''); // Clear previous options
         const locations = [...new Set(allCandidates.map(c => c.current_location).filter(Boolean))].sort();
-        locations.forEach(location => locationSelect.append(`<option value="${location}">${location}</option>`));
+        locations.forEach(location => {
+            const checkboxHTML = `<label><input type="checkbox" class="location-checkbox" value="${location}"> ${location}</label>`;
+            locationContainer.append(checkboxHTML);
+        });
     }
 
     // --- Event Handlers ---
     $('#jobSelect').change(function() {
-        const jobId = $(this).val();
-        fetchCandidates(jobId);
+        fetchCandidates($(this).val());
     });
 
-    $("#locationSelect, #searchInput").on('change input', applyFilters);
+    $("#searchInput").on('input', applyFilters);
 
     $(".filter-btn").click(function() {
         $(".filter-btn").removeClass("active");
@@ -735,14 +781,32 @@ $(document).ready(function() {
         applyFilters();
     });
     
+    $('#locationMultiSelectButton').on('click', e => {
+        e.stopPropagation();
+        $('#locationCheckboxes').toggle();
+    });
+
+    $(document).on('change', '.location-checkbox', function() {
+        const selectedLocations = $('.location-checkbox:checked').map((_, el) => $(el).val()).get();
+        const buttonText = selectedLocations.length > 0 ? `${selectedLocations.length} location(s) selected` : 'All Locations';
+        $('#locationMultiSelectButton').text(buttonText);
+        applyFilters();
+    });
+
+    $(document).on('click', e => {
+        if (!$('.multi-select-container').is(e.target) && $('.multi-select-container').has(e.target).length === 0) {
+            $('#locationCheckboxes').hide();
+        }
+    });
+
     // --- Main Filtering and Rendering Logic ---
     function applyFilters() {
-        const locationFilter = $("#locationSelect").val();
+        const selectedLocations = $('.location-checkbox:checked').map((_, el) => $(el).val()).get();
         const statusFilter = $(".filter-btn.active").data("status");
         const searchQuery = $("#searchInput").val().toLowerCase();
 
         displayedCandidates = allCandidates.filter(c => {
-            const locationMatch = locationFilter === 'all' || c.current_location === locationFilter;
+            const locationMatch = selectedLocations.length === 0 || (c.current_location && selectedLocations.includes(c.current_location));
             const statusMatch = statusFilter === 'all' || c.status === statusFilter;
             const searchMatch = searchQuery === "" ||
                 (c.name && c.name.toLowerCase().includes(searchQuery)) ||
@@ -763,19 +827,16 @@ $(document).ready(function() {
         const emptyState = $('#emptyState');
         tableBody.html('');
 
-        // --- Sorting Logic ---
         const statusOrder = { "New": 0, "Shortlisted": 1, "Rejected": 2 };
         displayedCandidates.sort((a, b) => {
             const orderA = statusOrder[a.status] ?? 3;
             const orderB = statusOrder[b.status] ?? 3;
             if (orderA !== orderB) return orderA - orderB;
-            return new Date(b.upload_date) - new Date(a.upload_date); // Secondary sort by date
+            return new Date(b.upload_date) - new Date(a.upload_date);
         });
 
         if (displayedCandidates.length === 0) {
-            emptyState.html(allCandidates.length === 0 
-                ? '<h3>No candidates for this job.</h3>' 
-                : '<h3>No candidates match your filters.</h3><p>Try adjusting your search criteria.</p>').show();
+            emptyState.html(allCandidates.length === 0 ? '<h3>No candidates for this job.</h3>' : '<h3>No candidates match your filters.</h3><p>Try adjusting your search criteria.</p>').show();
         } else {
             emptyState.hide();
         }
@@ -853,7 +914,7 @@ $(document).ready(function() {
     // --- Resume Modal Logic ---
     $(document).on("click", ".btn-resume", function() {
         const candidateId = $(this).data("candidate-id");
-        const candidate = allCandidates.find(c => c.id === candidateId);
+        const candidate = allCandidates.find(c => c.id === candidateId) || displayedCandidates.find(c => c.id === candidateId);
         if (candidate && candidate.resume) {
             const modal = $('#resumeModal');
             modal.find('#resumeCandidateName').text(`${candidate.name}'s Resume`);
@@ -870,7 +931,7 @@ $(document).ready(function() {
     // --- Transfer Modal Logic ---
     $(document).on("click", ".btn-transfer", function() {
         const candidateId = $(this).data("candidate-id");
-        const candidate = allCandidates.find(c => c.id === candidateId);
+        const candidate = allCandidates.find(c => c.id === candidateId) || displayedCandidates.find(c => c.id === candidateId);
         if (candidate) {
             const modal = $('#transferModal');
             modal.find('#transferCandidateName').text(`Transfer ${candidate.name}`);
@@ -907,7 +968,6 @@ $(document).ready(function() {
                 showToast(`Successfully transferred candidate.`, "success");
                 $('#transferModal').removeClass('modal-active');
                 
-                // Refresh data for the current view
                 const currentJobId = $("#jobSelect").val();
                 fetchCandidates(currentJobId);
             } else {
