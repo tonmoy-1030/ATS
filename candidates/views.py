@@ -755,6 +755,71 @@ def candidates_api(request, job_id):
     return JsonResponse(data, safe=False)
 
 
+def all_candidates_api(request):
+    """Return all CandidateInitialInformation records as JSON.
+
+    Kept lightweight: returns similar fields as `candidates_api` but for all jobs
+    and supports optional 'status' filter via query params.
+    """
+    try:
+        candidates = CandidateInitialInformation.objects.all().distinct().order_by(
+            Case(
+                When(status="New", then=Value(0)),
+                default=Value(1),
+                output_field=IntegerField(),
+            ),
+            "-upload_date",
+        )
+
+        status = request.GET.get("status")
+        if status:
+            candidates = candidates.filter(status=status)
+
+        data = []
+        for candidate in candidates:
+            candidate_dict = {
+                "id": candidate.id,
+                "name": candidate.name,
+                "mobile_no": candidate.mobile_no,
+                "email": candidate.email,
+                "highest_education_degree": candidate.highest_education_degree,
+                "highest_education_degree_institution": candidate.highest_education_degree_institution,
+                "professional_education_degree": candidate.professional_education_degree,
+                "total_experience": candidate.total_experience,
+                "current_designation": candidate.current_designation,
+                "current_organization": candidate.current_organization,
+                "current_location": candidate.current_location,
+                "passing_year": candidate.passing_year,
+                "experience": candidate.experience,
+                "address": candidate.address,
+                "resume": candidate.resume.url if candidate.resume else None,
+                "upload_date": candidate.upload_date.isoformat() if getattr(candidate, 'upload_date', None) else None,
+                "jobs": list(candidate.jobs.values_list('id', flat=True)) if hasattr(candidate, 'jobs') else [],
+                "status": candidate.status,
+            }
+
+            existing_candidate = Candidate.objects.filter(mobile=candidate.mobile_no).first()
+            if existing_candidate:
+                candidate_dict.update({
+                    "invitation_status": existing_candidate.invitation_status,
+                    'interview_date': existing_candidate.interview_schedule.interview_date.isoformat() if existing_candidate.interview_schedule else None,
+                    "interview_attendance": existing_candidate.attendance_status,
+                    "interview_status": existing_candidate.initial_interview_status,
+                })
+            else:
+                candidate_dict.update({
+                    "interview_date": None,
+                    "interview_attendance": None,
+                    "interview_status": None,
+                })
+
+            data.append(candidate_dict)
+    except Exception as e:
+        return JsonResponse([{"error": f"an error occurred: {e}"}], safe=False)
+
+    return JsonResponse(data, safe=False)
+
+
 class CandidatesList(ListView):
     model = CandidateInitialInformation
     template_name = "candidates/candidates_list_sorting.html"

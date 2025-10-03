@@ -77,16 +77,17 @@
         flex-wrap: wrap;
     }
 
-    .job-selector {
+    .job-selector, .location-selector {
         display: flex;
         align-items: center;
         gap: 12px;
     }
 
-    .job-selector label {
+    .job-selector label, .location-selector label {
         font-weight: 500;
         color: #374151;
         font-size: 14px;
+        white-space: nowrap;
     }
 
     select {
@@ -237,6 +238,13 @@
         gap: 12px;
     }
 
+    .current-experience div {
+        line-height: 1.5;
+    }
+    .current-experience strong {
+        color: #374151;
+    }
+
     .experience-item { display: block; }
     .company { font-weight: 600; color: #1e293b; font-size: 14px; }
     .position { color: #64748b; font-size: 13px; margin-top: 2px; }
@@ -287,7 +295,6 @@
     .badge-selected { background-color: #dbeafe; color: #1e40af; }
     .badge-rejected-interview { background-color: #e5e7eb; color: #4b5563; }
 
-
     /* Action Buttons */
     .actions {
         display: flex;
@@ -307,8 +314,8 @@
         letter-spacing: 0.025em;
     }
 
-    .btn-view { background: #f8fafc; color: #475569; border-color: #e2e8f0; }
-    .btn-view:hover { background: #f1f5f9; border-color: #cbd5e1; }
+    .btn-resume { background: #f8fafc; color: #475569; border-color: #e2e8f0; }
+    .btn-resume:hover { background: #f1f5f9; border-color: #cbd5e1; }
     .btn-transfer { background: #3b82f6; color: white; }
     .btn-transfer:hover { background: #2563eb; }
     .btn-shortlist { background: #16a34a; color: white; }
@@ -574,7 +581,13 @@
             <div class="job-selector">
                 <label for="jobSelect">Position:</label>
                 <select id="jobSelect">
-                    <option value="">-- Select a Job --</option>
+                    <option value="">All Jobs</option>
+                </select>
+            </div>
+            <div class="location-selector">
+                <label for="locationSelect">Location:</label>
+                <select id="locationSelect">
+                    <option value="all">All Locations</option>
                 </select>
             </div>
             <div class="status-filters">
@@ -596,9 +609,9 @@
             <thead>
                 <tr>
                     <th>Candidate Information</th>
-                    <th>Education</th>
-                    <th>Professional Background</th>
-                    <th>Experience</th>
+                    <th>Education & Professional</th>
+                    <th>Current Experience</th>
+                    <th>Previous Experience</th>
                     <th>Status</th>
                     <th>Actions</th>
                 </tr>
@@ -608,8 +621,7 @@
             </tbody>
         </table>
         <div id="emptyState" class="empty-state">
-            <h3>Select a job to view candidates</h3>
-            <p>Once you select a job, applications will appear here.</p>
+            <h3>Loading candidates...</h3>
         </div>
     </div>
 </div>
@@ -658,167 +670,157 @@
 <script src="https://code.jquery.com/jquery-3.7.0.min.js"></script>
 <script>
 $(document).ready(function() {
-    let allCandidates = [];
+    let allCandidates = []; // This will hold the master list from all jobs
+    let displayedCandidates = []; // This holds the list currently being shown/filtered
     let allJobs = [];
-    let currentStatusFilter = 'all';
-    let currentSearchQuery = '';
-
+    
     // --- Toast Notification Logic ---
     function showToast(message, type = 'success') {
         const toast = $('#toast-notification');
         toast.text(message).removeClass('success error').addClass(type).addClass('show');
-        setTimeout(() => {
-            toast.removeClass('show');
-        }, 3000);
+        setTimeout(() => toast.removeClass('show'), 3000);
     }
 
-    // Load jobs for dropdown
-    $.get("/api/jobs/", function(data) {
-        allJobs = data;
-        data.forEach(job => {
-            $("#jobSelect").append(`<option value="${job.id}">${job.job_title} - ${job.unit__short_name || 'N/A'}</option>`);
+    // --- Data Loading ---
+    function loadInitialData() {
+        $.get("{% url 'candidates:jobs-api' %}").done(jobs => {
+            allJobs = jobs;
+            populateJobFilter();
         });
+        // Initially load all candidates
+        fetchCandidates();
+    }
+
+    function fetchCandidates(jobId = null) {
+        const url = jobId ? `/api/candidates/${jobId}/` : "{% url 'candidates:all_candidates_api' %}";
+        $('#emptyState').html('<h3>Loading candidates...</h3>').show();
+        
+        $.get(url).done(candidates => {
+            allCandidates = candidates; // This is our source of truth for current view
+            if (!jobId) { // Only repopulate location filter when showing all candidates
+                populateLocationFilter();
+            }
+            applyFilters();
+        }).fail(error => {
+            console.error("Failed to load candidate data", error);
+            $('#emptyState').html('<h3>Failed to load candidate data</h3><p>Please try refreshing the page.</p>').show();
+        });
+    }
+
+    function populateJobFilter() {
+        const jobSelect = $("#jobSelect");
+        allJobs.forEach(job => {
+            jobSelect.append(`<option value="${job.id}">${job.job_title} - ${job.unit__short_name || 'N/A'}</option>`);
+        });
+    }
+
+    function populateLocationFilter() {
+        const locationSelect = $("#locationSelect");
+        locationSelect.html('<option value="all">All Locations</option>');
+        const locations = [...new Set(allCandidates.map(c => c.current_location).filter(Boolean))].sort();
+        locations.forEach(location => locationSelect.append(`<option value="${location}">${location}</option>`));
+    }
+
+    // --- Event Handlers ---
+    $('#jobSelect').change(function() {
+        const jobId = $(this).val();
+        fetchCandidates(jobId);
     });
 
-    // Load candidates when a job is selected
-    $("#jobSelect").change(function() {
-        let selectedJob = $(this).val();
-        if (!selectedJob) {
-            allCandidates = [];
-            renderFilteredCandidates();
-            return;
-        }
+    $("#locationSelect, #searchInput").on('change input', applyFilters);
 
-        $.get(`/api/candidates/${selectedJob}/`, function(data) {
-            allCandidates = data;
-            renderFilteredCandidates();
-        });
-    });
-
-    // Handle status filter clicks
     $(".filter-btn").click(function() {
-        currentStatusFilter = $(this).data("status");
         $(".filter-btn").removeClass("active");
         $(this).addClass("active");
-        renderFilteredCandidates();
+        applyFilters();
     });
+    
+    // --- Main Filtering and Rendering Logic ---
+    function applyFilters() {
+        const locationFilter = $("#locationSelect").val();
+        const statusFilter = $(".filter-btn.active").data("status");
+        const searchQuery = $("#searchInput").val().toLowerCase();
 
-    // Handle search input
-    $("#searchInput").on('input', function() {
-        currentSearchQuery = $(this).val().toLowerCase();
-        renderFilteredCandidates();
-    });
+        displayedCandidates = allCandidates.filter(c => {
+            const locationMatch = locationFilter === 'all' || c.current_location === locationFilter;
+            const statusMatch = statusFilter === 'all' || c.status === statusFilter;
+            const searchMatch = searchQuery === "" ||
+                (c.name && c.name.toLowerCase().includes(searchQuery)) ||
+                (c.email && c.email.toLowerCase().includes(searchQuery)) ||
+                (c.mobile_no && c.mobile_no.includes(searchQuery)) ||
+                (c.current_organization && c.current_organization.toLowerCase().includes(searchQuery)) ||
+                (c.current_designation && c.current_designation.toLowerCase().includes(searchQuery)) ||
+                (c.current_location && c.current_location.toLowerCase().includes(searchQuery));
+            
+            return locationMatch && statusMatch && searchMatch;
+        });
+        
+        renderTable();
+    }
 
-    // Main function to render candidates based on filters
-    function renderFilteredCandidates() {
+    function renderTable() {
         const tableBody = $('#candidatesTable');
         const emptyState = $('#emptyState');
         tableBody.html('');
 
-            const filteredCandidates = allCandidates.filter(c => {
-            const query = currentSearchQuery.toLowerCase();
+        // --- Sorting Logic ---
+        const statusOrder = { "New": 0, "Shortlisted": 1, "Rejected": 2 };
+        displayedCandidates.sort((a, b) => {
+            const orderA = statusOrder[a.status] ?? 3;
+            const orderB = statusOrder[b.status] ?? 3;
+            if (orderA !== orderB) return orderA - orderB;
+            return new Date(b.upload_date) - new Date(a.upload_date); // Secondary sort by date
+        });
 
-            const statusMatch =
-                currentStatusFilter === "all" || c.status === currentStatusFilter;
-
-            const searchMatch =
-                query === "" ||
-                (c.name && c.name.toLowerCase().includes(query)) ||
-                (c.email && c.email.toLowerCase().includes(query)) ||
-                (c.mobile_no && c.mobile_no.toLowerCase().includes(query)) ||
-                (c.experience &&
-                c.experience.some(
-                    exp =>
-                    (exp.Company && exp.Company.toLowerCase().includes(query)) ||
-                    (exp.Position && exp.Position.toLowerCase().includes(query))
-                ));
-
-            return statusMatch && searchMatch;
-            });
-        
-        if (allCandidates.length === 0) {
-             emptyState.html('<h3>Select a job to view candidates</h3><p>Once you select a job, applications will appear here.</p>').show();
-        } else if (filteredCandidates.length === 0) {
-            emptyState.html('<h3>No candidates found</h3><p>Try adjusting your filters or search criteria.</p>').show();
+        if (displayedCandidates.length === 0) {
+            emptyState.html(allCandidates.length === 0 
+                ? '<h3>No candidates for this job.</h3>' 
+                : '<h3>No candidates match your filters.</h3><p>Try adjusting your search criteria.</p>').show();
         } else {
             emptyState.hide();
         }
 
-        filteredCandidates.forEach(c => {
+        displayedCandidates.forEach(c => {
             const experienceHTML = (c.experience && Array.isArray(c.experience) && c.experience.length > 0)
-                ? c.experience.map(exp => `
-                    <div class="experience-item">
-                        <div class="company">${exp.Company}</div>
-                        <div class="position">${exp.Position}</div>
-                        <div class="duration">${exp.Duration}</div>
-                    </div>
-                `).join('')
+                ? c.experience.map(exp => `<div class="experience-item"><div class="company">${exp.Company}</div><div class="position">${exp.Position}</div><div class="duration">${exp.Duration}</div></div>`).join('') 
                 : 'Not specified';
 
             let actionButtonsHTML = '';
             if (c.status === 'New') {
-                actionButtonsHTML = `
-                    <button class="action-btn btn-shortlist change-status" data-status="Shortlisted">Shortlist</button>
-                    <button class="action-btn btn-reject change-status" data-status="Rejected">Reject</button>
-                `;
+                actionButtonsHTML = `<button class="action-btn btn-shortlist change-status" data-status="Shortlisted">Shortlist</button> <button class="action-btn btn-reject change-status" data-status="Rejected">Reject</button>`;
             } else if (c.status === 'Shortlisted') {
                 actionButtonsHTML = `<button class="action-btn btn-reject change-status" data-status="Rejected">Reject</button>`;
             } else if (c.status === 'Rejected') {
                 actionButtonsHTML = `<button class="action-btn btn-shortlist change-status" data-status="Shortlisted">Shortlist</button>`;
             }
 
-            // --- New Interview Info Logic ---
             let interviewInfoHTML = '';
             if (c.interview_date) {
                 const interviewDate = new Date(c.interview_date).toLocaleDateString("en-GB", { day: '2-digit', month: 'short', year: 'numeric' });
-                
-                let attendanceBadgeClass = '';
-                if (c.interview_attendance === 'Present') attendanceBadgeClass = 'badge-present';
-                else if (c.interview_attendance === 'Absent') attendanceBadgeClass = 'badge-absent';
-
-                let statusBadgeClass = '';
-                if (c.interview_status === 'Selected') statusBadgeClass = 'badge-selected';
-                else if (c.interview_status === 'Rejected') statusBadgeClass = 'badge-rejected-interview';
-
+                const attendanceBadgeClass = c.interview_attendance === 'Present' ? 'badge-present' : 'badge-absent';
+                const statusBadgeClass = c.interview_status === 'Selected' ? 'badge-selected' : 'badge-rejected-interview';
                 interviewInfoHTML = `
                     <div class="previous-interview-info">
-                        Previously Interviewed: 
-                        <span class="date">${interviewDate}</span>
+                        Previously Interviewed: <span class="date">${interviewDate}</span>
                         ${c.interview_attendance ? `<span class="interview-badge ${attendanceBadgeClass}">${c.interview_attendance}</span>` : ''}
                         ${c.interview_status ? `<span class="interview-badge ${statusBadgeClass}">${c.interview_status}</span>` : ''}
-                    </div>
-                `;
+                    </div>`;
             }
 
             const row = `
                 <tr data-id="${c.id}">
-                    <td>
-                        <div class="name">${c.name}</div>
-                        <div class="email">${c.email}</div>
-                        <div class="mobile">${c.mobile_no || ''}</div>
+                    <td><div class="name">${c.name}</div><div class="email">${c.email}</div><div class="mobile">${c.mobile_no || ''}</div></td>
+                    <td><div class="education"><strong>Highest:</strong> ${c.highest_education_degree || 'N/A'}</div><div class="degree"><strong>Professional:</strong> ${c.professional_education_degree || 'N/A'}</div></td>
+                    <td class="current-experience">
+                        <div><strong>Org:</strong> ${c.current_organization || 'N/A'}</div>
+                        <div><strong>Pos:</strong> ${c.current_designation || 'N/A'}</div>
+                        <div><strong>Exp:</strong> ${c.total_experience || 'N/A'}</div>
+                        <div><strong>Loc:</strong> ${c.current_location || 'N/A'}</div>
                     </td>
-                    <td>
-                        <div class="education">${c.highest_education_degree}</div>
-                    </td>
-                    <td>
-                        <div class="degree">${c.professional_education_degree}</div>
-                    </td>
-                    <td class="experience-list">
-                        ${experienceHTML}
-                    </td>
-                    <td>
-                        <span class="status status-${c.status}">${c.status}</span>
-                        ${interviewInfoHTML}
-                    </td>
-                    <td>
-                        <div class="actions">
-                            <button class="action-btn btn-view" data-candidate-id="${c.id}">View</button>
-                            <button class="action-btn btn-transfer" data-candidate-id="${c.id}">Transfer</button>
-                            ${actionButtonsHTML}
-                        </div>
-                    </td>
-                </tr>
-            `;
+                    <td class="experience-list">${experienceHTML}</td>
+                    <td><span class="status status-${c.status}">${c.status}</span>${interviewInfoHTML}</td>
+                    <td><div class="actions"><button class="action-btn btn-resume" data-candidate-id="${c.id}">Resume</button><button class="action-btn btn-transfer" data-candidate-id="${c.id}">Transfer</button>${actionButtonsHTML}</div></td>
+                </tr>`;
             tableBody.append(row);
         });
         updateStats();
@@ -826,8 +828,7 @@ $(document).ready(function() {
     
     // Update candidate status on the server
     $(document).on("click", ".change-status", function() {
-        const tr = $(this).closest("tr");
-        const candidateId = tr.data("id");
+        const candidateId = $(this).closest("tr").data("id");
         const newStatus = $(this).data("status");
 
         $.post(`/api/candidate/update/${candidateId}/`, {
@@ -835,42 +836,34 @@ $(document).ready(function() {
             csrfmiddlewaretoken: '{{ csrf_token }}'
         }, function(resp) {
             if (resp.success) {
-                const candidate = allCandidates.find(c => c.id === candidateId);
-                if (candidate) {
-                    candidate.status = resp.new_status;
-                }
-                renderFilteredCandidates();
+                const candidate = allCandidates.find(c => c.id === parseInt(candidateId));
+                if (candidate) candidate.status = resp.new_status;
+                applyFilters();
             }
         });
     });
 
     function updateStats() {
-        const total = allCandidates.length;
-        const newCount = allCandidates.filter(c => c.status === 'New').length;
-        const shortlisted = allCandidates.filter(c => c.status === 'Shortlisted').length;
-        const rejected = allCandidates.filter(c => c.status === 'Rejected').length;
-
-        $('#totalCandidates').text(total);
-        $('#newCandidates').text(newCount);
-        $('#shortlistedCandidates').text(shortlisted);
-        $('#rejectedCandidates').text(rejected);
+        $('#totalCandidates').text(displayedCandidates.length);
+        $('#newCandidates').text(displayedCandidates.filter(c => c.status === 'New').length);
+        $('#shortlistedCandidates').text(displayedCandidates.filter(c => c.status === 'Shortlisted').length);
+        $('#rejectedCandidates').text(displayedCandidates.filter(c => c.status === 'Rejected').length);
     }
     
     // --- Resume Modal Logic ---
-    $(document).on("click", ".btn-view", function() {
+    $(document).on("click", ".btn-resume", function() {
         const candidateId = $(this).data("candidate-id");
         const candidate = allCandidates.find(c => c.id === candidateId);
-
-        if (candidate) {
+        if (candidate && candidate.resume) {
             const modal = $('#resumeModal');
             modal.find('#resumeCandidateName').text(`${candidate.name}'s Resume`);
             modal.find('.modal-body').html('<p>Loading resume...</p>');
             modal.addClass('modal-active');
             
-           const resumeEmbed = `<iframe src="${candidate.resume}" frameborder="0" style="width:100%; height:600px;"></iframe>`;
-            setTimeout(() => {
-                modal.find('.modal-body').html(resumeEmbed);
-            }, 500);
+            const resumeEmbed = `<iframe src="${candidate.resume}" frameborder="0"></iframe>`;
+            setTimeout(() => modal.find('.modal-body').html(resumeEmbed), 500);
+        } else {
+            showToast("Resume not available for this candidate.", "error");
         }
     });
 
@@ -878,92 +871,51 @@ $(document).ready(function() {
     $(document).on("click", ".btn-transfer", function() {
         const candidateId = $(this).data("candidate-id");
         const candidate = allCandidates.find(c => c.id === candidateId);
-        const currentJobId = $("#jobSelect").val();
-
         if (candidate) {
             const modal = $('#transferModal');
             modal.find('#transferCandidateName').text(`Transfer ${candidate.name}`);
             modal.find('#transferCandidateId').val(candidateId);
-
-            const jobCheckboxesContainer = modal.find('#transferJobCheckboxes');
-            jobCheckboxesContainer.html(''); // Reset
-
-            const tableHTML = `
-                <table class="job-transfer-table">
-                    <thead>
-                        <tr>
-                            <th style="width: 40px;"></th>
-                            <th>Job Title</th>
-                            <th>Department</th>
-                            <th>Location</th>
-                            <th>Unit</th>
-                        </tr>
-                    </thead>
-                    <tbody></tbody>
-                </table>
-            `;
-            jobCheckboxesContainer.html(tableHTML);
-            const tableBody = jobCheckboxesContainer.find('tbody');
+            
+            const tableBody = modal.find('#transferJobCheckboxes').html('<table class="job-transfer-table"><thead><tr><th style="width: 40px;"></th><th>Job Title</th><th>Unit</th></tr></thead><tbody></tbody></table>').find('tbody');
 
             allJobs.forEach(job => {
-                if (job.id.toString() !== currentJobId) {
-                    const jobRowHTML = `
-                        <tr class="job-item-row">
-                            <td><input type="checkbox" value="${job.id}"></td>
-                            <td>${job.job_title}</td>
-                            <td>${job.department || 'N/A'}</td>
-                            <td>${job.job_location || 'N/A'}</td>
-                            <td>${job.unit__short_name || 'N/A'}</td>
-                        </tr>
-                    `;
-                    tableBody.append(jobRowHTML);
+                if (!candidate.jobs || !candidate.jobs.includes(job.id)) {
+                     tableBody.append(`<tr class="job-item-row"><td><input type="checkbox" value="${job.id}"></td><td>${job.job_title}</td><td>${job.unit__short_name || 'N/A'}</td></tr>`);
                 }
             });
-            
             modal.addClass('modal-active');
         }
     });
 
     $("#confirmTransferBtn").click(function() {
         const candidateId = $("#transferCandidateId").val();
-        const selectedJobIds = $('#transferJobCheckboxes input:checked').map(function() {
-            return $(this).val();
-        }).get();
+        const selectedJobIds = $('#transferJobCheckboxes input:checked').map(function() { return $(this).val(); }).get();
 
         if (selectedJobIds.length === 0) {
             showToast("Please select at least one job.", "error");
             return;
         }
 
-        const transferPromises = selectedJobIds.map(jobId => {
-            return $.post(`/api/candidate/transfer/`, {
-                candidate_id: candidateId,
-                job_id: jobId,
-                csrfmiddlewaretoken: '{{ csrf_token }}'
-            });
-        });
+        const transferPromises = selectedJobIds.map(jobId => $.post(`/api/candidate/transfer/`, {
+            candidate_id: candidateId,
+            job_id: jobId,
+            csrfmiddlewaretoken: '{{ csrf_token }}'
+        }));
 
-        Promise.all(transferPromises)
-            .then(responses => {
-                const allSuccess = responses.every(resp => resp.success);
-                if (allSuccess) {
-                    showToast(`Successfully transferred candidate to ${responses.length} job(s).`, "success");
-                    $('#transferModal').removeClass('modal-active');
-                    
-                    allCandidates = allCandidates.filter(c => c.id.toString() !== candidateId);
-                    renderFilteredCandidates();
-                } else {
-                    showToast("Some transfers failed. Please check the console.", "error");
-                    console.error("Failed responses:", responses.filter(r => !r.success));
-                }
-            })
-            .catch(error => {
-                showToast("An error occurred during the transfer.", "error");
-                console.error("Transfer error:", error);
-            });
+        Promise.all(transferPromises).then(responses => {
+            if (responses.every(resp => resp.success)) {
+                showToast(`Successfully transferred candidate.`, "success");
+                $('#transferModal').removeClass('modal-active');
+                
+                // Refresh data for the current view
+                const currentJobId = $("#jobSelect").val();
+                fetchCandidates(currentJobId);
+            } else {
+                showToast("Some transfers failed.", "error");
+            }
+        }).catch(error => showToast("An error occurred during transfer.", "error"));
     });
 
-    // Makes table rows in transfer modal clickable
     $(document).on('click', '.job-item-row', function(e) {
         if (e.target.type !== 'checkbox') {
             const checkbox = $(this).find('input[type="checkbox"]');
@@ -971,28 +923,18 @@ $(document).ready(function() {
         }
     });
 
-    // General Modal Closing Logic
     function closeModal(modal) {
         modal.removeClass('modal-active');
-        setTimeout(() => {
-            if(modal.attr('id') === 'resumeModal'){
-                 modal.find('.modal-body').html('');
-            }
-        }, 300);
+        if(modal.attr('id') === 'resumeModal') {
+            setTimeout(() => modal.find('.modal-body').html(''), 300);
+        }
     }
 
-    $(document).on("click", ".close-modal", function() {
-        closeModal($(this).closest('.modal-overlay'));
-    });
-    
-    $('.modal-overlay').on('click', function(e) {
-        if (e.target === this) {
-            closeModal($(this));
-        }
-    });
+    $(document).on("click", ".close-modal", function() { closeModal($(this).closest('.modal-overlay')); });
+    $('.modal-overlay').on('click', function(e) { if (e.target === this) closeModal($(this)); });
 
-    // Initial render
-    renderFilteredCandidates();
+    // --- Initial Load ---
+    loadInitialData();
 });
 </script>
 

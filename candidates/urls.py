@@ -47,6 +47,7 @@ urlpatterns = [
     path('candidates/', CandidatesList.as_view(), name='candidate_list'),
     path("api/jobs/", jobs_api, name="jobs-api"),
     path("api/candidates/<int:job_id>/", views.candidates_api, name="candidates-api"),
+    path("api/candidates/", views.all_candidates_api, name="all_candidates_api"),
     path("api/candidate/update/<int:candidate_id>/", views.update_candidate_status, name="update-candidate-status"),
     path("api/candidate/transfer/", views.transfer_candidate_for_another_job, name="transfer-candidate"),
     path("api/interview/candidates/", views.include_in_interview_schedule, name="include-in-interview-schedule"),
