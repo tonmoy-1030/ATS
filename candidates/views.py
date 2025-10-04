@@ -816,7 +816,6 @@ def all_candidates_api(request):
                 })
 
             data.append(candidate_dict)
-        print(data)
     except Exception as e:
         return JsonResponse([{"error": f"an error occurred: {e}"}], safe=False)
 
