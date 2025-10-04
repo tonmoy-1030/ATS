@@ -177,9 +177,12 @@
                                         <th><input type="checkbox" id="selectAllCandidates"></th>
                                         <th>Name</th>
                                         <th>Mobile</th>
-                                        <th>Email</th>
                                         <th>Status</th>
-                                        <th>Original Job</th>
+                                        <th>Job</th>
+                                        <th>Interview Date</th>
+                                        <th>Attendance Status</th>
+                                        <th>Invitation Status</th>
+                                        <th>Initial Interview Status</th>
                                     </tr>
                                 </thead>
                                 <tbody>
@@ -190,9 +193,12 @@
                                     <td><input type="checkbox" class="candidate-select" value="${c.id}"></td>
                                     <td>${c.name}</td>
                                     <td>${c.mobile_no}</td>
-                                    <td>${c.email}</td>
                                     <td>${c.status}</td>
-                                    <td>${c.job_titles}</td>
+                                    <td>${c.job_title}</td>
+                                    <td>${c.interview_date}</td>
+                                    <td>${c.attendance_status}</td>
+                                    <td>${c.invitation_status}</td>
+                                    <td>${c.initial_interview_status}</td>
                                 </tr>
                             `;
                         });

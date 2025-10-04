@@ -445,16 +445,17 @@ def load_jobs(request):
     return JsonResponse(job_list, safe=False)
 
 def display_candidates(request, pk):
-    # Already assigned candidates for this interview
+    # Get interview schedule
+    interview_schedule = get_object_or_404(InterviewSchedule, id=pk)
+    interview_jobs = interview_schedule.job.all()
+
+    # Get existing assigned candidates for this schedule
     existing_candidates = Candidate.objects.filter(
         interview_schedule_id=pk
     ).values_list("candidate_initial_info__id", flat=True)
     existing_candidates = [eid for eid in existing_candidates if eid is not None]
-    interview_schedule = get_object_or_404(InterviewSchedule, id=pk)
-    interview_jobs = interview_schedule.job.all()
-    
-   
-    # Query shortlisted candidates for the same jobs, exclude already added ones
+
+    # Get shortlisted candidate initial info for these jobs
     qs = (
         CandidateInitialInformation.objects
         .filter(jobs__in=interview_jobs, status="shortlisted")
@@ -462,18 +463,23 @@ def display_candidates(request, pk):
         .prefetch_related("jobs")
         .distinct()
     )
-    candidates = list({c.id: c for c in qs}.values())
 
-    data = [
-        {
-            "id": c.id,
-            "name": c.name,
-            "mobile_no": c.mobile_no,
-            "email": c.email,
-            "status": c.status,
-            "job_titles": c.jobs.first().job_title,
-        }
-        for c in candidates
-    ]
+    candidates_data = []
 
-    return JsonResponse({"candidates": data}, safe=False)
+    for info in qs:
+        # Find related candidate (if any)
+        candidate = Candidate.objects.filter(candidate_initial_info=info).first()
+
+        candidates_data.append({
+            "id": info.id,
+            "name": info.name,
+            "mobile_no": info.mobile_no,
+            "email": info.email,
+            "status": info.status,
+            "job_title": info.jobs.first().job_title if info.jobs.exists() else None,
+            "interview_date": candidate.interview_schedule.interview_date if candidate and candidate.interview_schedule else None,
+            "attendance_status": candidate.attendance_status if candidate else None,
+            "invitation_status": candidate.invitation_status if candidate else None,
+            "initial_interview_status": candidate.initial_interview_status if candidate else None,
+        })
+    return JsonResponse({"candidates": candidates_data})
