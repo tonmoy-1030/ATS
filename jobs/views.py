@@ -449,27 +449,29 @@ def display_candidates(request, pk):
     interview_schedule = get_object_or_404(InterviewSchedule, id=pk)
     interview_jobs = interview_schedule.job.all()
 
-    # Get existing assigned candidates for this schedule
+    # Get already assigned candidate initial info IDs
     existing_candidates = Candidate.objects.filter(
         interview_schedule_id=pk
     ).values_list("candidate_initial_info__id", flat=True)
     existing_candidates = [eid for eid in existing_candidates if eid is not None]
 
-    # Get shortlisted candidate initial info for these jobs
+    # Get shortlisted candidates (not yet assigned), ordered by latest update_date
     qs = (
         CandidateInitialInformation.objects
         .filter(jobs__in=interview_jobs, status="shortlisted")
         .exclude(id__in=existing_candidates)
         .prefetch_related("jobs")
         .distinct()
+        .order_by("-upload_date")
     )
 
     candidates_data = []
 
     for info in qs:
-        # Find related candidate (if any)
+        # Try to get related candidate record
         candidate = Candidate.objects.filter(candidate_initial_info=info).first()
 
+        # Build response safely — if candidate not found, show None
         candidates_data.append({
             "id": info.id,
             "name": info.name,
@@ -477,9 +479,11 @@ def display_candidates(request, pk):
             "email": info.email,
             "status": info.status,
             "job_title": info.jobs.first().job_title if info.jobs.exists() else None,
-            "interview_date": candidate.interview_schedule.interview_date if candidate and candidate.interview_schedule else None,
-            "attendance_status": candidate.attendance_status if candidate else None,
-            "invitation_status": candidate.invitation_status if candidate else None,
-            "initial_interview_status": candidate.initial_interview_status if candidate else None,
+            "interview_date": getattr(candidate.interview_schedule, "interview_date", None) if candidate else None,
+            "attendance_status": getattr(candidate, "attendance_status", None),
+            "invitation_status": getattr(candidate, "invitation_status", None),
+            "initial_interview_status": getattr(candidate, "initial_interview_status", None),
+            "upload_date": info.upload_date,  # keep track of sorting field
         })
+
     return JsonResponse({"candidates": candidates_data})

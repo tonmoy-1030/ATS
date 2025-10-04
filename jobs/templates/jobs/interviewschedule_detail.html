@@ -155,105 +155,121 @@
         alert('Phone numbers copied to clipboard!');
     }
 
+    function formatDate(dateString) {
+        if (!dateString) return ''; // Handle null or empty
+        const date = new Date(dateString);
+        if (isNaN(date)) return ''; // Invalid date safety
+        const options = { day: '2-digit', month: 'short', year: 'numeric'};
+        return date.toLocaleString('en-GB', options); // e.g. "04 Oct 2025, 09:30"
+    }
+
     $(document).ready(function() {
-        const addCandidatesModal = document.getElementById('addCandidatesModal');
-        const interviewId = "{{ object.id }}";
-        console.log("Interview ID:", interviewId);
-        
-        // Fetch candidates when the "Add from Pool" modal is shown
-        addCandidatesModal.addEventListener('show.bs.modal', function() {
-            const listContainer = $('#candidate-pool-list');
-            listContainer.html('<p class="text-center">Loading candidates...</p>');
+    const addCandidatesModal = document.getElementById('addCandidatesModal');
+    const interviewId = "{{ object.id }}";
 
-            $.ajax({
-                url: `{% url 'jobs:display_candidates' object.id %}`,
-                type: 'GET',
-                success: function(response) {
-                    if (response.candidates && response.candidates.length > 0) {
-                        let table = `
-                            <table class="table table-hover">
-                                <thead>
-                                    <tr>
-                                        <th><input type="checkbox" id="selectAllCandidates"></th>
-                                        <th>Name</th>
-                                        <th>Mobile</th>
-                                        <th>Status</th>
-                                        <th>Job</th>
-                                        <th>Interview Date</th>
-                                        <th>Attendance Status</th>
-                                        <th>Invitation Status</th>
-                                        <th>Initial Interview Status</th>
-                                    </tr>
-                                </thead>
-                                <tbody>
-                        `;
-                        response.candidates.forEach(c => {
-                            table += `
+    $.ajaxSetup({
+        headers: { "X-CSRFToken": "{{ csrf_token }}" }
+    });
+
+    // Fetch candidates when the "Add from Pool" modal is shown
+    $(addCandidatesModal).off('show.bs.modal').on('show.bs.modal', function() {
+        const listContainer = $('#candidate-pool-list');
+        listContainer.html('<p class="text-center">Loading candidates...</p>');
+
+        $.ajax({
+            url: `{% url 'jobs:display_candidates' object.id %}`,
+            type: 'GET',
+            success: function(response) {
+                if (response.candidates && response.candidates.length > 0) {
+                    let table = `
+                        <table class="table table-hover table-striped align-middle text-center table-sm text-nowrap">
+                            <thead class="table-light font-monospace align-middle">
                                 <tr>
-                                    <td><input type="checkbox" class="candidate-select" value="${c.id}"></td>
-                                    <td>${c.name}</td>
-                                    <td>${c.mobile_no}</td>
-                                    <td>${c.status}</td>
-                                    <td>${c.job_title}</td>
-                                    <td>${c.interview_date}</td>
-                                    <td>${c.attendance_status}</td>
-                                    <td>${c.invitation_status}</td>
-                                    <td>${c.initial_interview_status}</td>
+                                    <th><input type="checkbox" id="selectAllCandidates"></th>
+                                    <th>Name</th>
+                                    <th>Mobile</th>
+                                    <th>Status</th>
+                                    <th>Job</th>
+                                    <th>Previous Date</th>
+                                    <th>Attendance Status</th>
+                                    <th>Invitation</th>
+                                    <th>Initial Status</th>
                                 </tr>
-                            `;
-                        });
-                        table += '</tbody></table>';
-                        listContainer.html(table);
-                    } else {
-                        listContainer.html('<p class="text-center text-muted">No eligible candidates found in the pool for the associated job(s).</p>');
-                    }
-                },
-                error: function() {
-                    listContainer.html('<p class="text-center text-danger">Failed to load candidates.</p>');
+                            </thead>
+                            <tbody>
+                    `;
+                    response.candidates.forEach(c => {
+                        table += `
+                            <tr>
+                                <td><input type="checkbox" class="candidate-select" value="${c.id}"></td>
+                                <td>${c.name}</td>
+                                <td>${c.mobile_no}</td>
+                                <td>${c.status || ''}</td>
+                                <td>${c.job_title || ''}</td>
+                                <td>${formatDate(c.interview_date) || ''}</td>
+                                <td>${c.attendance_status || ''}</td>
+                                <td>${c.invitation_status || ''}</td>
+                                <td>${c.initial_interview_status || ''}</td>
+                            </tr>
+                        `;
+                    });
+                    table += '</tbody></table>';
+                    listContainer.html(table);
+                } else {
+                    listContainer.html('<p class="text-center text-muted">No eligible candidates found in the pool for the associated job(s).</p>');
                 }
-            });
-        });
-
-        // "Select All" functionality for checkboxes in the modal
-        $(document).on('change', '#selectAllCandidates', function() {
-            $('.candidate-select').prop('checked', this.checked);
-        });
-
-        // Handle adding selected candidates to the interview
-        $('#confirmAddCandidates').on('click', function() {
-            const selectedIds = $('.candidate-select:checked').map(function() {
-                return $(this).val();
-            }).get();
-
-            if (selectedIds.length === 0) {
-                alert('Please select at least one candidate.');
-                return;
+            },
+            error: function() {
+                listContainer.html('<p class="text-center text-danger">Failed to load candidates.</p>');
             }
-
-            // Construct query parameters for candidate_ids
-            const candidateParams = selectedIds.map(id => `candidate_ids=${id}`).join('&');
-            const url = `{% url 'candidates:include-in-interview-schedule' %}?interview_id=${interviewId}&${candidateParams}`;
-
-            $.ajax({
-                url: url,
-                type: 'POST',
-                data: {
-                    'csrfmiddlewaretoken': '{{ csrf_token }}'
-                },
-                success: function(response) {
-                    if (response.success) {
-                        alert(response.message);
-                        location.reload(); // Reload the page to see the updated list
-                    } else {
-                        alert('An error occurred: ' + (response.error || response.message));
-                    }
-                },
-                error: function() {
-                    alert('An error occurred while adding candidates.');
-                }
-            });
         });
     });
+
+    // Select All functionality
+    $(document).on('change', '#selectAllCandidates', function() {
+        $('.candidate-select').prop('checked', this.checked);
+    });
+
+    // Confirm adding selected candidates
+    $('#confirmAddCandidates').on('click', function() {
+        const selectedIds = $('.candidate-select:checked').map(function() {
+            return $(this).val();
+        }).get();
+
+        if (selectedIds.length === 0) {
+            alert('Please select at least one candidate.');
+            return;
+        }
+
+        const candidateParams = selectedIds.map(id => `candidate_ids=${id}`).join('&');
+        const url = `{% url 'candidates:include-in-interview-schedule' %}?interview_id=${interviewId}&${candidateParams}`;
+
+        const btn = $(this);
+        btn.prop('disabled', true).text('Adding...');
+
+        $.ajax({
+            url: url,
+            type: 'POST',
+            success: function(response) {
+                if (response.success) {
+                    alert(response.message);
+                    location.reload();
+                } else {
+                    alert('An error occurred: ' + (response.error || response.message));
+                }
+            },
+            error: function() {
+                alert('An error occurred while adding candidates.');
+            },
+            complete: function() {
+                btn.prop('disabled', false).text('Confirm Add');
+            }
+        });
+    });
+});
+
+
+
 </script>
 {% endblock %}
 
