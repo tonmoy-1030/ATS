@@ -734,6 +734,7 @@ def candidates_api(request, job_id):
             "resume": candidate.resume.url if candidate.resume else None,
             "upload_date": candidate.upload_date,
             "status": candidate.status,
+            'job_title': candidate.jobs.first().job_title,
         }
 
         existing_candidate = Candidate.objects.filter(mobile=candidate.mobile_no).first()
@@ -796,6 +797,7 @@ def all_candidates_api(request):
                 "upload_date": candidate.upload_date.isoformat() if getattr(candidate, 'upload_date', None) else None,
                 "jobs": list(candidate.jobs.values_list('id', flat=True)) if hasattr(candidate, 'jobs') else [],
                 "status": candidate.status,
+                'job_title': candidate.jobs.first().job_title if candidate.jobs.exists() else None,
             }
 
             existing_candidate = Candidate.objects.filter(mobile=candidate.mobile_no).first()
@@ -814,6 +816,7 @@ def all_candidates_api(request):
                 })
 
             data.append(candidate_dict)
+        print(data)
     except Exception as e:
         return JsonResponse([{"error": f"an error occurred: {e}"}], safe=False)
 

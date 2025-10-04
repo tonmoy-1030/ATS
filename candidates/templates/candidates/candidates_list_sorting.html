@@ -256,6 +256,12 @@
         font-size: 13px;
     }
 
+    .job_title {
+        color: #9d24f4;
+        font-family: 'SF Mono', Monaco, 'Cascadia Code', monospace;
+        font-size: 13px;
+    }
+
     .mobile {
         color: #64748b;
         font-size: 13px;
@@ -870,7 +876,7 @@ $(document).ready(function() {
 
             const row = `
                 <tr data-id="${c.id}">
-                    <td><div class="name">${c.name}</div><div class="email">${c.email}</div><div class="mobile">${c.mobile_no || ''}</div></td>
+                    <td><div class="name">${c.name}</div><div class="email">${c.email}</div><div class="mobile">${c.mobile_no || ''}</div><div class="job_title"><b>Applied:</b> ${c.job_title || ''}</div></td>
                     <td><div class="education"><strong>Highest:</strong> ${c.highest_education_degree || 'N/A'}</div><div class="degree"><strong>Professional:</strong> ${c.professional_education_degree || 'N/A'}</div></td>
                     <td class="current-experience">
                         <div><strong>Org:</strong> ${c.current_organization || 'N/A'}</div>

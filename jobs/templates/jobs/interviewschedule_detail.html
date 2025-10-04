@@ -182,8 +182,8 @@
             success: function(response) {
                 if (response.candidates && response.candidates.length > 0) {
                     let table = `
-                        <table class="table table-hover table-striped align-middle text-center table-sm text-nowrap">
-                            <thead class="table-light font-monospace align-middle">
+                        <table class="table table-hover table-striped align-middle table-sm text-nowrap">
+                            <thead class="table-light font-monospace align-middle text-center">
                                 <tr>
                                     <th><input type="checkbox" id="selectAllCandidates"></th>
                                     <th>Name</th>
@@ -203,13 +203,13 @@
                             <tr>
                                 <td><input type="checkbox" class="candidate-select" value="${c.id}"></td>
                                 <td>${c.name}</td>
-                                <td>${c.mobile_no}</td>
-                                <td>${c.status || ''}</td>
-                                <td>${c.job_title || ''}</td>
-                                <td>${formatDate(c.interview_date) || ''}</td>
-                                <td>${c.attendance_status || ''}</td>
-                                <td>${c.invitation_status || ''}</td>
-                                <td>${c.initial_interview_status || ''}</td>
+                                <td class='text-center'>${c.mobile_no}</td>
+                                <td class='text-center'>${c.status || ''}</td>
+                                <td class='text-center'>${c.job_title || ''}</td>
+                                <td class='text-center'>${formatDate(c.interview_date) || ''}</td>
+                                <td class='text-center'>${c.attendance_status || ''}</td>
+                                <td class='text-center'>${c.invitation_status || ''}</td>
+                                <td class='text-center'>${c.initial_interview_status || ''}</td>
                             </tr>
                         `;
                     });
