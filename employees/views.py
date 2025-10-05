@@ -471,18 +471,18 @@ def employee_search(request):
     return JsonResponse({'results': results})
 
 
-def transfer_order(request):
-    TransferFormset = modelformset_factory(TransferOrder, TransferOrderForm, extra=10)
-    if request.method == "POST":
-        formset = TransferFormset(request.POST)
-        if formset.is_valid:
-            formset.save()
-            messages.success(request, "Data Save Successfully")
-            return redirect("employees:employee-transfer")
-    else:
-        formset = TransferFormset(queryset=TransferOrder.objects.none())
-        
-    return render(request, 'employees/transfer_order.html', {'formset':formset})
+class TransferCreateView(CreateView, SuccessMessageMixin):
+    model = TransferOrder
+    template_name="employees/transferForm.html"
+    form_class = TransferOrderUpdateForm
+    success_message = "Transfer Order Created Successfully"
+    success_url = "/employee/transfer_order"
+    
+    def form_valid(self, form):
+        response = super().form_valid(form)
+        messages.success(self.request, self.success_message)
+        return response
+
 
 class TransferUpdateView(UpdateView, SuccessMessageMixin):
     model = TransferOrder
@@ -497,19 +497,24 @@ class PostingUpdateView(UpdateView, SuccessMessageMixin):
     form_class = PostingOrderUpdateForm
     success_message = "Posting Order Updated Successfully"
     success_url = "/employee/posting_order_list/"
+    
+    def form_valid(self, form):
+        response = super().form_valid(form)
+        messages.success(self.request, self.success_message)
+        return response
 
-def posting_order(request):
-    PostingFormset = modelformset_factory(PostingOrder, PostingOrderForm, extra=10)
-    if request.method == "POST":
-        formset = PostingFormset(request.POST)
-        if formset.is_valid:
-            formset.save()
-            messages.success(request, "Data Save Successfully")
-            return redirect("employees:employee-posting")
-    else:
-        formset = PostingFormset(queryset=PostingOrder.objects.none())
-        
-    return render(request, 'employees/posting_order.html', {'formset':formset})
+class PostingCreateView(CreateView, SuccessMessageMixin):
+    model = PostingOrder
+    template_name="employees/postingForm.html"
+    form_class = PostingOrderUpdateForm
+    success_message = "Posting Order Created Successfully"
+    success_url = "/employee/posting_order"
+
+    def form_valid(self, form):
+        response = super().form_valid(form)
+        messages.success(self.request, self.success_message)
+        return response
+    
 
 class EmployeeProfile(DetailView):
     model = Employee
