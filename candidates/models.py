@@ -30,29 +30,7 @@ class CandidateInitialInformation(models.Model):
                 return f"{self.name}-{self.mobile_no}-{job.title if job else 'No Job'}"
             except Exception as e:
                 return f"{self.name}-{self.mobile_no}-Error: {e}"
-        
-        # restrict duplicate entries based on name, mobile_no, and job
-        class Meta:
-            constraints = [
-                models.UniqueConstraint(
-                    fields=['name', 'mobile_no'],
-                    name='unique_candidate_per_contact'
-                ),
-                models.CheckConstraint(
-                    check=~models.Q(name="") & ~models.Q(mobile_no=""),
-                    name='valid_candidate_info'
-                )
-            ]
-            
-        def save(self, *args, **kwargs):
-            super().save(*args, **kwargs)
-            for job in self.jobs.all():
-                if CandidateInitialInformation.objects.filter(
-                    name=self.name,
-                    mobile_no=self.mobile_no,
-                    jobs=job
-                ).exclude(id=self.id).exists():
-                    raise ValueError("This candidate already exists for this job")
+
 
 class Candidate(models.Model):
     ATTENDANCE_STATUS = [
