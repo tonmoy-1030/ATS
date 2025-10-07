@@ -346,8 +346,9 @@
     /* Action Buttons */
     .actions {
         display: flex;
-        gap: 8px;
-        align-items: center;
+        flex-direction: column;  /* stack vertically */
+        gap: 6px;                /* space between buttons */
+        align-items: flex-start; /* left-align buttons (use 'center' if you want centered) */
     }
 
     .action-btn {
@@ -360,6 +361,7 @@
         transition: all 0.2s ease;
         text-transform: uppercase;
         letter-spacing: 0.025em;
+        width: 100%;             /* optional: makes buttons full width of container */
     }
 
     .btn-resume { background: #f8fafc; color: #475569; border-color: #e2e8f0; }
@@ -886,7 +888,13 @@ $(document).ready(function() {
                     </td>
                     <td class="experience-list">${experienceHTML}</td>
                     <td><span class="status status-${c.status}">${c.status}</span>${interviewInfoHTML}</td>
-                    <td><div class="actions"><button class="action-btn btn-resume" data-candidate-id="${c.id}">Resume</button><button class="action-btn btn-transfer" data-candidate-id="${c.id}">Transfer</button>${actionButtonsHTML}</div></td>
+                    <td>
+  <div class="actions">
+    <button class="action-btn btn-resume" data-candidate-id="${c.id}">Resume</button>
+    <button class="action-btn btn-transfer" data-candidate-id="${c.id}">Transfer</button>
+    ${actionButtonsHTML}
+  </div>
+</td>
                 </tr>`;
             tableBody.append(row);
         });
