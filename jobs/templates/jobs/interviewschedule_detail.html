@@ -7,8 +7,32 @@
         max-height: 60vh;
         overflow-y: auto;
     }
+
+    /* Fix filter bar layout */
+    .filter-bar {
+        display: flex;
+        flex-wrap: nowrap; /* prevent wrapping */
+        align-items: center;
+        gap: 8px;
+        overflow-x: auto; /* allow horizontal scroll if needed */
+        padding-bottom: 6px;
+    }
+
+    .filter-bar select,
+    .filter-bar input {
+        flex-shrink: 0;
+    }
+
+    .filter-bar::-webkit-scrollbar {
+        height: 6px;
+    }
+    .filter-bar::-webkit-scrollbar-thumb {
+        background: #ccc;
+        border-radius: 10px;
+    }
 </style>
 {% endblock %}
+
 
 <div class="container mt-5">
     <div class="card mx-auto">
@@ -73,7 +97,7 @@
                     <td>{{ candidate.initial_interview_status }}</td>
                     <td class="{% if candidate.details %}text-primary{% else %}text-danger{% endif %}">
                         {% if candidate.details %}Available{% else %}Not Available{% endif %}
-                    </td>F
+                    </td>
                     <td colspan="2" class="text-nowrap text-center">
                         <button type="button" class="btn btn-sm btn-outline-danger me-2" data-bs-toggle="modal" data-bs-target="#candidateDelete{{ candidate.id }}" data-bs-toggle="tooltip" title="Delete Candidate">
                             <i class="bi bi-trash"></i> Delete
@@ -153,34 +177,34 @@
 
             <div class="modal-body">
     <!-- 🔍 Filter Options -->
-            <div class="d-flex flex-wrap gap-2 mb-3 align-items-center">
-                <select id="filterAttendance" class="form-select form-select-sm" style="width: auto;">
-                    <option value="">Attendance (All)</option>
-                    <option value="Present">Present</option>
-                    <option value="Absent">Absent</option>
-                    <option value="Pending">Pending</option>
-                </select>
+            <div class="filter-bar mb-3">
+            <select id="filterAttendance" class="form-select form-select-sm" style="width: auto;">
+                <option value="">Attendance (All)</option>
+                <option value="Present">Present</option>
+                <option value="Absent">Absent</option>
+                <option value="Pending">Pending</option>
+            </select>
 
-                <select id="filterInvitation" class="form-select form-select-sm" style="width: auto;">
-                    <option value="">Invitation (All)</option>
-                    <option value="Sent">Sent</option>
-                    <option value="Not Sent">Not Sent</option>
-                </select>
+            <select id="filterInvitation" class="form-select form-select-sm" style="width: auto;">
+                <option value="">Invitation (All)</option>
+                <option value="Sent">Sent</option>
+                <option value="Not Sent">Not Sent</option>
+            </select>
 
-                <select id="filterInitial" class="form-select form-select-sm" style="width: auto;">
-                    <option value="">Initial Status (All)</option>
-                    <option value="Selected">Selected</option>
-                    <option value="Rejected">Rejected</option>
-                    <option value="Pending">Pending</option>
-                </select>
+            <select id="filterInitial" class="form-select form-select-sm" style="width: auto;">
+                <option value="">Initial Status (All)</option>
+                <option value="Selected">Selected</option>
+                <option value="Rejected">Rejected</option>
+                <option value="Pending">Pending</option>
+            </select>
 
-                <button class="btn btn-outline-secondary btn-sm" id="resetFilters">Reset</button>
+            <button class="btn btn-outline-secondary btn-sm" id="resetFilters">Reset</button>
 
-                <div class="ms-auto">
-                    <input type="text" id="candidateFilter" class="form-control form-control-sm"
-                        placeholder="Search all columns...">
-                </div>
+            <div class="ms-auto">
+                <input type="text" id="candidateFilter" class="form-control form-control-sm" placeholder="Search all columns...">
             </div>
+        </div>
+
 
             <div id="candidate-pool-list" class="table-responsive">
                 <p class="text-center">Loading candidates...</p>
