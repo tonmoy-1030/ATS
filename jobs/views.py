@@ -487,3 +487,4 @@ def display_candidates(request, pk):
         })
 
     return JsonResponse({"candidates": candidates_data})
+

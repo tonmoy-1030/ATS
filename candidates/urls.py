@@ -51,4 +51,5 @@ urlpatterns = [
     path("api/candidate/update/<int:candidate_id>/", views.update_candidate_status, name="update-candidate-status"),
     path("api/candidate/transfer/", views.transfer_candidate_for_another_job, name="transfer-candidate"),
     path("api/interview/candidates/", views.include_in_interview_schedule, name="include-in-interview-schedule"),
+    path('candidate/initial/detail/<int:pk>/', views.CandidateInitialInformationDetailView.as_view(), name='candidate_initial_info_detail'),
 ]+ static(settings.MEDIA_URL, document_root=settings.MEDIA_ROOT)

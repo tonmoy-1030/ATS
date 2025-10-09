@@ -4,7 +4,7 @@
 {% block style %}
 <style>
     .modal-body .table-responsive {
-        max-height: 60vh;
+        max-height: 90vh;
         overflow-y: auto;
     }
 </style>
@@ -58,7 +58,6 @@
                 <th>Invitation Status</th>
                 <th>Attendance Status</th>
                 <th>Interview_status</th>
-                <th>Interview Date</th>
                 <th>Details</th>
                 <th colspan="2">Actions</th>
             </thead>
@@ -72,12 +71,13 @@
                     <td class="{% if candidate.invitation_status != 'Confirmed' %}text-danger{% endif %}"><strong>{{ candidate.invitation_status }}</strong></td>
                     <td class="{% if candidate.attendance_status != 'Present' %}text-danger{% endif %}"><strong>{{ candidate.attendance_status }}</strong></td>
                     <td>{{ candidate.initial_interview_status }}</td>
-                    <td>{{ candidate.interview_schedule.interview_date | date:"M d, Y" }}</td>
                     <td class="{% if candidate.details %}text-primary{% else %}text-danger{% endif %}">
                         {% if candidate.details %}Available{% else %}Not Available{% endif %}
                     </td>
                     <td colspan="2" class="text-nowrap text-center">
-                        <a href="#" class="text-danger h6 me-2" data-bs-toggle="modal" data-bs-target="#candidateDelete{{ candidate.id }}"><i class="bi bi-trash"></i></a>
+                        <button type="button" class="btn btn-sm btn-outline-danger me-2" data-bs-toggle="modal" data-bs-target="#candidateDelete{{ candidate.id }}" data-bs-toggle="tooltip" title="Delete Candidate">
+                            <i class="bi bi-trash"></i> Delete
+                        </button>
                         <!-- Delete Modal -->
                         <div class="modal fade" id="candidateDelete{{ candidate.id }}" tabindex="-1">
                             <div class="modal-dialog modal-dialog-centered">
@@ -99,14 +99,49 @@
                                 </div>
                             </div>
                         </div>
-                        <a class="h6 text-primary" href="{% url 'candidates:candidate_update' candidate.id %}"><i class="bi bi-pencil-square"></i></a>
+                        <a class="btn btn-sm btn-outline-primary me-2" href="{% url 'candidates:candidate_update' candidate.id %}" role="button" data-bs-toggle="tooltip" title="Edit Candidate">
+                            <i class="bi bi-pencil-square"></i> Edit
+                        </a>
+                        {% comment %} Resume view modal trigger {% endcomment %}
+                        <button type="button" class="btn btn-sm btn-outline-secondary" data-bs-toggle="modal" data-bs-target="#resumeModal{{ candidate.id }}" data-bs-toggle="tooltip" title="View Resume">
+                            <i class="bi bi-eye"></i> View Resume
+                        </button>
+
+                                                <!-- Resume Modal -->
+                                                <div class="modal fade" id="resumeModal{{ candidate.id }}" tabindex="-1" aria-hidden="true">
+                                                    <div class="modal-dialog modal-xl modal-dialog-centered modal-fullscreen-sm-down">
+                                                        <div class="modal-content">
+                                                            <div class="modal-header">
+                                                                <h5 class="modal-title">Resume - {{ candidate.name }}</h5>
+                                                                <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
+                                                            </div>
+                                                            <div class="modal-body">
+                                                                {% if candidate.candidate_initial_info and candidate.candidate_initial_info.resume %}
+                                                                                                    <div class="mb-2">
+                                                                                                        <a href="{{ candidate.candidate_initial_info.resume.url }}" target="_blank" class="btn btn-sm btn-outline-primary">Open in new tab</a>
+                                                                                                        <a href="{{ candidate.candidate_initial_info.resume.url }}" download class="btn btn-sm btn-outline-secondary">Download</a>
+                                                                                                    </div>
+                                                                                                    <div class="table-responsive">
+                                                                                                        <!-- Lazy-load iframe: use data-src and set src when modal is shown -->
+                                                                                                        <iframe data-src="{{ candidate.candidate_initial_info.resume.url }}" id="resumeFrame{{ candidate.id }}" style="width:100%; height:75vh; border: none;" loading="lazy"></iframe>
+                                                                                                    </div>
+                                                                                                {% else %}
+                                                                    <p class="text-muted">No resume available for this candidate.</p>
+                                                                {% endif %}
+                                                            </div>
+                                                            <div class="modal-footer">
+                                                                <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Close</button>
+                                                            </div>
+                                                        </div>
+                                                    </div>
+                                                </div>
                     </td>
                 </tr>
                 {% endfor %}
             </tbody>
         </table>
         {% else %}
-        <h3 class="text-center text-danger mt-4">No candidates have been added to this interview yet.</h3>
+        <h3 class="text-center mt-4">No candidates have been added to this interview yet.</h3>
         {% endif %}
     </div>
 </div>
@@ -168,7 +203,6 @@
 {% endblock %}
 
 {% block extra_scripts %}
-<script src="https://code.jquery.com/jquery-3.7.0.min.js"></script>
 <script>
     // Function to copy phone numbers
     function copyPhoneNumbers() {
@@ -207,6 +241,7 @@
         // Fetch candidates when modal is shown
         $(addCandidatesModal).off('show.bs.modal').on('show.bs.modal', function() {
             const listContainer = $('#candidate-pool-list');
+            const candidateDetailBaseUrl = "{% url 'candidates:candidate_initial_info_detail' 0 %}".slice(0, -2);
             listContainer.html('<p class="text-center">Loading candidates...</p>');
 
             $.ajax({
@@ -235,7 +270,7 @@
                             table += `
                                 <tr>
                                     <td><input type="checkbox" class="candidate-select" value="${c.id}"></td>
-                                    <td>${c.name}</td>
+                                    <td><a href="${candidateDetailBaseUrl}${c.id}/" target="_blank">${c.name}</a></td>
                                     <td class='text-center'>${c.mobile_no}</td>
                                     <td class='text-center'>${c.status || ''}</td>
                                     <td class='text-center'>${c.job_title || ''}</td>
@@ -397,6 +432,44 @@
             $('#filterInvitation').html(makeOptions(invitationOptions, 'Invitation'));
             $('#filterInitial').html(makeOptions(initialOptions, 'Initial Status'));
         }
+    });
+</script>
+
+<script>
+    // Lazy-load resume iframes: set src when modal opens, clear on close
+    document.addEventListener('shown.bs.modal', function (event) {
+        var modal = event.target;
+        if (modal && modal.id && modal.id.startsWith('resumeModal')) {
+            var candidateId = modal.id.replace('resumeModal','');
+            var iframe = document.getElementById('resumeFrame' + candidateId);
+            if (iframe && iframe.dataset && iframe.dataset.src) {
+                // set src only if not already set
+                if (!iframe.src) {
+                    iframe.src = iframe.dataset.src;
+                }
+            }
+        }
+    });
+
+    document.addEventListener('hidden.bs.modal', function (event) {
+        var modal = event.target;
+        if (modal && modal.id && modal.id.startsWith('resumeModal')) {
+            var candidateId = modal.id.replace('resumeModal','');
+            var iframe = document.getElementById('resumeFrame' + candidateId);
+            if (iframe) {
+                // clear src to release memory and stop any playback
+                iframe.src = '';
+            }
+        }
+    });
+</script>
+<script>
+    // Enable Bootstrap tooltips for action buttons
+    document.addEventListener('DOMContentLoaded', function () {
+        var tooltipTriggerList = [].slice.call(document.querySelectorAll('[data-bs-toggle="tooltip"]'))
+        tooltipTriggerList.forEach(function (tooltipTriggerEl) {
+            new bootstrap.Tooltip(tooltipTriggerEl)
+        })
     });
 </script>
 

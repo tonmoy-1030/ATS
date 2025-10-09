@@ -26,7 +26,7 @@ from jobs.models import InterviewSchedule, Job, FinalInterviewSchedule
 from django.forms import modelformset_factory
 from django.contrib import messages
 import logging
-import time
+from django.utils import timezone
 from requests.exceptions import RequestException
 from .utils.google_sheet_Candidates import CandidateGoogleSheet 
 from employees.models import Employee
@@ -891,6 +891,7 @@ def update_candidate_status(request, candidate_id):
         candidate = get_object_or_404(CandidateInitialInformation, id=candidate_id)
         new_status = request.POST.get('status')
         candidate.status = new_status
+        candidate.upload_date = timezone.now()
         candidate.save()
         return JsonResponse({'success': True, 'new_status': new_status})
     return JsonResponse({'success': False}, status=400)
@@ -964,3 +965,11 @@ def include_in_interview_schedule(request):
         "success": True,
         "message": f"{added_count} candidates added to the interview schedule."
     })
+
+class CandidateInitialInformationDetailView(DetailView):
+    model = CandidateInitialInformation
+    template_name = "candidates/candidate_initial_info_detail.html"
+    context_object_name = "candidate"
+    
+
+

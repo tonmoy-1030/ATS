@@ -1,0 +1,135 @@
+{% extends "jobs/base.html" %}
+{% load static %}
+{% block content %}
+<div class="container" style="max-width: 900px;">
+    <nav aria-label="breadcrumb" class="mt-3">
+        <ol class="breadcrumb">
+            <li class="breadcrumb-item"><a href="#">Candidates</a></li>
+            <li class="breadcrumb-item active" aria-current="page">Initial Info Detail</li>
+        </ol>
+    </nav>
+
+    <div class="card mb-4">
+        <div class="card-body">
+            <div class="d-flex gap-4 align-items-start">
+                <div style="min-width:140px;">
+                    {% if candidate.resume %}
+                        <div class="mb-2">
+                            <a href="{{ candidate.resume.url }}" target="_blank" class="btn btn-outline-primary btn-sm">View / Download Resume</a>
+                        </div>
+                    {% else %}
+                        <div class="text-muted">No resume uploaded</div>
+                    {% endif %}
+                </div>
+
+                <div class="flex-grow-1">
+                    <h2 class="mb-1">{{ candidate.name|default:"Unnamed" }}</h2>
+                    <p class="text-muted mb-2">Uploaded: {{ candidate.upload_date|date:"F j, Y, g:i a" }}</p>
+
+                    <div class="row">
+                        <div class="col-md-6">
+                            <ul class="list-unstyled mb-0">
+                                <li><strong>Mobile:</strong> {{ candidate.mobile_no|default:'—' }}</li>
+                                <li><strong>Email:</strong> <a href="mailto:{{ candidate.email }}">{{ candidate.email|default:'—' }}</a></li>
+                                <li><strong>Location:</strong> {{ candidate.current_location|default:'—' }}</li>
+                                <li><strong>Current Organization:</strong> {{ candidate.current_organization|default:'—' }}</li>
+                                <li><strong>Designation:</strong> {{ candidate.current_designation|default:'—' }}</li>
+                            </ul>
+                        </div>
+
+                        <div class="col-md-6">
+                            <ul class="list-unstyled mb-0">
+                                <li><strong>Highest Degree:</strong> {{ candidate.highest_education_degree|default:'—' }}</li>
+                                <li><strong>Institution:</strong> {{ candidate.highest_education_degree_institution|default:'—' }}</li>
+                                <li><strong>Professional Degree:</strong> {{ candidate.professional_education_degree|default:'—' }}</li>
+                                <li><strong>Passing Year:</strong> {{ candidate.passing_year|default:'—' }}</li>
+                                <li><strong>Total Experience:</strong> {{ candidate.total_experience|default:'—' }}</li>
+                            </ul>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <div class="card-footer d-flex justify-content-between">
+            <div>
+                <a href="#" class="btn btn-sm btn-primary">Edit</a>
+                <a href="#" class="btn btn-sm btn-light">Back to list</a>
+            </div>
+            <div class="text-muted">Status: <strong>{{ candidate.status }}</strong></div>
+        </div>
+    </div>
+
+    <div class="row">
+        <div class="col-md-6">
+            <div class="card mb-4">
+                <div class="card-header">Address</div>
+                <div class="card-body">
+                    {% if candidate.address %}
+                        <p class="mb-0">{{ candidate.address|linebreaks }}</p>
+                    {% else %}
+                        <p class="text-muted mb-0">No address provided.</p>
+                    {% endif %}
+                </div>
+            </div>
+
+            <div class="card mb-4">
+                <div class="card-header">Applied Jobs</div>
+                <div class="card-body">
+                    {% if candidate.jobs.all %}
+                        <ul class="list-unstyled mb-0">
+                            {% for job in candidate.jobs.all %}
+                                <li>
+                                    <a href="#">{{ job.title }}</a>
+                                    <div class="text-muted small">{{ job.job_title }} ({{ job.unit.short_name }}) • Open: {{ job.open_status }}</div>
+                                </li>
+                            {% empty %}
+                                <li class="text-muted">No jobs linked.</li>
+                            {% endfor %}
+                        </ul>
+                    {% else %}
+                        <p class="text-muted mb-0">No jobs linked.</p>
+                    {% endif %}
+                </div>
+            </div>
+        </div>
+
+        <div class="col-md-6">
+            <div class="card mb-4">
+                <div class="card-header">Experience</div>
+                <div class="card-body">
+                    {% if candidate.experience %}
+                        {% if candidate.experience|length > 0 %}
+                            <div class="table-responsive">
+                                <table class="table table-sm">
+                                    <thead>
+                                        <tr>
+                                            <th>Company</th>
+                                            <th>Designation</th>
+                                            <th>Duration</th>
+                                        </tr>
+                                    </thead>
+                                    <tbody>
+                                        {% for exp in candidate.experience %}
+                                            <tr>
+                                                <td>{{ exp.Company|default:'—' }}</td>
+                                                <td>{{ exp.Position|default:'—' }}</td>
+                                                <td>{{ exp.Duration|default:'—' }}</td>
+                                                >
+                                            </tr>
+                                        {% endfor %}
+                                    </tbody>
+                                </table>
+                            </div>
+                        {% else %}
+                            <p class="text-muted">Experience field is empty.</p>
+                        {% endif %}
+                    {% else %}
+                        <p class="text-muted">No experience data.</p>
+                    {% endif %}
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+{% endblock %}
