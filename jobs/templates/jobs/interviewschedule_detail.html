@@ -119,11 +119,44 @@
                 <h5 class="modal-title">Select Candidates to Add</h5>
                 <button type="button" class="btn-close" data-bs-dismiss="modal"></button>
             </div>
+
             <div class="modal-body">
-                <div id="candidate-pool-list" class="table-responsive">
-                    <p class="text-center">Loading candidates...</p>
+    <!-- 🔍 Filter Options -->
+            <div class="d-flex flex-wrap gap-2 mb-3 align-items-center">
+                <select id="filterAttendance" class="form-select form-select-sm" style="width: auto;">
+                    <option value="">Attendance (All)</option>
+                    <option value="Present">Present</option>
+                    <option value="Absent">Absent</option>
+                    <option value="Pending">Pending</option>
+                </select>
+
+                <select id="filterInvitation" class="form-select form-select-sm" style="width: auto;">
+                    <option value="">Invitation (All)</option>
+                    <option value="Sent">Sent</option>
+                    <option value="Not Sent">Not Sent</option>
+                </select>
+
+                <select id="filterInitial" class="form-select form-select-sm" style="width: auto;">
+                    <option value="">Initial Status (All)</option>
+                    <option value="Selected">Selected</option>
+                    <option value="Rejected">Rejected</option>
+                    <option value="Pending">Pending</option>
+                </select>
+
+                <button class="btn btn-outline-secondary btn-sm" id="resetFilters">Reset</button>
+
+                <div class="ms-auto">
+                    <input type="text" id="candidateFilter" class="form-control form-control-sm"
+                        placeholder="Search all columns...">
                 </div>
             </div>
+
+            <div id="candidate-pool-list" class="table-responsive">
+                <p class="text-center">Loading candidates...</p>
+            </div>
+        </div>
+
+
             <div class="modal-footer">
                 <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Close</button>
                 <button type="button" class="btn btn-primary" id="confirmAddCandidates">Add Selected Candidates</button>
@@ -142,7 +175,7 @@
         const textarea = document.createElement('textarea');
         const phoneNumbers = Array.from(document.querySelectorAll('tbody td:nth-child(3)'))
                                   .map(td => td.textContent.trim())
-                                  .join('\n');
+                                  .join(',');
         if (!phoneNumbers) {
             alert('No phone numbers to copy.');
             return;
@@ -159,117 +192,213 @@
         if (!dateString) return ''; // Handle null or empty
         const date = new Date(dateString);
         if (isNaN(date)) return ''; // Invalid date safety
-        const options = { day: '2-digit', month: 'short', year: 'numeric'};
-        return date.toLocaleString('en-GB', options); // e.g. "04 Oct 2025, 09:30"
+        const options = { day: '2-digit', month: 'short', year: 'numeric' };
+        return date.toLocaleString('en-GB', options);
     }
 
     $(document).ready(function() {
-    const addCandidatesModal = document.getElementById('addCandidatesModal');
-    const interviewId = "{{ object.id }}";
+        const addCandidatesModal = document.getElementById('addCandidatesModal');
+        const interviewId = "{{ object.id }}";
 
-    $.ajaxSetup({
-        headers: { "X-CSRFToken": "{{ csrf_token }}" }
-    });
-
-    // Fetch candidates when the "Add from Pool" modal is shown
-    $(addCandidatesModal).off('show.bs.modal').on('show.bs.modal', function() {
-        const listContainer = $('#candidate-pool-list');
-        listContainer.html('<p class="text-center">Loading candidates...</p>');
-
-        $.ajax({
-            url: `{% url 'jobs:display_candidates' object.id %}`,
-            type: 'GET',
-            success: function(response) {
-                if (response.candidates && response.candidates.length > 0) {
-                    let table = `
-                        <table class="table table-hover table-striped align-middle table-sm text-nowrap">
-                            <thead class="table-light font-monospace align-middle text-center">
-                                <tr>
-                                    <th><input type="checkbox" id="selectAllCandidates"></th>
-                                    <th>Name</th>
-                                    <th>Mobile</th>
-                                    <th>Status</th>
-                                    <th>Job</th>
-                                    <th>Previous Date</th>
-                                    <th>Attendance Status</th>
-                                    <th>Invitation</th>
-                                    <th>Initial Status</th>
-                                </tr>
-                            </thead>
-                            <tbody>
-                    `;
-                    response.candidates.forEach(c => {
-                        table += `
-                            <tr>
-                                <td><input type="checkbox" class="candidate-select" value="${c.id}"></td>
-                                <td>${c.name}</td>
-                                <td class='text-center'>${c.mobile_no}</td>
-                                <td class='text-center'>${c.status || ''}</td>
-                                <td class='text-center'>${c.job_title || ''}</td>
-                                <td class='text-center'>${formatDate(c.interview_date) || ''}</td>
-                                <td class='text-center'>${c.attendance_status || ''}</td>
-                                <td class='text-center'>${c.invitation_status || ''}</td>
-                                <td class='text-center'>${c.initial_interview_status || ''}</td>
-                            </tr>
-                        `;
-                    });
-                    table += '</tbody></table>';
-                    listContainer.html(table);
-                } else {
-                    listContainer.html('<p class="text-center text-muted">No eligible candidates found in the pool for the associated job(s).</p>');
-                }
-            },
-            error: function() {
-                listContainer.html('<p class="text-center text-danger">Failed to load candidates.</p>');
-            }
+        $.ajaxSetup({
+            headers: { "X-CSRFToken": "{{ csrf_token }}" }
         });
-    });
 
-    // Select All functionality
-    $(document).on('change', '#selectAllCandidates', function() {
-        $('.candidate-select').prop('checked', this.checked);
-    });
+        // Fetch candidates when modal is shown
+        $(addCandidatesModal).off('show.bs.modal').on('show.bs.modal', function() {
+            const listContainer = $('#candidate-pool-list');
+            listContainer.html('<p class="text-center">Loading candidates...</p>');
 
-    // Confirm adding selected candidates
-    $('#confirmAddCandidates').on('click', function() {
-        const selectedIds = $('.candidate-select:checked').map(function() {
-            return $(this).val();
-        }).get();
+            $.ajax({
+                url: `{% url 'jobs:display_candidates' object.id %}`,
+                type: 'GET',
+                success: function(response) {
+                    if (response.candidates && response.candidates.length > 0) {
+                        let table = `
+                            <table class="table table-hover table-striped align-middle table-sm text-nowrap">
+                                <thead class="table-light font-monospace align-middle text-center">
+                                    <tr>
+                                        <th><input type="checkbox" id="selectAllCandidates"></th>
+                                        <th>Name</th>
+                                        <th>Mobile</th>
+                                        <th>Status</th>
+                                        <th>Job</th>
+                                        <th>Previous Date</th>
+                                        <th>Attendance Status</th>
+                                        <th>Invitation</th>
+                                        <th>Initial Status</th>
+                                    </tr>
+                                </thead>
+                                <tbody>
+                        `;
+                        response.candidates.forEach(c => {
+                            table += `
+                                <tr>
+                                    <td><input type="checkbox" class="candidate-select" value="${c.id}"></td>
+                                    <td>${c.name}</td>
+                                    <td class='text-center'>${c.mobile_no}</td>
+                                    <td class='text-center'>${c.status || ''}</td>
+                                    <td class='text-center'>${c.job_title || ''}</td>
+                                    <td class='text-center'>${formatDate(c.interview_date) || ''}</td>
+                                    <td class='text-center'>${c.attendance_status || ''}</td>
+                                    <td class='text-center'>${c.invitation_status || ''}</td>
+                                    <td class='text-center'>${c.initial_interview_status || ''}</td>
+                                </tr>
+                            `;
+                        });
+                        table += '</tbody></table>';
+                        listContainer.html(table);
 
-        if (selectedIds.length === 0) {
-            alert('Please select at least one candidate.');
-            return;
+                        // Initialize filters after table loads
+                        populateFilterDropdowns();
+                    } else {
+                        listContainer.html('<p class="text-center text-muted">No eligible candidates found in the pool for the associated job(s).</p>');
+                    }
+                },
+                error: function() {
+                    listContainer.html('<p class="text-center text-danger">Failed to load candidates.</p>');
+                }
+            });
+        });
+
+        // Select All functionality
+        $(document).on('change', '#selectAllCandidates', function() {
+            $('.candidate-select').prop('checked', this.checked);
+        });
+
+        // Confirm adding selected candidates
+        $('#confirmAddCandidates').on('click', function() {
+            const selectedIds = $('.candidate-select:checked').map(function() {
+                return $(this).val();
+            }).get();
+
+            if (selectedIds.length === 0) {
+                alert('Please select at least one candidate.');
+                return;
+            }
+
+            const candidateParams = selectedIds.map(id => `candidate_ids=${id}`).join('&');
+            const url = `{% url 'candidates:include-in-interview-schedule' %}?interview_id=${interviewId}&${candidateParams}`;
+
+            const btn = $(this);
+            btn.prop('disabled', true).text('Adding...');
+
+            $.ajax({
+                url: url,
+                type: 'POST',
+                success: function(response) {
+                    if (response.success) {
+                        alert(response.message);
+                        location.reload();
+                    } else {
+                        alert('An error occurred: ' + (response.error || response.message));
+                    }
+                },
+                error: function() {
+                    alert('An error occurred while adding candidates.');
+                },
+                complete: function() {
+                    btn.prop('disabled', false).text('Confirm Add');
+                }
+            });
+        });
+
+        // === FILTER AND SORT LOGIC ===
+
+        function applyFilters() {
+            const attendance = $('#filterAttendance').val().toLowerCase();
+            const invitation = $('#filterInvitation').val().toLowerCase();
+            const initial = $('#filterInitial').val().toLowerCase();
+            const searchQuery = $('#candidateFilter').val().toLowerCase();
+
+            $('#candidate-pool-list table tbody tr').each(function() {
+                const tds = $(this).find('td');
+                const rowData = {
+                    name: tds.eq(1).text().toLowerCase(),
+                    mobile: tds.eq(2).text().toLowerCase(),
+                    attendance: tds.eq(6).text().toLowerCase(),
+                    invitation: tds.eq(7).text().toLowerCase(),
+                    initial: tds.eq(8).text().toLowerCase(),
+                };
+
+                const isAttendanceBlank = !rowData.attendance;
+                const isInvitationBlank = !rowData.invitation;
+                const isInitialBlank = !rowData.initial;
+
+                const matchesAttendance = 
+                    !attendance ||
+                    (attendance === 'blank' ? isAttendanceBlank : rowData.attendance === attendance);
+                const matchesInvitation = 
+                    !invitation ||
+                    (invitation === 'blank' ? isInvitationBlank : rowData.invitation === invitation);
+                const matchesInitial = 
+                    !initial ||
+                    (initial === 'blank' ? isInitialBlank : rowData.initial === initial);
+
+                const matchesSearch =
+                    !searchQuery ||
+                    Object.values(rowData).some(v => v.includes(searchQuery));
+
+                $(this).toggle(matchesAttendance && matchesInvitation && matchesInitial && matchesSearch);
+            });
         }
 
-        const candidateParams = selectedIds.map(id => `candidate_ids=${id}`).join('&');
-        const url = `{% url 'candidates:include-in-interview-schedule' %}?interview_id=${interviewId}&${candidateParams}`;
-
-        const btn = $(this);
-        btn.prop('disabled', true).text('Adding...');
-
-        $.ajax({
-            url: url,
-            type: 'POST',
-            success: function(response) {
-                if (response.success) {
-                    alert(response.message);
-                    location.reload();
-                } else {
-                    alert('An error occurred: ' + (response.error || response.message));
-                }
-            },
-            error: function() {
-                alert('An error occurred while adding candidates.');
-            },
-            complete: function() {
-                btn.prop('disabled', false).text('Confirm Add');
-            }
+        // Reset filters
+        $(document).on('click', '#resetFilters', function() {
+            $('#filterAttendance, #filterInvitation, #filterInitial').val('');
+            $('#candidateFilter').val('');
+            applyFilters();
         });
+
+        // Listen for filter/search input
+        $(document).on('change input', '#filterAttendance, #filterInvitation, #filterInitial, #candidateFilter', applyFilters);
+
+        // === COLUMN SORTING ===
+        $(document).on('click', '#candidate-pool-list thead th', function() {
+            const index = $(this).index();
+            if (index === 0) return; // skip checkbox column
+
+            const table = $(this).closest('table');
+            const rows = table.find('tbody > tr').get();
+            const asc = !$(this).data('asc');
+            $(this).data('asc', asc);
+
+            rows.sort((a, b) => {
+                const A = $(a).children('td').eq(index).text().toUpperCase();
+                const B = $(b).children('td').eq(index).text().toUpperCase();
+                return asc ? A.localeCompare(B) : B.localeCompare(A);
+            });
+
+            $.each(rows, (i, row) => table.children('tbody').append(row));
+        });
+
+        // === Populate Dropdowns Dynamically (with Blank Option) ===
+        function populateFilterDropdowns() {
+            const uniqueValues = (index) => {
+                const values = new Set();
+                $(`#candidate-pool-list table tbody tr`).each(function() {
+                    const val = $(this).find('td').eq(index).text().trim();
+                    if (val) values.add(val);
+                });
+                return Array.from(values).sort();
+            };
+
+            const attendanceOptions = uniqueValues(6);
+            const invitationOptions = uniqueValues(7);
+            const initialOptions = uniqueValues(8);
+
+            const makeOptions = (arr, label) => `
+                <option value="">${label} (All)</option>
+                ${arr.map(v => `<option value="${v.toLowerCase()}">${v}</option>`).join('')}
+                <option value="blank">(Blank)</option>
+            `;
+
+            $('#filterAttendance').html(makeOptions(attendanceOptions, 'Attendance'));
+            $('#filterInvitation').html(makeOptions(invitationOptions, 'Invitation'));
+            $('#filterInitial').html(makeOptions(initialOptions, 'Initial Status'));
+        }
     });
-});
-
-
-
 </script>
+
 {% endblock %}
 

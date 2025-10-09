@@ -37,7 +37,7 @@ from django.http import JsonResponse
 from django.shortcuts import get_object_or_404
 from django.db.models import Case, When, Value, IntegerField
 import csv
-
+import tempfile
  
 logger = logging.getLogger(__name__)
 
@@ -98,64 +98,101 @@ def Resume_Date_As_JSON(prompts):
 
 
 def ResumeExtractor(file):
-    temp_directory = os.path.join(settings.MEDIA_ROOT, 'temp')
-    os.makedirs(temp_directory, exist_ok=True)
+    """
+    Robust resume extractor using both AI (Gemini) and rule-based methods.
+    Handles file-like objects in-memory, validates AI response,
+    cleans text, normalizes experience, and retries AI extraction.
+    """
 
-    temp_file_path = os.path.join(temp_directory, file.name)
-    with open(temp_file_path, 'wb') as temp_file:
+    
+    
+    file_extension = os.path.splitext(file.name)[1].lower()
+    extracted_textinfo = []
+    
+    with tempfile.NamedTemporaryFile(delete=False, suffix=file_extension) as temp_file:
         for chunk in file.chunks():
             temp_file.write(chunk)
+        temp_file.flush()
+        temp_file_path = temp_file.name
+    # -----------------------------
+    # Step 1: Extract text from resume
+    # -----------------------------
     try:
-        if temp_file_path.endswith(".pdf"):
+        if file_extension == ".pdf":
             extracted_textinfo = TextConverter.pdf_to_text(temp_file_path)
-        elif temp_file_path.endswith(".doc"):
+        elif file_extension == ".doc":
             extracted_textinfo = TextConverter.doc_to_text(temp_file_path)
-        elif temp_file_path.endswith(".docx"):
+        elif file_extension == ".docx":
             extracted_textinfo = TextConverter.docx_to_text(temp_file_path)
-        elif temp_file_path.endswith(".jpg") or temp_file_path.endswith(".jpeg") or temp_file_path.endswith(".png"):
+        elif file_extension in [".jpg", ".jpeg", ".png"]:
             extracted_textinfo = TextConverter.img_to_text(temp_file_path)
         else:
-            raise ValueError("Unsupported file format")
+            raise ValueError(f"Unsupported file format: {file_extension}")
     except Exception as e:
-        logging.error(f"Error extracting text from file: {e}")
+        logging.error(f"[Text Extraction] Error extracting text from {file.name}: {e}", exc_info=True)
         raise
-    os.remove(temp_file_path)
-    response = None
-    try:
-        max_retries = 3
-        for attempt in range(max_retries):
-            try:
-                response = Resume_Date_As_JSON("\n".join(extracted_textinfo))
-                if response:
-                    break
-            except RequestException as e:
-                logging.error(f"Network error on attempt {attempt + 1}: {e}")
-                time.sleep(2 ** attempt)  
-            except Exception as e:
-                logging.error(f"Unexpected error on attempt {attempt + 1}: {e}")
+
+    # -----------------------------
+    # Step 2: Clean text for AI processing
+    # -----------------------------
+    cleaned_text = "\n".join(extracted_textinfo)
+    cleaned_text = ''.join(ch if ch.isprintable() else ' ' for ch in cleaned_text)
+
+    # Truncate to avoid exceeding AI token limits (Gemini ~8K tokens)
+    max_length = 15000  # adjust as needed
+    if len(cleaned_text) > max_length:
+        cleaned_text = cleaned_text[:max_length]
+
+    # -----------------------------
+    # Step 3: AI Extraction with retry
+    # -----------------------------
+    ai_response = {}
+    max_retries = 3
+    for attempt in range(max_retries):
+        try:
+            ai_response = Resume_Date_As_JSON(cleaned_text)
+            if isinstance(ai_response, dict):
                 break
+            else:
+                raise ValueError("AI response is not a dictionary")
+        except Exception as e:
+            logging.warning(f"[AI Extraction] Attempt {attempt+1} failed for {file.name}: {e}", exc_info=True)
+            time.sleep(2 ** attempt)
+            ai_response = {}
+    else:
+        logging.error(f"[AI Extraction] All attempts failed for {file.name}")
 
-        if response:
-            try:
-                name = response['Name'].title()
-            except Exception as e:
-                logging.error(f"Error processing response: {e}")
-                name = DataExtraction.extract_name(extracted_textinfo)
-        else:
-            name = DataExtraction.extract_name(extracted_textinfo)
+    # -----------------------------
+    # Step 4: Rule-based Extraction
+    # -----------------------------
+    try:
+        rule_based_data = {
+            "Name": DataExtraction.extract_name(extracted_textinfo),
+            "Phone": DataExtraction.extract_phonenumbers(extracted_textinfo),
+            "Email": DataExtraction.extract_emails(extracted_textinfo),
+            "FileName": DataExtraction.extract_file_name(file)
+        }
     except Exception as e:
-        logging.error(f"Unexpected error: {e}")
-        name = DataExtraction.extract_name(extracted_textinfo)
+        logging.error(f"[Rule-based Extraction] Failed for {file.name}: {e}", exc_info=True)
+        rule_based_data = {}
 
+    # -----------------------------
+    # Step 5: Merge AI + Rule-based data
+    # -----------------------------
+    merged = {
+        "Name": ai_response.get("Name") or rule_based_data.get("Name") or None,
+        "Phone": rule_based_data.get("Phone") or "",
+        "Email": ai_response.get("Email") or rule_based_data.get("Email") or "",
+        "Highest_Educational_Degree": ai_response.get("Highest_Educational_Degree", ""),
+        "Passing_Year": ai_response.get("Passing_Year", ""),
+        "Highest_Education_Degree_Institution": ai_response.get("Highest_Education_Degree_Institution", ""),
+        "Professional_Degree": ai_response.get("Professional_Degree", ""),
+        "Experience": ai_response.get("Experience") if isinstance(ai_response.get("Experience"), list) else [],
+        "Permanent_Address": ai_response.get("Permanent_Address", ""),
+        "File_Name": rule_based_data.get('FileName')
+    }
 
-    data = DataFromCV(file_name=DataExtraction.extract_file_name(file),
-                      name=name,
-                      phone=DataExtraction.extract_phonenumbers(extracted_textinfo),
-                      email=DataExtraction.extract_emails(extracted_textinfo))
-    return data
-  
-  
-
+    return merged
 
 class FileFieldFormView(FormView):
     form_class = FileFieldForm
@@ -177,17 +214,31 @@ class FileFieldFormView(FormView):
             for i, file in enumerate(files, 1):
                 try:
                     # Extract resume info (replace ResumeExtractor with your actual logic)
-                    resume_info = ResumeExtractor(file)
-                    candidate = Candidate(
-                        name=resume_info.name,
-                        mobile=resume_info.phone,
-                        email=resume_info.email,
-                        filename=resume_info.file_name,
+                    response = ResumeExtractor(file)
+                    
+                    candidate_info = CandidateInitialInformation.objects.create(
+                        name=response.get("Name", "").title() or None,
+                        mobile_no=response.get("Phone", ""),
+                        email=response.get("Email", ""),
+                        highest_education_degree=response.get("Highest_Educational_Degree", ""),
+                        highest_education_degree_institution=response.get("Highest_Education_Degree_Institution", ""),
+                        professional_education_degree=response.get("Professional_Degree", ""),
+                        passing_year=response.get("Passing_Year", ""),
+                        experience=response.get("Experience", []),
+                        address=response.get("Permanent_Address", ""),
+                        status = "shortlisted",
+                        resume=file  # save actual file
+                    )
+                    candidate_info.jobs.set(jobs)
+                    
+                    Candidate.objects.create(
+                        name=response.get("Name", "").title() or None,
+                        mobile=response.get("Phone", ""),
+                        email=response.get("Email", ""),
+                        filename=file.name,
                         attendance_status='absent',
                         interview_schedule=interview_schedule
-                    )
-                    candidate.save()
-                    candidate.job.set(jobs)
+                    ).job.set(jobs)
 
                 except Exception as e:
                     # Log the error and continue processing other files
@@ -216,8 +267,6 @@ class FileFieldFormView(FormView):
 
     def form_invalid(self, form):
         return JsonResponse({'status': 'error', 'errors': form.errors}, status=400)
-
-
 
 # Helper view to return progress
 def get_upload_progress(request, pk):
@@ -866,31 +915,48 @@ def transfer_candidate_for_another_job(request):
 
     return JsonResponse({"success": False, "error": "Invalid request method"}, status=400)
 
-
 def include_in_interview_schedule(request):
     if request.method != "POST":
         return JsonResponse({"success": False, "error": "Invalid request method"}, status=400)
+
     interview_id = request.GET.get('interview_id')
     interview_schedule = get_object_or_404(InterviewSchedule, id=interview_id)
+
     candidate_ids = request.GET.getlist("candidate_ids")
-    
-    candidates = CandidateInitialInformation.objects.filter(id__in=candidate_ids)
+
+    # Get candidate initial info records
+    candidates_info = CandidateInitialInformation.objects.filter(id__in=candidate_ids)
 
     added_count = 0
-    for candidate_info in candidates:
+
+    for candidate_info in candidates_info:
         email = candidate_info.email if candidate_info.email else "notfound@gmail.com"
-        candidate, created = Candidate.objects.get_or_create(
-            email=email,   # use unique field
+
+        # Check if candidate already exists
+        candidate_qs = Candidate.objects.filter(
             mobile=candidate_info.mobile_no,
-            interview_schedule=interview_schedule,
-            defaults={
-                'name': candidate_info.name,
-                'attendance_status': 'absent',
-                'candidate_initial_info':candidate_info,
-            }
+            interview_schedule=interview_schedule
         )
+
+        if candidate_qs.exists():
+            # Pick the first existing candidate
+            candidate = candidate_qs.first()
+            created = False
+        else:
+            # Create a new candidate
+            candidate = Candidate.objects.create(
+                mobile=candidate_info.mobile_no,
+                email=email,
+                name=candidate_info.name,
+                attendance_status='absent',
+                candidate_initial_info=candidate_info,
+                interview_schedule=interview_schedule
+            )
+            created = True
+
         # Always sync jobs
         candidate.job.set(candidate_info.jobs.all())
+
         if created:
             added_count += 1
 
