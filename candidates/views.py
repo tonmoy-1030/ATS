@@ -231,14 +231,17 @@ class FileFieldFormView(FormView):
                     )
                     candidate_info.jobs.set(jobs)
                     
-                    Candidate.objects.create(
+                    candidate = Candidate.objects.create(
                         name=response.get("Name", "").title() or None,
                         mobile=response.get("Phone", ""),
                         email=response.get("Email", ""),
                         filename=file.name,
+                        candidate_initial_info=candidate_info,
                         attendance_status='absent',
                         interview_schedule=interview_schedule
-                    ).job.set(jobs)
+                    )
+                    
+                    candidate.job.set(jobs)
 
                 except Exception as e:
                     # Log the error and continue processing other files
