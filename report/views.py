@@ -3,6 +3,8 @@ from django.urls import reverse
 from datetime import timedelta
 import os
 from django.http import HttpResponse,JsonResponse
+
+from jobs.models import BusinessUnit
 from .forms import scheduleForm, DailyJoiningForm
 import tempfile  # To create temporary files
 from pyreportjasper import PyReportJasper
@@ -590,3 +592,77 @@ def EmployeeListReportWithSalary(request):
         return response
     
     return render(request, 'report/employee_report_form.html', {'form': form})
+
+def UpcomingJoining(request):
+    settings_dir = os.path.dirname(__file__)
+    project_root = os.path.abspath(os.path.dirname(settings_dir))
+    input_file = os.path.join(project_root, 'report/resources/Upcoming Joining.jrxml')
+
+    if request.method == "POST":
+        form = scheduleForm(request.POST)
+        # Get the selected employee
+        if form.is_valid():
+        # Get filtered data
+            unit = form.cleaned_data['unit']
+            date_from = form.cleaned_data['from_date']
+            date_to = form.cleaned_data['to_date']
+
+            format_ = form.cleaned_data.get("format_")  # The selected format (e.g., 'pdf', 'docx', 'xls')
+            print(unit, date_from, date_to, format_)
+
+            if unit:
+                unit_id = int(unit)
+
+            date_filter = Q()
+            if date_from:
+                date_filter &= Q(DOJ__gte=date_from)
+            if date_to:
+                date_filter &= Q(DOJ__lte=date_to)
+
+        
+            unit_name = BusinessUnit.objects.get(id=unit_id)
+            # Create PyReportJasper object
+            jasper = PyReportJasper()
+
+            # Define parameters for the report
+            param = {
+                'Unit': unit_id,
+                'FromDate': date_from.strftime('%Y-%m-%d') if date_from else '',
+            }
+
+            # Create a temporary file to hold the output
+            with tempfile.NamedTemporaryFile(suffix=f'.{format_}', delete=False) as temp_file:
+                output_file_path = temp_file.name  # Get the temporary file path
+
+            # Configure the report with MySQL database connection
+            jasper.config(
+                input_file=input_file,
+                output_file=output_file_path,  # Save output to the temporary file
+                parameters=param,
+                output_formats=[format_],  # Output in the selected format
+                db_connection={
+                    'driver': 'mysql',
+                    'username': 'root',
+                    'password': 'Tonmoy1030',
+                    'host': 'localhost',
+                    'database': 'atsdb',
+                    'port': '3306',
+                    'jdbc_driver': 'com.mysql.cj.jdbc.Driver',
+                    'jdbc_url': 'jdbc:mysql://localhost:3306/atsdb'
+                }
+            )
+
+            # Process the report and generate the output in the temporary file
+            jasper.process_report()
+
+        # Read the generated file from the temporary file
+            with open(output_file_path, 'rb') as output_file:
+                response = HttpResponse(output_file.read(), content_type='application/octet-stream')
+                response['Content-Disposition'] = f'inline; filename="Upcoming_Joining_Report_{unit_name.short_name}_{date_from.strftime("%Y-%m-%d") if date_from else ""}.{format_}"'
+                return response
+
+    else:
+        form = scheduleForm()
+            
+    return render(request, "report/upcoming_Joining.html", context={'form': form})
+

@@ -19,7 +19,7 @@ class scheduleForm(forms.Form):
         label="To Date"
     )
     
-    format_ = forms.ChoiceField(choices=[('pdf','PDF'), ('xlsx', 'Excel'), ('docx', 'Word')], widget=forms.Select(attrs={'class': 'form-select'}), label="Format")
+    format_ = forms.ChoiceField(choices=[('pdf','PDF'), ('xls', 'Excel'), ('docx', 'Word')], widget=forms.Select(attrs={'class': 'form-select'}), label="Format")
 
 
 class DailyJoiningForm(forms.ModelForm):
