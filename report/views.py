@@ -606,9 +606,7 @@ def UpcomingJoining(request):
             unit = form.cleaned_data['unit']
             date_from = form.cleaned_data['from_date']
             date_to = form.cleaned_data['to_date']
-
             format_ = form.cleaned_data.get("format_")  # The selected format (e.g., 'pdf', 'docx', 'xls')
-            print(unit, date_from, date_to, format_)
 
             if unit:
                 unit_id = int(unit)
