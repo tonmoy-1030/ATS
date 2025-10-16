@@ -16,4 +16,6 @@ urlpatterns = [
     path('report/employee_list/download', views.EmployeeListReport, name='employee_list'),
     path('report/employee_list/salary/download', views.EmployeeListReportWithSalary, name='employee_list_salary'),
     path('report/employee_list/upcoming_joining/download', views.UpcomingJoining, name='employee_upcoming_joining'),
+    path('report/candidate_evaluation/<int:pk>/', views.CandidateEvaluation, name='candidate_evaluation')
+
 ]

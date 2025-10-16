@@ -664,3 +664,55 @@ def UpcomingJoining(request):
             
     return render(request, "report/upcoming_Joining.html", context={'form': form})
 
+def CandidateEvaluation(request, pk):
+    settings_dir = os.path.dirname(__file__)
+    project_root = os.path.abspath(os.path.dirname(settings_dir))
+    input_file = os.path.join(project_root, 'report/resources/Candidate Evaluation.jrxml')
+
+
+    # Get the selected employee (probably should be request.POST.get('some_field_name'))
+    interview_id = pk  # ensure it's string key
+    
+    if not interview_id:
+        return HttpResponse("No employee selected.", status=400)
+    
+    # Create PyReportJasper object
+    jasper = PyReportJasper()
+
+    # Define parameters for the report
+    param = {
+        'InterviewID': interview_id
+    }
+
+    # Create a temporary file to hold the output
+    with tempfile.NamedTemporaryFile(suffix='.pdf', delete=False) as temp_file:
+        output_file_path = temp_file.name
+
+    # Configure and process the report
+    jasper.config(
+        input_file=input_file,
+        output_file=output_file_path,
+        parameters=param,
+        output_formats=['pdf'],
+        db_connection={
+            'driver': 'mysql',
+            'username': 'root',
+            'password': 'Tonmoy1030',
+            'host': 'localhost',
+            'database': 'atsdb',
+            'port': '3306',
+            'jdbc_driver': 'com.mysql.cj.jdbc.Driver',
+            'jdbc_url': 'jdbc:mysql://localhost:3306/atsdb'
+        }
+    )
+
+    jasper.process_report()
+
+    # Return the generated PDF
+    with open(output_file_path, 'rb') as output_file:
+        response = HttpResponse(output_file.read(), content_type='application/pdf')
+        response['Content-Disposition'] = 'inline; filename="Candidate Evaluation.pdf"'
+        return response
+
+    # 🔹 Return something for GET or other request methods
+    # return HttpResponse("This endpoint only accepts POST requests.", status=405)

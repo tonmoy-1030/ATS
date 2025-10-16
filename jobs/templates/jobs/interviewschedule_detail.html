@@ -59,6 +59,7 @@
                     <i class="bi bi-person-plus"></i> Add from Pool
                 </button>
                 <a href="{% url 'candidates:upload_candidate_files' pk=object.id %}" class="btn btn-primary"><i class="bi bi-upload"></i> Upload Resume</a>
+                <a href="{% url 'report:candidate_evaluation' pk=object.id %}" class="btn btn-secondary" target="_blank"><i class="bi bi-upload"></i> Candidate Evaluation</a>
             </div>
         </div>
     </div>
