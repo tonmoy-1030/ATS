@@ -38,6 +38,7 @@ from django.shortcuts import get_object_or_404
 from django.db.models import Case, When, Value, IntegerField
 import csv
 import tempfile
+from decouple import config
  
 logger = logging.getLogger(__name__)
 
@@ -47,7 +48,7 @@ DataExtraction = DataExtraction()
 candidate_google_sheet = CandidateGoogleSheet()
 
 def Resume_Date_As_JSON(prompts):
-  genai.configure(api_key="AIzaSyB_WKoQ8d27_Zo9lNhOpH3zdRuf0XJ1EEc")
+  genai.configure(api_key=config('GEMINI_API'))
   generation_config = {
             "temperature": 1,
             "top_p": 0.95,
