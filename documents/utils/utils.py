@@ -203,7 +203,7 @@ def create_offer_letter(pdf_file,candidate_data):
         "<br/>"
         f"<br/>{candidate_data['ref']}",
         f"<b>{datetime.now().date().strftime('%d-%b-%Y')}</b>",
-        f'<b>Mr. {candidate_data['name']}</b> <br/>Vill: {candidate_data['po']} \
+        f'<b>Mr. {candidate_data['name']}</b> <br/>Vill: {candidate_data['vill']} \
         P.O: {candidate_data['po']} <br/> P.S: {candidate_data['ps']} Dist: {candidate_data['dist']}'
     ]
 
