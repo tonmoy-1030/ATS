@@ -55,7 +55,7 @@ class JobOfferFilter(django_filters.FilterSet):
         
         
     def get_unit_choices(self):
-        unique_units = BusinessUnit.objects.values_list('unit__id', 'unit__name').distinct()
+        unique_units = BusinessUnit.objects.values_list('id', 'name').distinct()
         choices = [(unit_id, unit_name) for (unit_id, unit_name) in unique_units]
         return choices
     
