@@ -215,7 +215,25 @@ def confirmation_letter(employee_data, pdf_file):
     """
     flowables.append(Paragraph(body_text_2, body_style))
     flowables.append(Spacer(1, 15))
+    
+    if employee_data['unit'] == 11:
+        cc = f'''
+             Cc:<br/> 								
+        &nbsp;&nbsp;&nbsp;&nbsp;&nbsp;{employee_data['business_director']}<br/>
+        &nbsp;&nbsp;&nbsp;&nbsp;&nbsp;AGM, T.K. Logistics<br/> 
+        &nbsp;&nbsp;&nbsp;&nbsp;&nbsp;Accounts Department<br/>
+        &nbsp;&nbsp;&nbsp;&nbsp;&nbsp;Personal files<br/> 
+        '''
+    
+    else:
         
+        cc = f'''
+             Cc:<br/> 								
+        &nbsp;&nbsp;&nbsp;&nbsp;&nbsp;{employee_data['business_director']}<br/>
+        &nbsp;&nbsp;&nbsp;&nbsp;&nbsp;Head of Business<br/> 
+        &nbsp;&nbsp;&nbsp;&nbsp;&nbsp;Accounts Department<br/>
+        &nbsp;&nbsp;&nbsp;&nbsp;&nbsp;Personal files<br/> 
+        '''
     
     
     signature_text = f"""
@@ -223,12 +241,8 @@ def confirmation_letter(employee_data, pdf_file):
         <b>Col Almas Raisul Ghani, psc, G (Retd)</b><br/> 						                             
         <b>Director, HR & OD</b><br/> 
         <b>T.K. Group</b><br/> <br/> <br/> <br/> 
-
-        Cc:<br/> 								
-        &nbsp;&nbsp;&nbsp;&nbsp;&nbsp;{employee_data['business_director']}<br/>
-        &nbsp;&nbsp;&nbsp;&nbsp;&nbsp;Head of Business<br/> 
-        &nbsp;&nbsp;&nbsp;&nbsp;&nbsp;Accounts Department<br/>
-        &nbsp;&nbsp;&nbsp;&nbsp;&nbsp;Personal files<br/> 
+        {cc}
+       
     """
     flowables.append(Paragraph(signature_text, normal_styles))
     flowables.append(Spacer(1, 15))

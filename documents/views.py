@@ -505,7 +505,7 @@ def generate_confirmation_letter(request):
                 "designation": employee.employee.designation,
                 "new_designation": employee.new_designation,
                 "department": employee.employee.department,
-                "unit": employee.employee.unit,
+                "unit": employee.employee.unit.id,
                 "location": employee.employee.job_location,
                 "development_area": employee.development_area,
                 "effective_date": employee.effective_date,
