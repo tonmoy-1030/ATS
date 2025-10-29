@@ -197,6 +197,7 @@ class TransferOrder(models.Model):
         ("area", "Area"),
         ("region", "Region"),
         ("zone", "Zone"),
+        ("depot", "Depot"),
     ]
     NEW_LOCATION_CHOICES = [
         ("region", "Region"),
@@ -254,6 +255,7 @@ class PostingOrder(models.Model):
         ("area", "Area"),
         ("region", "Region"),
         ("zone", "Zone"),
+        ("depot", "Depot"),
     ]
     NEW_LOCATION_CHOICES = [
         ("region", "Region"),
