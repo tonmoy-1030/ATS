@@ -275,6 +275,7 @@
                                 <thead class="table-light font-monospace align-middle text-center">
                                     <tr>
                                         <th><input type="checkbox" id="selectAllCandidates"></th>
+                                        <th>Updated at</th>
                                         <th>Name</th>
                                         <th>Mobile</th>
                                         <th>Status</th>
@@ -291,6 +292,7 @@
                             table += `
                                 <tr>
                                     <td><input type="checkbox" class="candidate-select" value="${c.id}"></td>
+                                    <td>${formatDate(c.updated_at) || ''}</td>
                                     <td><a href="${candidateDetailBaseUrl}${c.id}/" target="_blank">${c.name}</a></td>
                                     <td class='text-center'>${c.mobile_no}</td>
                                     <td class='text-center'>${c.status || ''}</td>

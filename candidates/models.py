@@ -21,6 +21,7 @@ class CandidateInitialInformation(models.Model):
         current_location = models.CharField(max_length=255, null=True, blank=True)
         resume = models.FileField(upload_to='resumes/', null=True, blank=True)
         upload_date = models.DateTimeField(auto_now_add=True)
+        updated_at = models.DateTimeField(null=True, blank=True)
         status = models.CharField(choices=(('New', 'New'), ('shortlisted', 'shortlisted'), ('rejected', 'rejected')), max_length=20, default='New')
         jobs = models.ManyToManyField("jobs.Job",related_name="initial_applications", blank=True )
        

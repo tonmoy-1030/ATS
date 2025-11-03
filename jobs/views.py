@@ -483,7 +483,7 @@ def display_candidates(request, pk):
             "attendance_status": getattr(candidate, "attendance_status", None),
             "invitation_status": getattr(candidate, "invitation_status", None),
             "initial_interview_status": getattr(candidate, "initial_interview_status", None),
-            "upload_date": info.upload_date,  # keep track of sorting field
+            "updated_at": info.updated_at,  # keep track of sorting field
         })
 
     return JsonResponse({"candidates": candidates_data})

@@ -1070,7 +1070,7 @@ def update_candidate_status(request, candidate_id):
         candidate = get_object_or_404(CandidateInitialInformation, id=candidate_id)
         new_status = request.POST.get('status')
         candidate.status = new_status
-        candidate.upload_date = timezone.now()
+        candidate.updated_at = timezone.now()
         candidate.save()
         return JsonResponse({'success': True, 'new_status': new_status})
     return JsonResponse({'success': False}, status=400)
