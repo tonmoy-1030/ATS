@@ -39,9 +39,9 @@ from django.db.models import Case, When, Value, IntegerField
 import csv
 import tempfile
 from decouple import config
- 
+from django.core.paginator import Paginator, EmptyPage, PageNotAnInteger # NEW IMPORT 
 logger = logging.getLogger(__name__)
-
+import time
 
 TextConverter = TextConverter()
 DataExtraction = DataExtraction()
@@ -227,7 +227,7 @@ class FileFieldFormView(FormView):
                         passing_year=response.get("Passing_Year", ""),
                         experience=response.get("Experience", []),
                         address=response.get("Permanent_Address", ""),
-                        status = "shortlisted",
+                        status = "Shortlisted",
                         resume=file  # save actual file
                     )
                     candidate_info.jobs.set(jobs)
@@ -751,72 +751,156 @@ def candidate_list_google_sheet(request, pk):
     return JsonResponse(candidate_data, safe=False)
 
 
+from django.shortcuts import get_object_or_404
+from django.http import JsonResponse
+from django.core.paginator import Paginator, EmptyPage, PageNotAnInteger
+from django.db.models import Value, IntegerField, Case, When
+# Assuming Job and CandidateInitialInformation models are defined
+
 def candidates_api(request, job_id):
+    # Retrieve pagination parameters from GET request
+    page_number = request.GET.get('page', 1)  # Default to page 1
+    page_size = request.GET.get('page_size', 20) # Use 20 as default page size
+
     job = get_object_or_404(Job, id=job_id)
 
-    candidates = CandidateInitialInformation.objects.filter(jobs=job).distinct().order_by(
+    # 1. Base QuerySet: Filter, Order, and Annotate
+    candidates_qs = CandidateInitialInformation.objects.filter(jobs=job).distinct().order_by(
         Case(
-            When(status="New", then=Value(0)),   # New comes first
+            When(status="New", then=Value(0)),
             default=Value(1),
             output_field=IntegerField(),
         ),
-        "-upload_date",  # then order by latest updated
+        "-upload_date",
     )
 
+    # --- Calculate Counts BEFORE applying status/location/search filter ---
+    # Total candidates for the job (before optional filters)
+    total_candidate_count = candidates_qs.count() 
+    # New candidates for the job
+    new_candidate_count = candidates_qs.filter(status="New").count()
+    # Shortlisted candidates for the job
+    shortlisted_candidate_count = candidates_qs.filter(status="Shortlisted").count()
+    rejected_candidate_count = candidates_qs.filter(status="Rejected").count()
+    # --- End Counts ---
+
+
+    # --- APPLY FILTERS ---
+    
+    # 1. Status Filter
     status = request.GET.get("status")
     if status:
-        candidates = candidates.filter(status=status)
+        candidates_qs = candidates_qs.filter(status=status)
+        
+    # 2. Location Filter (EXACT MATCH) 📍
+    locations_param = request.GET.get('locations')
+    if locations_param:
+        # Split the comma-separated string from the frontend into a list
+        selected_locations = [loc.strip() for loc in locations_param.split(',') if loc.strip()]
+        
+        if selected_locations:
+            # Filter the queryset: current_location MUST be in the list of exact matches
+            candidates_qs = candidates_qs.filter(current_location__in=selected_locations)
+            
+    # 3. Search Filter
+    search_query = request.GET.get('search')
+    if search_query:
+        # NOTE: Implement your search logic here. Example:
+        candidates_qs = candidates_qs.filter(
+             Q(name__icontains=search_query) |
+             Q(email__icontains=search_query) |
+             Q(mobile_no__icontains=search_query) |
+             Q(current_organization__icontains=search_query)
+        )
+        
+    # --- Server-Side Pagination ---
+    paginator = Paginator(candidates_qs, page_size)
+    try:
+        candidates_page = paginator.page(page_number)
+    except PageNotAnInteger:
+        candidates_page = paginator.page(1)
+    except EmptyPage:
+        # If page is out of range, deliver last page of results.
+        candidates_page = paginator.page(paginator.num_pages)
+         
+    # Get the limited list of candidates for the current page
+    candidates_on_page = candidates_page.object_list
+    
+    # 2. Batch Fetch Related Data for the current page only
+    mobile_nos = candidates_on_page.values_list('mobile_no', flat=True)
 
+    related_candidates = Candidate.objects.filter(
+        mobile__in=mobile_nos
+    ).select_related('interview_schedule')
+
+    candidate_lookup = {}
+    for rc in related_candidates:
+        if rc.mobile not in candidate_lookup:
+            candidate_lookup[rc.mobile] = rc
+            
+    # Add prefetch for jobs for the candidates on the current page
+    candidates_on_page = candidates_on_page.prefetch_related('jobs')
+
+
+    # 3. Serialization (Keep as is)
     data = []
-    for candidate in candidates:
+    for candidate in candidates_on_page:
+        existing_candidate = candidate_lookup.get(candidate.mobile_no)
+
         candidate_dict = {
-            "id": candidate.id,
-            "name": candidate.name,
-            "mobile_no": candidate.mobile_no,
-            "email": candidate.email,
-            "highest_education_degree": candidate.highest_education_degree,
-            "highest_education_degree_institution": candidate.highest_education_degree_institution,
-            "professional_education_degree": candidate.professional_education_degree,
-            "total_experience": candidate.total_experience,
-            "current_designation": candidate.current_designation,
-            "current_organization": candidate.current_organization,
-            "current_location": candidate.current_location,
-            "passing_year": candidate.passing_year,
-            "experience": candidate.experience,
-            "address": candidate.address,
-            "resume": candidate.resume.url if candidate.resume else None,
-            "upload_date": candidate.upload_date,
-            "status": candidate.status,
-            'job_title': candidate.jobs.first().job_title,
-        }
-
-        existing_candidate = Candidate.objects.filter(mobile=candidate.mobile_no).first()
-        if existing_candidate:
-            candidate_dict.update({
-                "invitation_status": existing_candidate.invitation_status,
-                'interview_date': existing_candidate.interview_schedule.interview_date.isoformat() if existing_candidate.interview_schedule else None,
-                "interview_attendance": existing_candidate.attendance_status,
-                "interview_status": existing_candidate.initial_interview_status,
-            })
-        else:
-            candidate_dict.update({
-                "interview_date": None,
-                "interview_attendance": None,
-                "interview_status": None,
-            })
-
+                     "id": candidate.id,
+                     "name": candidate.name,
+                     "mobile_no": candidate.mobile_no,
+                     "email": candidate.email,
+                     "highest_education_degree": candidate.highest_education_degree,
+                     "highest_education_degree_institution": candidate.highest_education_degree_institution,
+                     "professional_education_degree": candidate.professional_education_degree,
+                     "total_experience": getattr(candidate, 'total_experience', None),
+                     "current_designation": getattr(candidate, 'current_designation', None),
+                     "current_organization": getattr(candidate, 'current_organization', None),
+                     "current_location": getattr(candidate, 'current_location', None),
+                     "passing_year": candidate.passing_year,
+                     "experience": candidate.experience,
+                     "address": candidate.address,
+                     "resume": candidate.resume.url if candidate.resume else None,
+                     "upload_date": candidate.upload_date.isoformat() if getattr(candidate, 'upload_date', None) else None,
+                     "jobs": list(candidate.jobs.all().values_list('id', flat=True)) if hasattr(candidate, 'jobs') else [], 
+                     "status": candidate.status,
+                     'job_title': candidate.jobs.all().first().job_title if candidate.jobs.exists() else None,
+                     'unit': candidate.jobs.all().first().unit.short_name if candidate.jobs.exists() and candidate.jobs.all().first().unit else None,
+                    
+                     # Existing Candidate Info
+                     "invitation_status": existing_candidate.invitation_status if existing_candidate else None,
+                     'interview_date': existing_candidate.interview_schedule.interview_date.isoformat() if existing_candidate and existing_candidate.interview_schedule else None,
+                     "interview_attendance": existing_candidate.attendance_status if existing_candidate else None,
+                     "interview_status": existing_candidate.initial_interview_status if existing_candidate else None,
+                   }
         data.append(candidate_dict)
-    return JsonResponse(data, safe=False)
+    
+    # 4. Return Paginated Response Data
+    response_data = {
+        # Total counts (pre-pagination and pre-optional status filter)
+        'total_candidate': total_candidate_count,
+        'new_candidate': new_candidate_count,
+        'shortlisted_candidate': shortlisted_candidate_count,
+        'rejected_candidate': rejected_candidate_count,
 
+        # Pagination info (based on the fully filtered candidates_qs)
+        'total_candidates_on_page_filter': paginator.count, 
+        'num_pages': paginator.num_pages,
+        'current_page': candidates_page.number,
+        'candidates': data
+    }
+    return JsonResponse(response_data, safe=False)
 
 def all_candidates_api(request):
-    """Return all CandidateInitialInformation records as JSON.
-
-    Kept lightweight: returns similar fields as `candidates_api` but for all jobs
-    and supports optional 'status' filter via query params.
-    """
+    # Retrieve pagination parameters from GET request
+    page_number = request.GET.get('page', 1) 
+    page_size = request.GET.get('page_size', 20) 
+    
     try:
-        candidates = CandidateInitialInformation.objects.all().distinct().order_by(
+        # 1. Base QuerySet: Filter, Order, and Annotate
+        base_candidates_qs = CandidateInitialInformation.objects.all().distinct().order_by(
             Case(
                 When(status="New", then=Value(0)),
                 default=Value(1),
@@ -824,13 +908,74 @@ def all_candidates_api(request):
             ),
             "-upload_date",
         )
+        
+        # --- Calculate GLOBAL Counts BEFORE applying ANY filters ---
+        # NOTE: This reflects the absolute total counts across ALL candidates.
+        total_candidate_count = base_candidates_qs.count() 
+        new_candidate_count = base_candidates_qs.filter(status="New").count()
+        shortlisted_candidate_count = base_candidates_qs.filter(status="Shortlisted").count()
+        rejected_candidate_count = base_candidates_qs.filter(status="Rejected").count()
+        # -------------------------------------------------------------
 
+        # Start with the base queryset for filtering
+        candidates_qs = base_candidates_qs
+
+        # --- APPLY OPTIONAL FILTERS ---
+        
+        # 1. Status Filter
         status = request.GET.get("status")
         if status:
-            candidates = candidates.filter(status=status)
+            candidates_qs = candidates_qs.filter(status=status)
+            
+        # 2. Location Filter (EXACT MATCH) 📍
+        locations_param = request.GET.get('locations')
+        if locations_param:
+            selected_locations = [loc.strip() for loc in locations_param.split(',') if loc.strip()]
+            if selected_locations:
+                candidates_qs = candidates_qs.filter(current_location__in=selected_locations)
+                
+        # 3. Search Filter (USING Q object) 🔍
+        search_query = request.GET.get('search')
+        if search_query:
+            candidates_qs = candidates_qs.filter(
+                 Q(name__icontains=search_query) |
+                 Q(email__icontains=search_query) |
+                 Q(mobile_no__icontains=search_query) |
+                 Q(current_organization__icontains=search_query) |
+                 Q(current_designation__icontains=search_query)
+            )
+            
+        # --- Server-Side Pagination ---
+        paginator = Paginator(candidates_qs, page_size)
+        try:
+            candidates_page = paginator.page(page_number)
+        except PageNotAnInteger:
+            candidates_page = paginator.page(1)
+        except EmptyPage:
+            candidates_page = paginator.page(paginator.num_pages)
 
+        # Get the limited list of candidates for the current page
+        candidates_on_page = candidates_page.object_list
+
+        # 2. Batch Fetch Related Data for the current page only (Efficiency)
+        mobile_nos = candidates_on_page.values_list('mobile_no', flat=True)
+        
+        related_candidates = Candidate.objects.filter(
+            mobile__in=mobile_nos
+        ).select_related('interview_schedule')
+
+        candidate_lookup = {}
+        for rc in related_candidates:
+            if rc.mobile not in candidate_lookup:
+                candidate_lookup[rc.mobile] = rc
+
+        candidates_on_page = candidates_on_page.prefetch_related('jobs')
+        
+        # 3. Serialization
         data = []
-        for candidate in candidates:
+        for candidate in candidates_on_page:
+            existing_candidate = candidate_lookup.get(candidate.mobile_no)
+
             candidate_dict = {
                 "id": candidate.id,
                 "name": candidate.name,
@@ -839,41 +984,66 @@ def all_candidates_api(request):
                 "highest_education_degree": candidate.highest_education_degree,
                 "highest_education_degree_institution": candidate.highest_education_degree_institution,
                 "professional_education_degree": candidate.professional_education_degree,
-                "total_experience": candidate.total_experience,
-                "current_designation": candidate.current_designation,
-                "current_organization": candidate.current_organization,
-                "current_location": candidate.current_location,
+                "total_experience": getattr(candidate, 'total_experience', None),
+                "current_designation": getattr(candidate, 'current_designation', None),
+                "current_organization": getattr(candidate, 'current_organization', None),
+                "current_location": getattr(candidate, 'current_location', None),
                 "passing_year": candidate.passing_year,
                 "experience": candidate.experience,
                 "address": candidate.address,
                 "resume": candidate.resume.url if candidate.resume else None,
                 "upload_date": candidate.upload_date.isoformat() if getattr(candidate, 'upload_date', None) else None,
-                "jobs": list(candidate.jobs.values_list('id', flat=True)) if hasattr(candidate, 'jobs') else [],
+                "jobs": list(candidate.jobs.all().values_list('id', flat=True)) if hasattr(candidate, 'jobs') else [], 
                 "status": candidate.status,
-                'job_title': candidate.jobs.first().job_title if candidate.jobs.exists() else None,
+                'job_title': candidate.jobs.all().first().job_title if candidate.jobs.exists() else None,
+                'unit': candidate.jobs.all().first().unit.short_name if candidate.jobs.exists() and candidate.jobs.all().first().unit else None,
+                # Existing Candidate Info
+                "invitation_status": existing_candidate.invitation_status if existing_candidate else None,
+                'interview_date': existing_candidate.interview_schedule.interview_date.isoformat() if existing_candidate and existing_candidate.interview_schedule else None,
+                "interview_attendance": existing_candidate.attendance_status if existing_candidate else None,
+                "interview_status": existing_candidate.initial_interview_status if existing_candidate else None,
             }
-
-            existing_candidate = Candidate.objects.filter(mobile=candidate.mobile_no).first()
-            if existing_candidate:
-                candidate_dict.update({
-                    "invitation_status": existing_candidate.invitation_status,
-                    'interview_date': existing_candidate.interview_schedule.interview_date.isoformat() if existing_candidate.interview_schedule else None,
-                    "interview_attendance": existing_candidate.attendance_status,
-                    "interview_status": existing_candidate.initial_interview_status,
-                })
-            else:
-                candidate_dict.update({
-                    "interview_date": None,
-                    "interview_attendance": None,
-                    "interview_status": None,
-                })
-
             data.append(candidate_dict)
+
+        # 4. Return Paginated Response Data
+        response_data = {
+            # Global/Absolute Counts (pre-filter totals)
+            'total_candidate': total_candidate_count,
+            'new_candidate': new_candidate_count,
+            'shortlisted_candidate': shortlisted_candidate_count,
+            'rejected_candidate': rejected_candidate_count, # Added rejected count
+            
+            # Pagination Info (based on the fully filtered candidates_qs)
+            'total_candidates_on_filter': paginator.count, # Total count after all filters, before pagination
+            'num_pages': paginator.num_pages,
+            'current_page': candidates_page.number,
+            'candidates': data
+        }
+        return JsonResponse(response_data, safe=False)
+
     except Exception as e:
-        return JsonResponse([{"error": f"an error occurred: {e}"}], safe=False)
+        # Use logger.exception to log traceback automatically
+        # Make sure 'logger' is correctly imported/defined in your environment
+        try:
+             logger.error(f"Error in all_candidates_api: {e}", exc_info=True)
+        except NameError:
+             print(f"Error in all_candidates_api: {e}") # Fallback if logger is not defined
+             
+        return JsonResponse({"error": f"An error occurred: {e}"}, status=500)
+    
 
-    return JsonResponse(data, safe=False)
-
+def unique_locations_api(request):
+    try:
+        locations = CandidateInitialInformation.objects.values_list('current_location', flat=True).distinct()
+        # Filter out empty or null locations
+        unique_locations = [loc for loc in locations if loc]
+        return JsonResponse(unique_locations, safe=False)
+    except Exception as e:
+        try:
+             logger.error(f"Error in unique_locations_api: {e}", exc_info=True)
+        except NameError:
+             print(f"Error in unique_locations_api: {e}") # Fallback if logger is not defined
+        return JsonResponse({"error": f"An error occurred: {e}"}, status=500)
 
 class CandidatesList(ListView):
     model = CandidateInitialInformation
@@ -888,6 +1058,11 @@ class CandidatesList(ListView):
 def jobs_api(request):
     # Only jobs that have a Google Sheet linked
     jobs = list(Job.objects.filter(google_sheet_id__isnull=False, open_status=True).distinct().values("id", "job_title", "department", "job_location", "unit__short_name"))
+    return JsonResponse(jobs, safe=False)
+
+def all_jobs_api(request):
+    # Only jobs that have a Google Sheet linked
+    jobs = list(Job.objects.filter(open_status=True).distinct().values("id", "job_title", "department", "job_location", "unit__short_name").order_by('unit__short_name'))
     return JsonResponse(jobs, safe=False)
 
 def update_candidate_status(request, candidate_id):
