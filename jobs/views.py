@@ -448,7 +448,10 @@ def display_candidates(request, pk):
     # Get interview schedule
     interview_schedule = get_object_or_404(InterviewSchedule, id=pk)
     interview_jobs = interview_schedule.job.all()
-
+    
+    google_sheet_id = interview_jobs.first().google_sheet_id if interview_jobs.exists() else "No jobs found"
+    
+    jobs = Job.objects.filter(google_sheet_id=google_sheet_id)
     # Get already assigned candidate initial info IDs
     existing_candidates = Candidate.objects.filter(
         interview_schedule_id=pk
@@ -458,7 +461,7 @@ def display_candidates(request, pk):
     # Get shortlisted candidates (not yet assigned), ordered by latest update_date
     qs = (
         CandidateInitialInformation.objects
-        .filter(jobs__in=interview_jobs, status="shortlisted")
+        .filter(jobs__in=jobs, status="shortlisted")
         .exclude(id__in=existing_candidates)
         .prefetch_related("jobs")
         .distinct()

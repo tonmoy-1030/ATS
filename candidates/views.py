@@ -937,15 +937,16 @@ from django.core.paginator import Paginator, EmptyPage, PageNotAnInteger
 from django.db.models import Value, IntegerField, Case, When
 
 # Assuming Job and CandidateInitialInformation models are defined
-
-
 def candidates_api(request, job_id):
     # Retrieve pagination parameters from GET request
     page_number = request.GET.get("page", 1)  # Default to page 1
     page_size = request.GET.get("page_size", 20)  # Use 20 as default page size
 
     job = get_object_or_404(Job, id=job_id)
-    jobs = Job.objects.filter(google_sheet_id=job.google_sheet_id)
+    if not job.google_sheet_id:
+        jobs = [job]
+    else:
+        jobs = Job.objects.filter(google_sheet_id=job.google_sheet_id)
 
     # 1. Base QuerySet: Filter, Order, and Annotate
     candidates_qs = (
