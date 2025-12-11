@@ -200,8 +200,11 @@ def OnLaterPager(canvas, doc, appointment_info):
     CC4_CC5 = ""
     if appointment_info['CC4'] ==None and appointment_info['CC5'] == None:
         CC4_CC5 = f"""
+                &nbsp; &nbsp; &nbsp;{appointment_info['CC4']}<br/>
+                &nbsp; &nbsp; &nbsp;{appointment_info['CC5']}<br/>
                 &nbsp; &nbsp; &nbsp;{appointment_info['CC6']} <br/>
                 &nbsp; &nbsp; &nbsp;{appointment_info['CC7']} <br/>
+
         """
     elif appointment_info['CC4'] != None:
         CC4_CC5 = f"""
