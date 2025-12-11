@@ -92,7 +92,30 @@ class FinalInterviewSchedule(models.Model):
         else:
             return f"{self.interview_type}, {self.interview_date}, No Job Assigned" 
 
+
+class SMSTemplate(models.Model):
+    name = models.CharField(max_length=100, unique=True)
+    template_type = models.CharField(max_length=50, default='Transactional')
+    content = models.TextField(verbose_name="Template Content with Placeholders")
+    form_link = models.URLField(max_length=500, null=True, blank=True)
+    created_at = models.DateTimeField(default=timezone.now)
+
+    def __str__(self):
+        return self.name
+    
+class SMSLog(models.Model):
+    recipient_number = models.CharField(max_length=15)
+    message_content = models.TextField()
+    sent_at = models.DateTimeField(default=timezone.now)
+    status = models.CharField(max_length=50)
+    send_by = models.CharField(max_length=100)
+
+    def __str__(self):
+        return f"SMS to {self.recipient_number} at {self.sent_at} - Status: {self.status}"
+
 auditlog.register(Job)
 auditlog.register(InterviewSchedule)
 auditlog.register(FinalInterviewSchedule)
 auditlog.register(BusinessUnit)
+auditlog.register(SMSTemplate)
+auditlog.register(SMSLog)

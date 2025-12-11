@@ -288,6 +288,8 @@ class ScheduleDetailview(DetailView):
         context['candidates'] = candidates
         context['duplicate_mobiles'] = duplicate_mobiles
         return context
+    
+    
 
 class ScheduleDeleteview(DeleteView):
     model = InterviewSchedule
@@ -305,8 +307,6 @@ class ScheduleListview(ListView):
         return context
     
 #final Interview Schedule view
-
-
 class FinalScheduleDetailview(DetailView):
     model = FinalInterviewSchedule
     
@@ -491,3 +491,83 @@ def display_candidates(request, pk):
 
     return JsonResponse({"candidates": candidates_data})
 
+
+from .models import SMSTemplate, SMSLog
+from candidates.utils import send_sms
+
+def render_sms_content(request, pk):
+    """
+    Renders the final message content by substituting placeholders.
+    """
+    
+    schedule = InterviewSchedule.objects.get(id=pk)
+    candidate_id = request.GET.get('candidate_id')
+    candidate = get_object_or_404(Candidate, id=candidate_id)
+    mobile_number = candidate.mobile
+    if len(mobile_number) <11:
+        return JsonResponse({"error": "Invalid mobile number."}, status=400)
+    elif len(mobile_number) !=11 or not mobile_number.startswith('01'):
+        mobile_number = mobile_number[-11:]
+        
+    # Example: Safely get the job title from the M2M field
+    job = schedule.job.first()
+    position_title = job.job_title if job else "a position"
+    template = SMSTemplate.objects.get(name="Initial Interview")
+    
+    UNIT_CONTACT_MAP = {
+        1: "01709678099",
+        3: "01709678099",
+        4: "01709678099",
+        11: "01709678099",
+        2: "01894925564",
+        5: "01894802800",
+    }
+    
+    contact_number = UNIT_CONTACT_MAP.get(job.unit_id, "01709678099")
+        
+    
+    # Format the date nicely for SMS
+    interview_date_time = schedule.interview_date.strftime("%b %d, %Y (%A) at %I:%M %p").replace(' 0', ' ')
+    
+    # Data to be inserted into the template
+    context = {
+        'position_title': position_title,
+        'interview_date_time': interview_date_time,
+        'form_link': template.form_link or "N/A",
+        'contact_number': contact_number,
+    }
+    # Use Python's built-in string formatting
+    try:
+        final_message = template.content.format(**context)
+        response = send_sms.send_single_sms(msisdn=[mobile_number], message=final_message)
+        SMSLog.objects.create(
+            recipient_number=mobile_number,
+            message_content=final_message,
+            status=response.get('statusInfo', {}).get('errordescription', 'Unknown'),
+            send_by=request.user.username
+        )
+        return JsonResponse(response, safe=False)
+    except KeyError as e:
+        # Handle cases where a placeholder in the template is missing in the context
+        raise ValueError(f"Missing required placeholder in template: {e}")
+
+class SMSUpdateView(UpdateView):
+    model = SMSTemplate
+    fields = ['content', 'form_link']
+    template_name = 'jobs/sms_template_form.html'
+    
+    def get_initial(self):
+        initial = super().get_initial()
+        # Get the 'next' parameter from the GET request when the form is loaded
+        next_url = self.request.GET.get('next')
+        if next_url:
+            initial['next_url'] = next_url # We'll use this in the template
+        return initial
+    
+    def get_success_url(self):
+        # Try to get 'next' parameter from the GET request
+        next_url = self.request.GET.get("next")
+        # If 'next' exists, redirect to it, otherwise redirect to a default fallback
+        if next_url:
+            return next_url
+        return reverse("default_fallback")

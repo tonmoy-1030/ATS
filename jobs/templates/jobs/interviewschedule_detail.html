@@ -3,32 +3,44 @@
 
 {% block style %}
 <style>
+    /* Ensure modal content fits well on large screens */
     .modal-body .table-responsive {
         max-height: 60vh;
         overflow-y: auto;
     }
 
-    /* Fix filter bar layout */
+    /* Styling for the horizontal filter bar */
     .filter-bar {
         display: flex;
-        flex-wrap: nowrap; /* prevent wrapping */
+        flex-wrap: nowrap; /* Keep items in a single row */
         align-items: center;
         gap: 8px;
-        overflow-x: auto; /* allow horizontal scroll if needed */
-        padding-bottom: 6px;
+        overflow-x: auto; /* Allow horizontal scroll if filters overflow */
+        padding-bottom: 6px; /* Space for scrollbar */
     }
 
     .filter-bar select,
     .filter-bar input {
-        flex-shrink: 0;
+        flex-shrink: 0; /* Prevent inputs from shrinking */
     }
 
+    /* Style the scrollbar for the filter bar */
     .filter-bar::-webkit-scrollbar {
         height: 6px;
     }
     .filter-bar::-webkit-scrollbar-thumb {
         background: #ccc;
         border-radius: 10px;
+    }
+
+    /* Styling for the toast container */
+    .toast-container {
+        z-index: 1080; /* Ensure toast is above modals (z-index 1050) */
+    }
+
+    /* Better hover for sortable columns */
+    #candidate-pool-list thead th:not(:first-child) {
+        cursor: pointer;
     }
 </style>
 {% endblock %}
@@ -37,13 +49,15 @@
 <div class="container mt-5">
     <div class="card mx-auto">
         <div class="card-body">
-            <h5 class="card-title"><strong>Job Title: </strong>{{ object.job.first.job_title }}</h5>
-            <p class="card-text"><strong> Interview Stage: </strong>{{ object.interview_type }}</p>
-            <p class="card-text"><strong> Interview Date:</strong> {{ object.interview_date | date:"M d, Y" }}</p>
+            <h5 class="card-title"><strong>Job Title: </strong>{{ object.job.first.job_title|default:"N/A" }}</h5>
+            <p class="card-text"><strong> Interview Stage: </strong>{{ object.interview_type|default:"N/A" }}</p>
+            <p class="card-text"><strong> Interview Date:</strong> {{ object.interview_date | date:"M d, Y"|default:"N/A" }}</p>
             <p class="card-text"><strong> Interviewer: </strong>
                 {% for interviewer in object.interviewer.all %}
-                {{ interviewer.name }}
+                {{ interviewer.name|default:"N/A" }}
                 {% if not forloop.last %}, {% endif %}
+                {% empty %}
+                No interviewers assigned.
                 {% endfor %}
             </p>
         </div>
@@ -52,15 +66,13 @@
 
 <div class="container mt-3">
     <div class="card mx-auto">
-        <div class="card-body">
-            <div class="btn-group" role="group">
-                <a href="{% url 'candidates:candidate_new' pk=object.id %}" class="btn btn-warning"><i class="bi bi-building-add"></i> New Candidate</a>
-                <button type="button" class="btn btn-info text-dark" data-bs-toggle="modal" data-bs-target="#addCandidatesModal">
-                    <i class="bi bi-person-plus"></i> Add from Pool
-                </button>
-                <a href="{% url 'candidates:upload_candidate_files' pk=object.id %}" class="btn btn-primary"><i class="bi bi-upload"></i> Upload Resume</a>
-                <a href="{% url 'report:candidate_evaluation' pk=object.id %}" class="btn btn-secondary" target="_blank"><i class="bi bi-upload"></i> Candidate Evaluation</a>
-            </div>
+        <div class="card-body d-flex flex-wrap gap-2">
+            <a href="{% url 'candidates:candidate_new' pk=object.id %}" class="btn btn-warning"><i class="bi bi-person-plus"></i> New Candidate</a>
+            <button type="button" class="btn btn-info text-dark" data-bs-toggle="modal" data-bs-target="#addCandidatesModal">
+                <i class="bi bi-person-lines-fill"></i> Add from Pool
+            </button>
+            <a href="{% url 'candidates:upload_candidate_files' pk=object.id %}" class="btn btn-primary"><i class="bi bi-upload"></i> Upload Resume</a>
+            <a href="{% url 'report:candidate_evaluation' pk=object.id %}" class="btn btn-secondary" target="_blank"><i class="bi bi-file-earmark-bar-graph"></i> Candidate Evaluation</a>
         </div>
     </div>
 </div>
@@ -68,263 +80,403 @@
 <div class="container mt-3">
     <div class="card-body">
         {% if candidates %}
-        <div class="btn-group">
-            <a class="btn btn-primary btn-sm mb-2" href="{% url 'candidates:initial_canidadates_update' object.id %}"><i class="bi bi-arrow-repeat"></i> Update All</a>
-            <a class="btn btn-info btn-sm mb-2 text-dark" href="{% url 'documents:interview_attendance' object.id %}"><i class="bi bi-printer"></i> Print Attendance Sheet</a>
-            <a class="btn btn-danger btn-sm mb-2" href="{% url 'documents:interview_assessment' object.id %}" target="_blank"><i class="bi bi-printer"></i> Interview Assessment</a>
-            <button onclick="copyPhoneNumbers()" class="btn btn-primary btn-sm mb-2"><i class="bi bi-copy"></i> Copy Phone Numbers</button>
+        <div class="d-flex flex-wrap gap-2 mb-2">
+            <a class="btn btn-primary btn-sm" href="{% url 'candidates:initial_canidadates_update' object.id %}"><i class="bi bi-arrow-repeat"></i> Update All</a>
+            <a class="btn btn-info btn-sm text-dark" href="{% url 'documents:interview_attendance' object.id %}"><i class="bi bi-printer"></i> Print Attendance Sheet</a>
+            <a class="btn btn-danger btn-sm" href="{% url 'documents:interview_assessment' object.id %}" target="_blank"><i class="bi bi-printer-fill"></i> Interview Assessment</a>
+            <button onclick="copyPhoneNumbers()" class="btn btn-success btn-sm"><i class="bi bi-copy"></i> Copy Phone Numbers</button>
+            {% url 'jobs:initial_interview_detail' object.id as return_url %}
+            <a href="{% url 'jobs:edit_SMS_template' 1 %}?next={% url 'jobs:interview_details' object.id %}" class="btn btn-outline-info btn-sm">
+                <i class="bi bi-pencil-square"></i> Edit SMS Template
+            </a>
         </div>
-        <table class="table table-bordered table-sm table-hover">
-            <thead class="text-center text-middle">
-                <th>SL</th>
-                <th>Name</th>
-                <th>Phone</th>
-                <th>Email</th>
-                <th>Invitation Status</th>
-                <th>Attendance Status</th>
-                <th>Interview_status</th>
-                <th>Details</th>
-                <th colspan="2">Actions</th>
-            </thead>
-            <tbody>
-                {% for candidate in candidates %}
-                <tr class="{% if candidate.mobile in duplicate_mobiles %}table-warning{% endif %}">
-                    <td>{{ forloop.counter }}</td>
-                    <td><a href="{% url 'candidates:candidate-detail' candidate.id %}" class="text-nowrap">{{ candidate.name }}</a></td>
-                    <td>{{ candidate.mobile }}</td>
-                    <td class="text-wrap">{{ candidate.email }}</td>
-                    <td class="{% if candidate.invitation_status != 'Confirmed' %}text-danger{% endif %}"><strong>{{ candidate.invitation_status }}</strong></td>
-                    <td class="{% if candidate.attendance_status != 'Present' %}text-danger{% endif %}"><strong>{{ candidate.attendance_status }}</strong></td>
-                    <td>{{ candidate.initial_interview_status }}</td>
-                    <td class="{% if candidate.details %}text-primary{% else %}text-danger{% endif %}">
-                        {% if candidate.details %}Available{% else %}Not Available{% endif %}
-                    </td>
-                    <td colspan="2" class="text-nowrap text-center">
-                        <button type="button" class="btn btn-sm btn-outline-danger me-2" data-bs-toggle="modal" data-bs-target="#candidateDelete{{ candidate.id }}" data-bs-toggle="tooltip" title="Delete Candidate">
-                            <i class="bi bi-trash"></i> Delete
-                        </button>
-                        <!-- Delete Modal -->
-                        <div class="modal fade" id="candidateDelete{{ candidate.id }}" tabindex="-1">
-                            <div class="modal-dialog modal-dialog-centered">
-                                <div class="modal-content">
-                                    <div class="modal-header">
-                                        <h5 class="modal-title">Delete Candidate</h5>
-                                        <button type="button" class="btn-close" data-bs-dismiss="modal"></button>
-                                    </div>
-                                    <div class="modal-body">
-                                        <p>Are you sure you want to delete "{{ candidate.name }}"?</p>
-                                    </div>
-                                    <div class="modal-footer">
-                                        <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Close</button>
-                                        <form class="d-inline-block" method="post" action="{% url 'candidates:candidate_delete' candidate.id %}">
-                                            {% csrf_token %}
-                                            <button type="submit" class="btn btn-danger">Confirm Delete</button>
-                                        </form>
-                                    </div>
-                                </div>
-                            </div>
-                        </div>
-                        <a class="btn btn-sm btn-outline-primary me-2" href="{% url 'candidates:candidate_update' candidate.id %}" role="button" data-bs-toggle="tooltip" title="Edit Candidate">
-                            <i class="bi bi-pencil-square"></i> Edit
-                        </a>
-                        {% comment %} Resume view modal trigger {% endcomment %}
-                        <button type="button" class="btn btn-sm btn-outline-secondary" data-bs-toggle="modal" data-bs-target="#resumeModal{{ candidate.id }}" data-bs-toggle="tooltip" title="View Resume">
-                            <i class="bi bi-eye"></i> View Resume
-                        </button>
+        
+        <div class="table-responsive">
+            <table class="table table-bordered table-sm table-hover align-middle">
+                <thead class="text-center">
+                    <tr>
+                        <th>SL</th>
+                        <th>Name</th>
+                        <th>Phone</th>
+                        <th>Email</th>
+                        <th>Invitation Status</th>
+                        <th>Attendance Status</th>
+                        <th>Interview Status</th>
+                        <th>Details</th>
+                        <th colspan="2">Actions</th>
+                    </tr>
+                </thead>
+                <tbody>
+                    {% for candidate in candidates %}
+                    <tr class="{% if candidate.mobile in duplicate_mobiles %}table-warning{% endif %}">
+                        <td>{{ forloop.counter }}</td>
+                        <td><a href="{% url 'candidates:candidate-detail' candidate.id %}" class="text-nowrap">{{ candidate.name|default:"N/A" }}</a></td>
+                        <td class="candidate-mobile">{{ candidate.mobile|default:"N/A" }}</td>
+                        <td class="text-wrap">{{ candidate.email|default:"N/A" }}</td>
+                        <td class="{% if candidate.invitation_status != 'Confirmed' %}text-danger{% endif %} text-center">
+                            <strong>{{ candidate.invitation_status|default:"Pending" }}</strong>
+                        </td>
+                        <td class="{% if candidate.attendance_status != 'Present' %}text-danger{% endif %} text-center">
+                            <strong>{{ candidate.attendance_status|default:"Absent" }}</strong>
+                        </td>
+                        <td class="text-center">{{ candidate.initial_interview_status|default:"N/A" }}</td>
+                        <td class="{% if candidate.details %}text-primary{% else %}text-danger{% endif %} text-center">
+                            {% if candidate.details %}Available{% else %}Not Available{% endif %}
+                        </td>
+                        <td colspan="2" class="text-nowrap text-center d-flex flex-wrap gap-1 justify-content-center">
+                            <button type="button" class="btn btn-sm btn-outline-danger" data-bs-toggle="modal" data-bs-target="#candidateDelete{{ candidate.id }}" title="Delete Candidate">
+                                <i class="bi bi-trash"></i>
+                            </button>
+                            <a class="btn btn-sm btn-outline-primary" href="{% url 'candidates:candidate_update' candidate.id %}" title="Edit Candidate">
+                                <i class="bi bi-pencil-square"></i>
+                            </a>
+                            <button type="button" class="btn btn-sm btn-outline-secondary" data-bs-toggle="modal" data-bs-target="#resumeModal{{ candidate.id }}" title="View Resume">
+                                <i class="bi bi-eye"></i>
+                            </button>
+                            <button type="button" class="btn btn-sm btn-outline-success send-sms-test-btn" 
+                                data-candidate-id="{{ candidate.id }}" 
+                                title="Send SMS Status Toast">
+                                <i class="bi bi-chat-text"></i> Send SMS
+                            </button>
 
-                                                <!-- Resume Modal -->
-                        <div class="modal fade" id="resumeModal{{ candidate.id }}" tabindex="-1" aria-hidden="true">
-                            <div class="modal-dialog modal-lg modal-dialog-centered">
-                                <div class="modal-content">
-                                    <div class="modal-header">
-                                        <h5 class="modal-title">Resume - {{ candidate.name }}</h5>
-                                        <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
-                                    </div>
-                                    <div class="modal-body">
-                                        {% if candidate.candidate_initial_info and candidate.candidate_initial_info.resume %}
-                                            <div class="table-responsive">
-                                                <!-- Lazy-load iframe: use data-src and set src when modal is shown -->
-                                                <iframe data-src="{{ candidate.candidate_initial_info.resume.url }}" id="resumeFrame{{ candidate.id }}" style="width:100%; height:75vh; border: none;" loading="lazy"></iframe>
-                                            </div>
-                                            {% else %}
-                                            <p class="text-muted">No resume available for this candidate.</p>
-                                        {% endif %}
-                                    </div>
-                                    <div class="modal-footer">
-                                        <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Close</button>
+                            <div class="modal fade" id="candidateDelete{{ candidate.id }}" tabindex="-1" aria-labelledby="deleteModalLabel{{ candidate.id }}" aria-hidden="true">
+                                <div class="modal-dialog modal-dialog-centered">
+                                    <div class="modal-content">
+                                        <div class="modal-header">
+                                            <h5 class="modal-title" id="deleteModalLabel{{ candidate.id }}">Delete Candidate</h5>
+                                            <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
+                                        </div>
+                                        <div class="modal-body">
+                                            <p>Are you sure you want to delete **{{ candidate.name|default:"this candidate" }}** from this interview schedule?</p>
+                                        </div>
+                                        <div class="modal-footer">
+                                            <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Cancel</button>
+                                            <form method="post" action="{% url 'candidates:candidate_delete' candidate.id %}">
+                                                {% csrf_token %}
+                                                <button type="submit" class="btn btn-danger">Confirm Delete</button>
+                                            </form>
+                                        </div>
                                     </div>
                                 </div>
                             </div>
-                        </div>
-                    </td>
-                </tr>
-                {% endfor %}
-            </tbody>
-        </table>
+
+                            <div class="modal fade" id="resumeModal{{ candidate.id }}" tabindex="-1" aria-labelledby="resumeModalLabel{{ candidate.id }}" aria-hidden="true">
+                                <div class="modal-dialog modal-lg modal-dialog-centered">
+                                    <div class="modal-content">
+                                        <div class="modal-header">
+                                            <h5 class="modal-title" id="resumeModalLabel{{ candidate.id }}">Resume - {{ candidate.name|default:"N/A" }}</h5>
+                                            <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
+                                        </div>
+                                        <div class="modal-body">
+                                            {% if candidate.candidate_initial_info and candidate.candidate_initial_info.resume %}
+                                                <div class="table-responsive">
+                                                    <iframe data-src="{{ candidate.candidate_initial_info.resume.url }}" id="resumeFrame{{ candidate.id }}" style="width:100%; height:75vh; border: none;" loading="lazy"></iframe>
+                                                </div>
+                                            {% else %}
+                                                <p class="text-muted text-center">No resume available for this candidate.</p>
+                                            {% endif %}
+                                        </div>
+                                        <div class="modal-footer">
+                                            <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Close</button>
+                                        </div>
+                                    </div>
+                                </div>
+                            </div>
+
+                        </td>
+                    </tr>
+                    {% endfor %}
+                </tbody>
+            </table>
+        </div>
         {% else %}
-        <h3 class="text-center mt-4">No candidates have been added to this interview yet.</h3>
+        <h3 class="text-center mt-4 text-muted">No candidates have been added to this interview yet.</h3>
         {% endif %}
     </div>
 </div>
 
-<!-- Add Candidates from Pool Modal -->
-<div class="modal fade" id="addCandidatesModal" tabindex="-1">
-    <div class="modal-dialog modal-lg modal-dialog-centered">
+<div class="modal fade" id="addCandidatesModal" tabindex="-1" aria-labelledby="addCandidatesModalLabel" aria-hidden="true">
+    <div class="modal-dialog modal-xl modal-dialog-centered">
         <div class="modal-content">
             <div class="modal-header">
-                <h5 class="modal-title">Select Candidates to Add</h5>
-                <button type="button" class="btn-close" data-bs-dismiss="modal"></button>
+                <h5 class="modal-title" id="addCandidatesModalLabel"><i class="bi bi-funnel"></i> Select Candidates from Pool</h5>
+                <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
             </div>
 
             <div class="modal-body">
-    <!-- 🔍 Filter Options -->
-            <div class="filter-bar mb-3">
-            <select id="filterAttendance" class="form-select form-select-sm" style="width: auto;">
-                <option value="">Attendance (All)</option>
-                <option value="Present">Present</option>
-                <option value="Absent">Absent</option>
-                <option value="Pending">Pending</option>
-            </select>
+                <div class="filter-bar mb-3">
+                    <select id="filterAttendance" class="form-select form-select-sm" style="width: auto;">
+                        <option value="">Attendance (All)</option>
+                        <option value="Present">Present</option>
+                        <option value="Absent">Absent</option>
+                        <option value="Pending">Pending</option>
+                        <option value="blank">(Blank)</option>
+                    </select>
 
-            <select id="filterInvitation" class="form-select form-select-sm" style="width: auto;">
-                <option value="">Invitation (All)</option>
-                <option value="Sent">Sent</option>
-                <option value="Not Sent">Not Sent</option>
-            </select>
+                    <select id="filterInvitation" class="form-select form-select-sm" style="width: auto;">
+                        <option value="">Invitation (All)</option>
+                        <option value="Sent">Sent</option>
+                        <option value="Not Sent">Not Sent</option>
+                        <option value="Confirmed">Confirmed</option>
+                        <option value="blank">(Blank)</option>
+                    </select>
 
-            <select id="filterInitial" class="form-select form-select-sm" style="width: auto;">
-                <option value="">Initial Status (All)</option>
-                <option value="Selected">Selected</option>
-                <option value="Rejected">Rejected</option>
-                <option value="Pending">Pending</option>
-            </select>
+                    <select id="filterInitial" class="form-select form-select-sm" style="width: auto;">
+                        <option value="">Initial Status (All)</option>
+                        <option value="Selected">Selected</option>
+                        <option value="Rejected">Rejected</option>
+                        <option value="Pending">Pending</option>
+                        <option value="blank">(Blank)</option>
+                    </select>
 
-            <button class="btn btn-outline-secondary btn-sm" id="resetFilters">Reset</button>
+                    <button class="btn btn-outline-secondary btn-sm" id="resetFilters"><i class="bi bi-x-circle"></i> Reset</button>
 
-            <div class="ms-auto">
-                <input type="text" id="candidateFilter" class="form-control form-control-sm" placeholder="Search all columns...">
+                    <div class="ms-auto">
+                        <input type="search" id="candidateFilter" class="form-control form-control-sm" placeholder="Search (Name, Phone, Job, etc)...">
+                    </div>
+                </div>
+
+                <div id="candidate-pool-list">
+                    <p class="text-center text-muted"><i class="bi bi-arrow-clockwise"></i> Loading candidates...</p>
+                </div>
             </div>
-        </div>
-
-
-            <div id="candidate-pool-list" class="table-responsive">
-                <p class="text-center">Loading candidates...</p>
-            </div>
-        </div>
-
 
             <div class="modal-footer">
                 <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Close</button>
-                <button type="button" class="btn btn-primary" id="confirmAddCandidates">Add Selected Candidates</button>
+                <button type="button" class="btn btn-primary" id="confirmAddCandidates"><i class="bi bi-plus-circle"></i> Add Selected Candidates</button>
             </div>
         </div>
     </div>
 </div>
 
+<div class="toast-container position-fixed bottom-0 end-0 p-3">
+    <div id="smsToast" class="toast" role="alert" aria-live="assertive" aria-atomic="true" data-bs-autohide="true" data-bs-delay="5000">
+        <div class="toast-header text-white">
+            <i class="bi bi-bell-fill me-2"></i>
+            <strong class="me-auto toast-title">SMS Status</strong>
+            <small>Just now</small>
+            <button type="button" class="btn-close btn-close-white" data-bs-dismiss="toast" aria-label="Close"></button>
+        </div>
+        <div class="toast-body">
+            </div>
+    </div>
+</div>
 {% endblock %}
 
 {% block extra_scripts %}
 <script>
-    // Function to copy phone numbers
-    function copyPhoneNumbers() {
-        const textarea = document.createElement('textarea');
-        const phoneNumbers = Array.from(document.querySelectorAll('tbody td:nth-child(3)'))
-                                  .map(td => td.textContent.trim())
-                                  .join(',');
-        if (!phoneNumbers) {
-            alert('No phone numbers to copy.');
+    // Global utility function for date formatting
+    const formatDate = (dateString) => {
+        if (!dateString) return '';
+        try {
+            const date = new Date(dateString);
+            if (isNaN(date)) return '';
+            const options = { day: '2-digit', month: 'short', year: 'numeric' };
+            return date.toLocaleDateString('en-GB', options);
+        } catch (e) {
+            return dateString; // Fallback if parsing fails
+        }
+    };
+
+    // --- 🔔 SMS Toast Functions (Modernized) 🔔 ---
+
+    /**
+     * Displays a Bootstrap Toast notification.
+     * @param {string} message - The content of the notification.
+     * @param {boolean} isSuccess - True for success (green), false for error (red).
+     */
+    const showToast = (message, isSuccess = true) => {
+        const toastEl = document.getElementById('smsToast');
+        if (!toastEl) {
+            console.error("Toast element #smsToast not found.");
             return;
         }
-        textarea.value = phoneNumbers;
+
+        const toastBody = toastEl.querySelector('.toast-body');
+        const toastHeader = toastEl.querySelector('.toast-header');
+        const toastTitle = toastEl.querySelector('.toast-title');
+        
+        // Remove previous classes and set new ones
+        toastHeader.classList.remove('bg-success', 'bg-danger');
+        
+        if (isSuccess) {
+            toastHeader.classList.add('bg-success');
+            toastTitle.textContent = 'SMS Success';
+        } else {
+            toastHeader.classList.add('bg-danger');
+            toastTitle.textContent = 'SMS Error';
+        }
+
+        if (toastBody) {
+            toastBody.textContent = message;
+        }
+
+        // Use the native Bootstrap 5 JS Toast object
+        const toast = bootstrap.Toast.getOrCreateInstance(toastEl, { delay: 5000 });
+        toast.show();
+    };
+
+    /**
+     * Processes the JSON response from the SMS Gateway and calls showToast.
+     * @param {object} response - The JSON response object from the SMS API endpoint.
+     */
+    const processSmsResponse = (response) => {
+        const statusInfo = response?.statusInfo;
+        
+        if (statusInfo) {
+            const statusCode = statusInfo.statusCode;
+            const description = statusInfo.errordescription;
+            
+            // Assuming '1000' is the standard success code, or HTTP 2xx
+            const isSuccess = statusCode === '1000' || (parseInt(statusCode) >= 200 && parseInt(statusCode) < 300); 
+            
+            let message = isSuccess 
+                ? `SMS sent successfully! Status Code: ${statusCode}`
+                : `SMS failed! Status Code: ${statusCode}. Reason: ${description || 'Unknown Error'}`;
+            
+            showToast(message, isSuccess);
+            
+        } else {
+            showToast("Error: Received unexpected SMS response format. Check server logs.", false);
+        }
+    };
+    
+    // --- 🔔 END SMS Toast Functions 🔔 ---
+
+    // Function to copy phone numbers
+    const copyPhoneNumbers = () => {
+        // Target candidates in the main table with class `candidate-mobile`
+        const phoneNumbers = Array.from(document.querySelectorAll('td.candidate-mobile'))
+                                     .map(td => td.textContent.trim())
+                                     .filter(number => number && number !== 'N/A')
+                                     .join(',');
+
+        if (phoneNumbers.length === 0) {
+            alert('No phone numbers available to copy.');
+            return;
+        }
+
+        // Use modern clipboard API if available, fallback to textarea
+        if (navigator.clipboard && window.isSecureContext) {
+            navigator.clipboard.writeText(phoneNumbers)
+                .then(() => alert('Phone numbers copied to clipboard!'))
+                .catch(err => {
+                    console.error('Failed to copy using clipboard API:', err);
+                    copyFallback(phoneNumbers);
+                });
+        } else {
+            copyFallback(phoneNumbers);
+        }
+    };
+    
+    const copyFallback = (text) => {
+        const textarea = document.createElement('textarea');
+        textarea.value = text;
+        // Make the textarea invisible and append to document
+        textarea.style.position = 'fixed';
+        textarea.style.opacity = '0'; 
         document.body.appendChild(textarea);
         textarea.select();
-        document.execCommand('copy');
-        document.body.removeChild(textarea);
-        alert('Phone numbers copied to clipboard!');
-    }
+        try {
+            document.execCommand('copy');
+            alert('Phone numbers copied to clipboard!');
+        } catch (err) {
+            console.error('Fallback copy failed:', err);
+            alert('Error: Unable to copy phone numbers.');
+        } finally {
+            document.body.removeChild(textarea);
+        }
+    };
 
-    function formatDate(dateString) {
-        if (!dateString) return ''; // Handle null or empty
-        const date = new Date(dateString);
-        if (isNaN(date)) return ''; // Invalid date safety
-        const options = { day: '2-digit', month: 'short', year: 'numeric' };
-        return date.toLocaleString('en-GB', options);
-    }
+    // Make copyPhoneNumbers globally available (since it's used in `onclick`)
+    window.copyPhoneNumbers = copyPhoneNumbers; 
 
     $(document).ready(function() {
         const addCandidatesModal = document.getElementById('addCandidatesModal');
         const interviewId = "{{ object.id }}";
+        const candidateDetailBaseUrl = "{% url 'candidates:candidate_initial_info_detail' 0 %}".slice(0, -2); // Base URL for candidate detail page
 
+        // Set up CSRF token for all AJAX requests
         $.ajaxSetup({
             headers: { "X-CSRFToken": "{{ csrf_token }}" }
         });
 
-        // Fetch candidates when modal is shown
-        $(addCandidatesModal).off('show.bs.modal').on('show.bs.modal', function() {
+        // --- Candidate Pool Fetching and Display ---
+        const fetchCandidatePool = () => {
             const listContainer = $('#candidate-pool-list');
-            const candidateDetailBaseUrl = "{% url 'candidates:candidate_initial_info_detail' 0 %}".slice(0, -2);
-            listContainer.html('<p class="text-center">Loading candidates...</p>');
+            listContainer.html('<p class="text-center text-muted"><i class="bi bi-arrow-clockwise"></i> Loading candidates...</p>');
 
             $.ajax({
                 url: `{% url 'jobs:display_candidates' object.id %}`,
                 type: 'GET',
                 success: function(response) {
                     if (response.candidates && response.candidates.length > 0) {
-                        let table = `
-                            <table class="table table-hover table-striped align-middle table-sm text-nowrap">
-                                <thead class="table-light font-monospace align-middle text-center">
-                                    <tr>
-                                        <th><input type="checkbox" id="selectAllCandidates"></th>
-                                        <th>Updated at</th>
-                                        <th>Name</th>
-                                        <th>Mobile</th>
-                                        <th>Status</th>
-                                        <th>Job</th>
-                                        <th>Previous Date</th>
-                                        <th>Attendance Status</th>
-                                        <th>Invitation</th>
-                                        <th>Initial Status</th>
-                                    </tr>
-                                </thead>
-                                <tbody>
-                        `;
-                        response.candidates.forEach(c => {
-                            table += `
-                                <tr>
-                                    <td><input type="checkbox" class="candidate-select" value="${c.id}"></td>
-                                    <td>${formatDate(c.updated_at) || ''}</td>
-                                    <td><a href="${candidateDetailBaseUrl}${c.id}/" target="_blank">${c.name}</a></td>
-                                    <td class='text-center'>${c.mobile_no}</td>
-                                    <td class='text-center'>${c.status || ''}</td>
-                                    <td class='text-center'>${c.job_title || ''}</td>
-                                    <td class='text-center'>${formatDate(c.interview_date) || ''}</td>
-                                    <td class='text-center'>${c.attendance_status || ''}</td>
-                                    <td class='text-center'>${c.invitation_status || ''}</td>
-                                    <td class='text-center'>${c.initial_interview_status || ''}</td>
-                                </tr>
-                            `;
-                        });
-                        table += '</tbody></table>';
-                        listContainer.html(table);
-
-                        // Initialize filters after table loads
+                        renderCandidateTable(response.candidates, listContainer);
                         populateFilterDropdowns();
+                        // Apply any existing filters immediately after rendering
+                        applyFilters(); 
                     } else {
                         listContainer.html('<p class="text-center text-muted">No eligible candidates found in the pool for the associated job(s).</p>');
+                        // Clear filter options if no data
+                        $('#filterAttendance, #filterInvitation, #filterInitial').html('<option value="">N/A (All)</option>');
                     }
                 },
                 error: function() {
-                    listContainer.html('<p class="text-center text-danger">Failed to load candidates.</p>');
+                    listContainer.html('<p class="text-center text-danger">Failed to load candidates from pool.</p>');
                 }
             });
-        });
+        };
+
+        const renderCandidateTable = (candidates, container) => {
+            let table = `
+                <div class="table-responsive">
+                <table class="table table-hover table-striped align-middle table-sm text-nowrap" id="candidatePoolTable">
+                    <thead class="table-light font-monospace align-middle text-center">
+                        <tr>
+                            <th><input type="checkbox" id="selectAllCandidates"></th>
+                            <th data-column="updated_at">Updated at</th>
+                            <th data-column="name">Name</th>
+                            <th data-column="mobile_no">Mobile</th>
+                            <th data-column="status">Status</th>
+                            <th data-column="job_title">Job</th>
+                            <th data-column="interview_date">Previous Date</th>
+                            <th data-column="attendance_status">Attendance Status</th>
+                            <th data-column="invitation_status">Invitation</th>
+                            <th data-column="initial_interview_status">Initial Status</th>
+                        </tr>
+                    </thead>
+                    <tbody>`;
+            
+            candidates.forEach(c => {
+                table += `
+                    <tr>
+                        <td><input type="checkbox" class="candidate-select" value="${c.id}"></td>
+                        <td data-sort="${c.updated_at || ''}">${formatDate(c.updated_at) || ''}</td>
+                        <td><a href="${candidateDetailBaseUrl}${c.id}/" target="_blank">${c.name || 'N/A'}</a></td>
+                        <td class='text-center'>${c.mobile_no || 'N/A'}</td>
+                        <td class='text-center'>${c.status || 'N/A'}</td>
+                        <td class='text-center'>${c.job_title || 'N/A'}</td>
+                        <td data-sort="${c.interview_date || ''}" class='text-center'>${formatDate(c.interview_date) || ''}</td>
+                        <td class='text-center'>${c.attendance_status || ''}</td>
+                        <td class='text-center'>${c.invitation_status || ''}</td>
+                        <td class='text-center'>${c.initial_interview_status || ''}</td>
+                    </tr>
+                `;
+            });
+
+            table += '</tbody></table></div>';
+            container.html(table);
+        };
+
+        // Fetch candidates when modal is shown
+        $(addCandidatesModal).off('show.bs.modal').on('show.bs.modal', fetchCandidatePool);
 
         // Select All functionality
         $(document).on('change', '#selectAllCandidates', function() {
             $('.candidate-select').prop('checked', this.checked);
         });
 
-        // Confirm adding selected candidates
+        // --- Add Selected Candidates Logic ---
         $('#confirmAddCandidates').on('click', function() {
             const selectedIds = $('.candidate-select:checked').map(function() {
                 return $(this).val();
@@ -335,69 +487,107 @@
                 return;
             }
 
+            // Efficient way to pass multiple IDs in the URL query string
             const candidateParams = selectedIds.map(id => `candidate_ids=${id}`).join('&');
             const url = `{% url 'candidates:include-in-interview-schedule' %}?interview_id=${interviewId}&${candidateParams}`;
 
             const btn = $(this);
-            btn.prop('disabled', true).text('Adding...');
+            const originalText = btn.html();
+            btn.prop('disabled', true).html('<span class="spinner-border spinner-border-sm" role="status" aria-hidden="true"></span> Adding...');
 
             $.ajax({
                 url: url,
                 type: 'POST',
                 success: function(response) {
                     if (response.success) {
-                        alert(response.message);
+                        // Use a Bootstrap alert/toast instead of native alert for better UX
+                        alert(response.message); 
                         location.reload();
                     } else {
-                        alert('An error occurred: ' + (response.error || response.message));
+                        alert('An error occurred: ' + (response.error || response.message || 'Unknown server error'));
                     }
                 },
-                error: function() {
-                    alert('An error occurred while adding candidates.');
+                error: function(xhr) {
+                    alert('A network error occurred while adding candidates.');
                 },
                 complete: function() {
-                    btn.prop('disabled', false).text('Confirm Add');
+                    btn.prop('disabled', false).html(originalText);
                 }
             });
         });
+        
+        // --- 🧪 SMS Test Button Handler (Demonstration) 🧪 ---
+        $(document).on('click', '.send-sms-test-btn', function() {
+            const btn = $(this);
+            const candidateId = btn.data('candidate-id');
+            const originalHtml = btn.html();
+            btn.prop('disabled', true).html('<span class="spinner-border spinner-border-sm" role="status" aria-hidden="true"></span> Sending...');
 
-        // === FILTER AND SORT LOGIC ===
+            fetch(`/interview/SMS/send/{{ object.id }}?candidate_id=${candidateId}`)
+                .then(response => {
+                    if (!response.ok) throw new Error('Network response was not ok');
+                    return response.json();
+                })
+                .then(data => {
+                    // Use the real response from the server
+                    processSmsResponse(data);
+                })
+                .catch(err => {
+                    console.error('SMS send error:', err);
+                    showToast("Network error while sending SMS.", false);
+                })
+                .finally(() => {
+                    btn.prop('disabled', false).html(originalHtml);
+                });
+        });
+        // --- 🧪 END SMS Test Button Handler 🧪 ---
+
+        // === FILTER AND SORT LOGIC (Optimized) ===
+
+        function getColumnData(row, colIndex) {
+            const cell = $(row).children('td').eq(colIndex);
+            // Use data-sort attribute if available (useful for dates/numbers)
+            return cell.data('sort') !== undefined ? cell.data('sort').toString().toLowerCase() : cell.text().trim().toLowerCase();
+        }
 
         function applyFilters() {
-            const attendance = $('#filterAttendance').val().toLowerCase();
-            const invitation = $('#filterInvitation').val().toLowerCase();
-            const initial = $('#filterInitial').val().toLowerCase();
+            const attendanceFilter = $('#filterAttendance').val().toLowerCase();
+            const invitationFilter = $('#filterInvitation').val().toLowerCase();
+            const initialFilter = $('#filterInitial').val().toLowerCase();
             const searchQuery = $('#candidateFilter').val().toLowerCase();
 
-            $('#candidate-pool-list table tbody tr').each(function() {
-                const tds = $(this).find('td');
-                const rowData = {
-                    name: tds.eq(1).text().toLowerCase(),
-                    mobile: tds.eq(2).text().toLowerCase(),
-                    attendance: tds.eq(6).text().toLowerCase(),
-                    invitation: tds.eq(7).text().toLowerCase(),
-                    initial: tds.eq(8).text().toLowerCase(),
-                };
+            // Column indices for the modal table (starts at 0)
+            const COL_ATTENDANCE = 8;
+            const COL_INVITATION = 9;
+            const COL_INITIAL = 10;
+            const searchableColumns = [2, 3, 5]; // Name, Mobile, Job Title
 
-                const isAttendanceBlank = !rowData.attendance;
-                const isInvitationBlank = !rowData.invitation;
-                const isInitialBlank = !rowData.initial;
+            $('#candidatePoolTable tbody tr').each(function() {
+                const row = $(this);
 
-                const matchesAttendance = 
-                    !attendance ||
-                    (attendance === 'blank' ? isAttendanceBlank : rowData.attendance === attendance);
-                const matchesInvitation = 
-                    !invitation ||
-                    (invitation === 'blank' ? isInvitationBlank : rowData.invitation === invitation);
-                const matchesInitial = 
-                    !initial ||
-                    (initial === 'blank' ? isInitialBlank : rowData.initial === initial);
+                // 1. Filter Check
+                const attendanceVal = getColumnData(this, COL_ATTENDANCE);
+                const invitationVal = getColumnData(this, COL_INVITATION);
+                const initialVal = getColumnData(this, COL_INITIAL);
 
-                const matchesSearch =
-                    !searchQuery ||
-                    Object.values(rowData).some(v => v.includes(searchQuery));
+                const matchesAttendance = !attendanceFilter || 
+                    (attendanceFilter === 'blank' ? attendanceVal === '' : attendanceVal === attendanceFilter);
+                
+                const matchesInvitation = !invitationFilter || 
+                    (invitationFilter === 'blank' ? invitationVal === '' : invitationVal === invitationFilter);
 
-                $(this).toggle(matchesAttendance && matchesInvitation && matchesInitial && matchesSearch);
+                const matchesInitial = !initialFilter || 
+                    (initialFilter === 'blank' ? initialVal === '' : initialVal === initialFilter);
+                
+                // 2. Search Check
+                let matchesSearch = !searchQuery;
+                if (searchQuery) {
+                    matchesSearch = searchableColumns.some(colIndex => {
+                        return getColumnData(this, colIndex).includes(searchQuery);
+                    });
+                }
+                
+                row.toggle(matchesAttendance && matchesInvitation && matchesInitial && matchesSearch);
             });
         }
 
@@ -412,89 +602,93 @@
         $(document).on('change input', '#filterAttendance, #filterInvitation, #filterInitial, #candidateFilter', applyFilters);
 
         // === COLUMN SORTING ===
-        $(document).on('click', '#candidate-pool-list thead th', function() {
-            const index = $(this).index();
-            if (index === 0) return; // skip checkbox column
-
-            const table = $(this).closest('table');
+        $(document).on('click', '#candidatePoolTable thead th[data-column]', function() {
+            const header = $(this);
+            const table = header.closest('table');
+            const index = header.index();
             const rows = table.find('tbody > tr').get();
-            const asc = !$(this).data('asc');
-            $(this).data('asc', asc);
+            const isAscending = !header.data('asc');
+            
+            // Set the new sort direction
+            header.data('asc', isAscending);
+
+            // Clear previous sort indicators (optional but good practice)
+            table.find('thead th').removeClass('sorted-asc sorted-desc');
+            header.addClass(isAscending ? 'sorted-asc' : 'sorted-desc');
 
             rows.sort((a, b) => {
-                const A = $(a).children('td').eq(index).text().toUpperCase();
-                const B = $(b).children('td').eq(index).text().toUpperCase();
-                return asc ? A.localeCompare(B) : B.localeCompare(A);
+                const A = getColumnData(a, index);
+                const B = getColumnData(b, index);
+                
+                // Simple string comparison for text data
+                let comparison = A.localeCompare(B); 
+
+                return isAscending ? comparison : -comparison;
             });
 
-            $.each(rows, (i, row) => table.children('tbody').append(row));
+            // Re-append rows to the tbody to re-order them
+            const tbody = table.children('tbody');
+            $.each(rows, (i, row) => tbody.append(row));
         });
 
-        // === Populate Dropdowns Dynamically (with Blank Option) ===
+        // === Populate Dropdowns Dynamically ===
         function populateFilterDropdowns() {
             const uniqueValues = (index) => {
                 const values = new Set();
-                $(`#candidate-pool-list table tbody tr`).each(function() {
+                $('#candidatePoolTable tbody tr').each(function() {
                     const val = $(this).find('td').eq(index).text().trim();
                     if (val) values.add(val);
                 });
                 return Array.from(values).sort();
             };
+            
+            // NOTE: Indices 8, 9, 10 correspond to the column data in the dynamically loaded table in the modal.
+            const attendanceOptions = uniqueValues(8); 
+            const invitationOptions = uniqueValues(9);
+            const initialOptions = uniqueValues(10);
 
-            const attendanceOptions = uniqueValues(6);
-            const invitationOptions = uniqueValues(7);
-            const initialOptions = uniqueValues(8);
-
-            const makeOptions = (arr, label) => `
-                <option value="">${label} (All)</option>
-                ${arr.map(v => `<option value="${v.toLowerCase()}">${v}</option>`).join('')}
-                <option value="blank">(Blank)</option>
-            `;
+            const makeOptions = (arr, label) => {
+                let options = `<option value="">${label} (All)</option>`;
+                options += arr.map(v => `<option value="${v.toLowerCase()}">${v}</option>`).join('');
+                options += `<option value="blank">(Blank)</option>`;
+                return options;
+            };
 
             $('#filterAttendance').html(makeOptions(attendanceOptions, 'Attendance'));
             $('#filterInvitation').html(makeOptions(invitationOptions, 'Invitation'));
             $('#filterInitial').html(makeOptions(initialOptions, 'Initial Status'));
         }
     });
-</script>
 
-<script>
-    // Lazy-load resume iframes: set src when modal opens, clear on close
-    document.addEventListener('shown.bs.modal', function (event) {
-        var modal = event.target;
-        if (modal && modal.id && modal.id.startsWith('resumeModal')) {
-            var candidateId = modal.id.replace('resumeModal','');
-            var iframe = document.getElementById('resumeFrame' + candidateId);
-            if (iframe && iframe.dataset && iframe.dataset.src) {
-                // set src only if not already set
-                if (!iframe.src) {
-                    iframe.src = iframe.dataset.src;
-                }
+
+    // --- Resume Modal Lazy Loading ---
+    const resumeModalElements = document.querySelectorAll('[id^="resumeModal"]');
+
+    resumeModalElements.forEach(modal => {
+        // Load iframe src when modal is shown
+        modal.addEventListener('shown.bs.modal', function () {
+            const candidateId = modal.id.replace('resumeModal','');
+            const iframe = document.getElementById('resumeFrame' + candidateId);
+            if (iframe && iframe.dataset.src && !iframe.src) {
+                iframe.src = iframe.dataset.src;
             }
-        }
-    });
+        });
 
-    document.addEventListener('hidden.bs.modal', function (event) {
-        var modal = event.target;
-        if (modal && modal.id && modal.id.startsWith('resumeModal')) {
-            var candidateId = modal.id.replace('resumeModal','');
-            var iframe = document.getElementById('resumeFrame' + candidateId);
+        // Clear iframe src when modal is hidden (saves memory/resources)
+        modal.addEventListener('hidden.bs.modal', function () {
+            const candidateId = modal.id.replace('resumeModal','');
+            const iframe = document.getElementById('resumeFrame' + candidateId);
             if (iframe) {
-                // clear src to release memory and stop any playback
                 iframe.src = '';
             }
-        }
+        });
     });
-</script>
-<script>
-    // Enable Bootstrap tooltips for action buttons
+
+    // Enable Bootstrap tooltips (used for action buttons)
     document.addEventListener('DOMContentLoaded', function () {
-        var tooltipTriggerList = [].slice.call(document.querySelectorAll('[data-bs-toggle="tooltip"]'))
-        tooltipTriggerList.forEach(function (tooltipTriggerEl) {
-            new bootstrap.Tooltip(tooltipTriggerEl)
-        })
+        const tooltipTriggerList = document.querySelectorAll('[data-bs-toggle="tooltip"]')
+        tooltipTriggerList.forEach(tooltipTriggerEl => new bootstrap.Tooltip(tooltipTriggerEl));
     });
 </script>
 
 {% endblock %}
-

@@ -41,6 +41,6 @@ urlpatterns = [
     path('job/expend/joining', views.expands_joining_list.as_view(), name='expend_joining'),
     path('user/unauthorized', views.unauthorized, name='unauthorized'),
     path('interview/candidates/<int:pk>', views.display_candidates, name='display_candidates'),
-    
-
+    path('interview/SMS/send/<int:pk>', views.render_sms_content, name='send_sms'),
+    path('interview/SMS/template/<int:pk>/edit', views.SMSUpdateView.as_view(), name='edit_SMS_template'),
 ]   
