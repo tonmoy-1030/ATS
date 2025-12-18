@@ -671,7 +671,10 @@ def is_admin(user):
 def appointment_letter_list(request):
 
     employee_filter = AppointmentLetterFilter(
-        request.GET, queryset=SalaryInfo.objects.filter(reference_number__isnull=False).order_by("-issue_date")
+        request.GET,
+        queryset=SalaryInfo.objects.filter(reference_number__isnull=False).order_by(
+            "-issue_date"
+        ),
     )
     paginator = Paginator(employee_filter.qs, 10)
     page_number = request.GET.get("page")
@@ -1276,6 +1279,11 @@ from jobs.models import InterviewSchedule
 
 def Interview_Summary(request, final_interview_id):
     candidates = Candidate.objects.filter(final_interview_id=final_interview_id)
+    final_interview = FinalInterviewSchedule.objects.get(id=final_interview_id)
+
+    total_available_positions = sum(
+        job.available_positions() for job in final_interview.job.all()
+    )
 
     # Logic to generate interview summary will go here
     for candidate in candidates:
@@ -1311,9 +1319,7 @@ def Interview_Summary(request, final_interview_id):
                 final_interview_id=final_interview_id,
                 final_interview_attendance="Absent",
             ).count(),
-            "total_vacancy": sum(
-                job.available_positions() for job in candidate.job.all()
-            ),
+            "total_vacancy": total_available_positions,
             "interviewed_by": "\n".join(
                 f"{i+1}. {interviewer.name}, {interviewer.designation}"
                 for i, interviewer in enumerate(
