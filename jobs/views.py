@@ -541,6 +541,7 @@ def render_sms_content(request, pk):
         final_message = template.content.format(**context)
         response = send_sms.send_single_sms(msisdn=[mobile_number], message=final_message)
         SMSLog.objects.create(
+            candidate=candidate,
             recipient_number=mobile_number,
             message_content=final_message,
             status=response.get('statusInfo', {}).get('errordescription', 'Unknown'),
@@ -571,3 +572,27 @@ class SMSUpdateView(UpdateView):
         if next_url:
             return next_url
         return reverse("default_fallback")
+ 
+import json
+from django.http import JsonResponse
+from django.views.decorators.http import require_POST
+   
+@require_POST
+def batch_sms_status(request):
+    try:
+        # Get list of IDs from request body
+        data = json.loads(request.body)
+        candidate_ids = data.get('ids', [])
+        
+        # We only need to know IF a log exists for these IDs to change button colors
+        # .distinct() prevents returning the same ID multiple times if they have many logs
+        sent_ids = SMSLog.objects.filter(
+            candidate_id__in=candidate_ids
+        ).values_list('candidate_id', flat=True).distinct()
+
+        # Return the list of IDs that have at least one SMS log
+        return JsonResponse(list(sent_ids), safe=False)
+        
+    except Exception as e:
+        return JsonResponse({'error': str(e)}, status=400)
+    

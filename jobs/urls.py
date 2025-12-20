@@ -43,4 +43,5 @@ urlpatterns = [
     path('interview/candidates/<int:pk>', views.display_candidates, name='display_candidates'),
     path('interview/SMS/send/<int:pk>', views.render_sms_content, name='send_sms'),
     path('interview/SMS/template/<int:pk>/edit', views.SMSUpdateView.as_view(), name='edit_SMS_template'),
+    path('interview/SMS/logs/', views.batch_sms_status, name='sms_logs'),
 ]   

@@ -104,6 +104,7 @@ class SMSTemplate(models.Model):
         return self.name
     
 class SMSLog(models.Model):
+    candidate = models.ForeignKey('candidates.Candidate', on_delete=models.SET_NULL, null=True, blank=True)
     recipient_number = models.CharField(max_length=15)
     message_content = models.TextField()
     sent_at = models.DateTimeField(default=timezone.now)

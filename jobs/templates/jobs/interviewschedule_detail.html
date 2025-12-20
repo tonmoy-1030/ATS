@@ -89,12 +89,18 @@
             <a href="{% url 'jobs:edit_SMS_template' 1 %}?next={% url 'jobs:interview_details' object.id %}" class="btn btn-outline-info btn-sm">
                 <i class="bi bi-pencil-square"></i> Edit SMS Template
             </a>
+            <button type="button" id="sendSmsToSelectedBtn" class="btn btn-outline-secondary btn-sm">
+                <i class="bi bi-envelope"></i> Send SMS to Selected
+            </button>
         </div>
         
         <div class="table-responsive">
+            <form action="" method="post">
+                {% csrf_token %}
             <table class="table table-bordered table-sm table-hover align-middle">
                 <thead class="text-center">
                     <tr>
+                        <th><input type="checkbox" id="selectAll"></th>
                         <th>SL</th>
                         <th>Name</th>
                         <th>Phone</th>
@@ -109,6 +115,7 @@
                 <tbody>
                     {% for candidate in candidates %}
                     <tr class="{% if candidate.mobile in duplicate_mobiles %}table-warning{% endif %}">
+                        <td class="text-center"><input type="checkbox" class="candidate-checkbox" data-candidate-id="{{ candidate.id }}" name="candidate_list" value="{{ candidate.id }}"></td>
                         <td>{{ forloop.counter }}</td>
                         <td><a href="{% url 'candidates:candidate-detail' candidate.id %}" class="text-nowrap">{{ candidate.name|default:"N/A" }}</a></td>
                         <td class="candidate-mobile">{{ candidate.mobile|default:"N/A" }}</td>
@@ -188,6 +195,7 @@
                     {% endfor %}
                 </tbody>
             </table>
+            </form>
         </div>
         {% else %}
         <h3 class="text-center mt-4 text-muted">No candidates have been added to this interview yet.</h3>
@@ -261,6 +269,25 @@
             </div>
     </div>
 </div>
+
+<div class="modal fade" id="confirmResendModal" tabindex="-1" aria-labelledby="resendModalLabel" aria-hidden="true">
+  <div class="modal-dialog modal-dialog-centered">
+    <div class="modal-content">
+      <div class="modal-header bg-warning text-dark">
+        <h5 class="modal-title" id="resendModalLabel">Confirm Resend</h5>
+        <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
+      </div>
+      <div class="modal-body">
+        This candidate has already been sent an SMS. Are you sure you want to send another message?
+      </div>
+      <div class="modal-footer">
+        <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Cancel</button>
+        <button type="button" id="confirmResendSubmit" class="btn btn-primary">Yes, Send Again</button>
+      </div>
+    </div>
+  </div>
+</div>
+
 {% endblock %}
 
 {% block extra_scripts %}
@@ -276,6 +303,14 @@
         } catch (e) {
             return dateString; // Fallback if parsing fails
         }
+    };
+
+    // Simple cookie getter (used only if needed)
+    const getCookie = (name) => {
+        const value = `; ${document.cookie}`;
+        const parts = value.split(`; ${name}=`);
+        if (parts.length === 2) return parts.pop().split(';').shift();
+        return null;
     };
 
     // --- 🔔 SMS Toast Functions (Modernized) 🔔 ---
@@ -321,24 +356,36 @@
      * @param {object} response - The JSON response object from the SMS API endpoint.
      */
     const processSmsResponse = (response) => {
-        const statusInfo = response?.statusInfo;
-        
+        if (!response) {
+            showToast('Empty response from SMS gateway.', false);
+            return;
+        }
+
+        // Generic success flags
+        if (response.success === true || response.status === 'success' || response.result === 'success') {
+            showToast(response.message || 'SMS sent successfully!', true);
+            return;
+        }
+
+        // Check common gateway-specific structure
+        const statusInfo = response?.statusInfo || response?.status_info || null;
         if (statusInfo) {
-            const statusCode = statusInfo.statusCode;
-            const description = statusInfo.errordescription;
-            
-            // Assuming '1000' is the standard success code, or HTTP 2xx
-            const isSuccess = statusCode === '1000' || (parseInt(statusCode) >= 200 && parseInt(statusCode) < 300); 
-            
-            let message = isSuccess 
+            const statusCode = statusInfo.statusCode || statusInfo.code || statusInfo.status;
+            const description = statusInfo.errordescription || statusInfo.description || statusInfo.message;
+            const isSuccess = statusCode === '1000' || (parseInt(statusCode) >= 200 && parseInt(statusCode) < 300);
+            const message = isSuccess
                 ? `SMS sent successfully! Status Code: ${statusCode}`
                 : `SMS failed! Status Code: ${statusCode}. Reason: ${description || 'Unknown Error'}`;
-            
             showToast(message, isSuccess);
-            
-        } else {
-            showToast("Error: Received unexpected SMS response format. Check server logs.", false);
+            return;
         }
+
+        if (response.error) {
+            showToast(`SMS Error: ${response.error}`, false);
+            return;
+        }
+
+        showToast('Error: Received unexpected SMS response format. Check server logs.', false);
     };
     
     // --- 🔔 END SMS Toast Functions 🔔 ---
@@ -517,30 +564,155 @@
         });
         
         // --- 🧪 SMS Test Button Handler (Demonstration) 🧪 ---
-        $(document).on('click', '.send-sms-test-btn', function() {
-            const btn = $(this);
-            const candidateId = btn.data('candidate-id');
-            const originalHtml = btn.html();
-            btn.prop('disabled', true).html('<span class="spinner-border spinner-border-sm" role="status" aria-hidden="true"></span> Sending...');
 
-            fetch(`/interview/SMS/send/{{ object.id }}?candidate_id=${candidateId}`)
-                .then(response => {
-                    if (!response.ok) throw new Error('Network response was not ok');
-                    return response.json();
-                })
-                .then(data => {
-                    // Use the real response from the server
-                    processSmsResponse(data);
-                })
-                .catch(err => {
-                    console.error('SMS send error:', err);
-                    showToast("Network error while sending SMS.", false);
-                })
-                .finally(() => {
-                    btn.prop('disabled', false).html(originalHtml);
+    // --- 1. Helper: This updates the button style & text immediately ---
+    // Maintain an in-memory set of sent candidate IDs so UI updates persist without full reload
+    const sentSet = new Set();
+
+    function markButtonAsSent($btn, isResend = false) {
+        $btn.addClass('btn-success')
+            .removeClass('btn-outline-success')
+            .attr('title', 'SMS Previously Sent');
+        $btn.html(isResend ? 'Send Again' : 'Send Again');
+        // mark DOM so other handlers can read state
+        $btn.attr('data-sent', 'true');
+    }
+
+        // --- 2. Initial Page Load Check ---
+        const checkSmsStatus = () => {
+            const candidateIds = $('.send-sms-test-btn').map(function() {
+                return $(this).data('candidate-id');
+            }).get().filter(id => id);
+
+            if (candidateIds.length === 0) return;
+
+            fetch('/interview/SMS/logs/', {
+                method: 'POST',
+                headers: {
+                    'Content-Type': 'application/json',
+                    'X-CSRFToken': '{{ csrf_token }}'
+                },
+                body: JSON.stringify({ ids: candidateIds })
+            })
+            .then(res => {
+                if (!res.ok) {
+                    showToast('Failed to fetch SMS logs (network error).', false);
+                    throw new Error('Network response was not ok');
+                }
+                return res.json();
+            })
+            .then(sentIds => {
+                // populate our in-memory set and update UI
+                sentIds.map(String).forEach(id => sentSet.add(id));
+                $('.send-sms-test-btn').each(function() {
+                    const $btn = $(this);
+                    if (sentSet.has(String($btn.data('candidate-id')))) {
+                        markButtonAsSent($btn, true);
+                    }
                 });
+            });
+        };
+
+        checkSmsStatus();
+
+        // --- 3. SMS Click Handler ---
+        $(document).on('click', '.send-sms-test-btn', function() {
+            const $btn = $(this);
+            const candidateId = $btn.data('candidate-id');
+            const originalHtml = $btn.html();
+
+            // Check if we should show the modal first
+            if ($btn.hasClass('btn-success')) {
+                $('#confirmResendModal').modal('show');
+                $('#confirmResendSubmit').off('click').one('click', function() {
+                    $('#confirmResendModal').modal('hide');
+                    sendSmsRequest($btn, candidateId, originalHtml);
+                });
+            } else {
+                sendSmsRequest($btn, candidateId, originalHtml);
+            }
         });
+
+        // --- 4. The Sending Logic ---
+        function sendSmsRequest($btn, candidateId, originalHtml) {
+            $btn.prop('disabled', true).html('<span class="spinner-border spinner-border-sm"></span>');
+            // Return the promise so callers (bulk sender) can await completion
+            return fetch(`/interview/SMS/send/{{ object.id }}?candidate_id=${candidateId}`, {
+                headers: { 'X-CSRFToken': '{{ csrf_token }}' }
+            })
+            .then(response => {
+                if (!response.ok) {
+                    showToast('Failed to send SMS (network error).', false);
+                    throw new Error('Network response was not ok');
+                }
+                return response.json();
+            })
+            .then(data => {
+                // Use the processSmsResponse to show toast
+                if (typeof processSmsResponse === "function") processSmsResponse(data);
+
+                // Determine success from multiple shapes, including statusInfo
+                let isSuccess = false;
+                if (data && (data.status === 'success' || data.success === true || data.result === 'success')) {
+                    isSuccess = true;
+                } else if (data && data.statusInfo) {
+                    const code = data.statusInfo.statusCode || data.statusInfo.code || data.statusInfo.status;
+                    if (String(code) === '1000' || (parseInt(code) >= 200 && parseInt(code) < 300)) isSuccess = true;
+                }
+
+                if (isSuccess) {
+                    // Determine if this was a resend
+                    const wasSent = sentSet.has(String(candidateId));
+                    sentSet.add(String(candidateId));
+                    markButtonAsSent($btn, wasSent);
+                } else {
+                    $btn.html(originalHtml);
+                }
+                return { candidateId: String(candidateId), success: isSuccess };
+            })
+            .catch(err => {
+                console.error('Error:', err);
+                $btn.html(originalHtml);
+                return { candidateId: String(candidateId), success: false, error: String(err) };
+            })
+            .finally(() => {
+                $btn.prop('disabled', false);
+            });
+        }
         // --- 🧪 END SMS Test Button Handler 🧪 ---
+
+        // --- Bulk Send Handler for 'Send SMS to Selected' button ---
+        $('#sendSmsToSelectedBtn').on('click', function() {
+            const $bulkBtn = $(this);
+            const selectedIds = $('.candidate-checkbox:checked').map(function() { return $(this).data('candidate-id'); }).get();
+
+            if (selectedIds.length === 0) {
+                showToast('Please select at least one candidate to send SMS.', false);
+                return;
+            }
+
+            if (!confirm(`Send SMS to ${selectedIds.length} selected candidate(s)?`)) return;
+
+            $bulkBtn.prop('disabled', true).html('<span class="spinner-border spinner-border-sm" role="status" aria-hidden="true"></span> Sending...');
+
+            const promises = selectedIds.map(id => {
+                const $rowBtn = $(`.send-sms-test-btn[data-candidate-id="${id}"]`);
+                const originalHtml = $rowBtn.length ? $rowBtn.html() : 'Send SMS';
+                // If per-row button exists, use it; otherwise create a dummy jQuery object to show spinner text
+                const $btnToUse = $rowBtn.length ? $rowBtn : $('<button>').html(originalHtml);
+                return sendSmsRequest($btnToUse, id, originalHtml);
+            });
+
+            Promise.all(promises).then(results => {
+                const successCount = results.filter(r => r && r.success).length;
+                showToast(`${successCount} of ${results.length} SMS request(s) completed successfully.`, true);
+            }).catch(err => {
+                console.error('Bulk send error:', err);
+                showToast('Bulk send encountered errors. Check console for details.', false);
+            }).finally(() => {
+                $bulkBtn.prop('disabled', false).html('<i class="bi bi-envelope"></i> Send SMS to Selected');
+            });
+        });
 
         // === FILTER AND SORT LOGIC (Optimized) ===
 
@@ -689,6 +861,16 @@
         const tooltipTriggerList = document.querySelectorAll('[data-bs-toggle="tooltip"]')
         tooltipTriggerList.forEach(tooltipTriggerEl => new bootstrap.Tooltip(tooltipTriggerEl));
     });
+
+    document.addEventListener("DOMContentLoaded", function () {
+            document.getElementById("selectAll").addEventListener("change", function () {
+                var checkboxes = document.getElementsByClassName("candidate-checkbox");
+                for (var i = 0; i < checkboxes.length; i++) {
+                    checkboxes[i].checked = this.checked;
+                }
+            });
+        });
+        
 </script>
 
 {% endblock %}
