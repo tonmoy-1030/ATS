@@ -18,4 +18,6 @@ urlpatterns = [
     path('leaves/allocation/delete/<int:pk>',views.LeaveAllocationDeleteView.as_view() , name='allocationDelete' ),
     path('leaves/application/delete/<int:pk>',views.LeaveApplicationDeleteView.as_view() , name='applicationDelete' ),
     path('leaves/allocation/process',views.leave_allocation_process , name='application_yearly_process' ),
+    path('api/run-recalculation/', views.run_leave_recalculation, name='run_recalculation'),
+    path('leaves/application/process/page',views.leave_processing_page , name='application_process_page' ),
 ]   

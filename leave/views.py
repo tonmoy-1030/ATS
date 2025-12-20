@@ -138,7 +138,81 @@ def calculate_leave_days(request):
 
     except ValueError:
         return JsonResponse({'error': 'Invalid date format.'}, status=400)
+ 
+ 
+from datetime import timedelta
+
+def compute_leave_duration(start_date, end_date):
+    """
+    Centralized logic to calculate leave days excluding holidays and specific weekends.
+    """
+    if start_date > end_date:
+        return 0
+
+    holidays = Holiday.objects.filter(date__range=[start_date, end_date]).values_list('date', flat=True)
+    current_date = start_date
+    total_days = 0
+
+    while current_date <= end_date:
+        # Friday (4): 0 days (Full Weekend)
+        if current_date.weekday() == 4:
+            pass
+        # Saturday (5): 0.5 days (Half Day)
+        elif current_date.weekday() == 5:
+            total_days += 0.5
+        # Other days: 1 day (if not a holiday)
+        elif current_date not in holidays:
+            total_days += 1
+            
+        current_date += timedelta(days=1)
     
+    return total_days
+
+from django.utils.dateparse import parse_date
+
+def run_leave_recalculation(request):
+    # Get dates from the GET request
+    from_date_str = request.GET.get('from_date')
+    to_date_str = request.GET.get('to_date')
+    
+    leaves = LeaveApplication.objects.all()
+
+    # Filter leaves that overlap with the selected range
+    if from_date_str and to_date_str:
+        from_date = parse_date(from_date_str)
+        to_date = parse_date(to_date_str)
+        # Filter: leave ends after the range start AND leave starts before the range end
+        leaves = leaves.filter(end_date__gte=from_date, start_date__lte=to_date)
+    
+    update_count = 0
+    updated_employees = []
+
+    for leave in leaves:
+        new_total = compute_leave_duration(leave.start_date, leave.end_date)
+        
+        if float(leave.total_days) != float(new_total):
+            old_val = leave.total_days
+            leave.total_days = new_total
+            leave.save()
+            
+            updated_employees.append({
+                'eid': leave.employee.EID,
+                'name': leave.employee.name,
+                'old_days': old_val,
+                'new_days': new_total,
+            })
+            update_count += 1
+
+    return JsonResponse({
+        'success': True,
+        'count': update_count,
+        'employees': updated_employees
+    })   
+def leave_processing_page(request):
+    """Renders the main dashboard template."""
+    return render(request, 'leaves/leave_processing.html')
+
+   
 from employees.models import Employee
 from .models import LeaveType
 from django.db import IntegrityError, transaction

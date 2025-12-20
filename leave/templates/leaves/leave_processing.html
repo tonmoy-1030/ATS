@@ -1,0 +1,136 @@
+{% extends "jobs/base.html" %} {% block content %}
+<div class="container mt-5">
+    <div class="row justify-content-center">
+        <div class="col-md-10">
+            <div class="card shadow border-0">
+                <div class="card-header bg-dark text-white d-flex justify-content-between align-items-center">
+                    <h5 class="mb-0"><i class="fas fa-calendar-check me-2"></i>Leave Recalculation System</h5>
+                    <span class="badge bg-warning text-dark">Admin Tool</span>
+                </div>
+                
+                <div class="card-body bg-light">
+                    <div class="alert alert-info">
+                        <strong>Instructions:</strong> Select a date range to find leave applications that overlap with those dates. This will recalculate the <code>total_days</code> based on the current Holiday model and weekend rules.
+                    </div>
+
+                    <div class="row g-3 mb-4 p-3 bg-white rounded border">
+                        <div class="col-md-5">
+                            <label class="form-label fw-bold">From Date</label>
+                            <input type="date" id="fromDate" class="form-control border-primary">
+                        </div>
+                        <div class="col-md-5">
+                            <label class="form-label fw-bold">To Date</label>
+                            <input type="date" id="toDate" class="form-control border-primary">
+                        </div>
+                        <div class="col-md-2 d-flex align-items-end">
+                            <button id="processBtn" class="btn btn-primary w-100 shadow-sm">
+                                <i class="fas fa-sync-alt me-1"></i> Sync
+                            </button>
+                        </div>
+                    </div>
+
+                    <div id="loading" class="text-center my-5" style="display:none;">
+                        <div class="spinner-grow text-primary" role="status"></div>
+                        <p class="mt-2 text-muted">Analyzing leave records and applying corrections...</p>
+                    </div>
+
+                    <div id="resultsArea" style="display:none;">
+                        <div class="d-flex justify-content-between align-items-center mb-3">
+                            <h6 class="mb-0 text-uppercase fw-bold">Updated Records: <span id="updateCount" class="badge bg-success">0</span></h6>
+                        </div>
+                        
+                        <div class="table-responsive">
+                            <table class="table table-hover table-bordered bg-white">
+                                <thead class="table-light">
+                                    <tr>
+                                        <th>Employee ID</th>
+                                        <th>Name</th>
+                                        <th>Old Days</th>
+                                        <th>New Days</th>
+                                        <th>Status</th>
+                                    </tr>
+                                </thead>
+                                <tbody id="employeeList">
+                                    </tbody>
+                            </table>
+                        </div>
+                    </div>
+
+                    <div id="noData" class="alert alert-secondary text-center" style="display:none;">
+                        No inconsistencies found for the selected date range. All balances are accurate.
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+
+<script>
+document.getElementById('processBtn').addEventListener('click', function() {
+    const fromDate = document.getElementById('fromDate').value;
+    const toDate = document.getElementById('toDate').value;
+
+    if (!fromDate || !toDate) {
+        alert("Please select both 'From' and 'To' dates.");
+        return;
+    }
+
+    // UI Elements
+    const btn = this;
+    const loader = document.getElementById('loading');
+    const resultsArea = document.getElementById('resultsArea');
+    const noData = document.getElementById('noData');
+    const tbody = document.getElementById('employeeList');
+
+    // Reset UI State
+    btn.disabled = true;
+    loader.style.display = 'block';
+    resultsArea.style.display = 'none';
+    noData.style.display = 'none';
+    tbody.innerHTML = '';
+
+    // AJAX Request
+    const url = `{% url 'leave:run_recalculation' %}?from_date=${fromDate}&to_date=${toDate}`;
+
+    fetch(url)
+        .then(response => {
+            if (!response.ok) throw new Error('Network response was not ok');
+            return response.json();
+        })
+        .then(data => {
+            loader.style.display = 'none';
+            btn.disabled = false;
+
+            if (data.success) {
+                document.getElementById('updateCount').innerText = data.count;
+                
+                if (data.employees.length > 0) {
+                    data.employees.forEach(emp => {
+                        const row = `
+                            <tr>
+                                <td><span class="badge bg-secondary">${emp.eid}</span></td>
+                                <td>${emp.name}</td>
+                                <td class="text-muted">${emp.old_days}</td>
+                                <td class="text-primary fw-bold">${emp.new_days}</td>
+                                <td><span class="text-success"><i class="fas fa-check-circle me-1"></i>Updated</span></td>
+                            </tr>`;
+                        tbody.innerHTML += row;
+                    });
+                    resultsArea.style.display = 'block';
+                } else {
+                    noData.style.display = 'block';
+                }
+            }
+        })
+        .catch(error => {
+            console.error('Error:', error);
+            alert('An error occurred while processing the request.');
+            loader.style.display = 'none';
+            btn.disabled = false;
+        });
+});
+</script>
+
+<link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/5.15.4/css/all.min.css">
+
+{% endblock %}
