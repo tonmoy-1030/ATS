@@ -33,6 +33,7 @@ from django.core.cache import cache
 from .tasks import update_sales_officer_joining_date_task
 from django.db.models import IntegerField, F
 from django.db.models.functions import Cast, Substr, Length
+from candidates.utils.google_sheet_Candidates import CandidateGoogleSheet
 
 class EmployeeListView(ListView):
     model = Employee
@@ -325,7 +326,7 @@ def separate_upload_file(request):
         form = UploadFileForm()
     return render(request, "employees/upload_separation.html", {"form": form})
 
-from candidate.utils import CandidateGoogleSheet
+
 
 employeeGoogle = CandidateGoogleSheet()
 
