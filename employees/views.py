@@ -33,7 +33,7 @@ from django.core.cache import cache
 from .tasks import update_sales_officer_joining_date_task
 from django.db.models import IntegerField, F
 from django.db.models.functions import Cast, Substr, Length
-from candidates.utils.google_sheet_Candidates import CandidateGoogleSheet
+from .utils.google_form_Employees import NewEmployeeData
 
 class EmployeeListView(ListView):
     model = Employee
@@ -328,7 +328,7 @@ def separate_upload_file(request):
 
 
 
-employeeGoogle = CandidateGoogleSheet()
+
 
 #update Employee Details
 def employee_details(request):
@@ -395,7 +395,8 @@ def employee_details(request):
                     employee.details.profile_picture = file_url
 
                     if not employee.details.profile_image:
-                        employee.details.profile_image = employeeGoogle.download_resume(file_id=file_id)
+                        if file_id:
+                            employee.details.profile_image = NewEmployeeData().download_Picture(file_id=file_id)
                     employee.email = employee.candidate.email
                     employee.save()
                     

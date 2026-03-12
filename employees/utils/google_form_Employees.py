@@ -7,6 +7,9 @@ from googleapiclient.discovery import build
 from googleapiclient.errors import HttpError
 import phonenumbers
 from decouple import config
+import io
+from django.core.files.base import ContentFile
+from googleapiclient.http import MediaIoBaseDownload
 
 
 
@@ -16,8 +19,10 @@ class BaseGoogleSheetAuthentication():
     """
     
     # If modifying these scopes, delete the file token.json.
-    SCOPES = ["https://www.googleapis.com/auth/spreadsheets"]
-
+    SCOPES = [
+        "https://www.googleapis.com/auth/spreadsheets",
+        "https://www.googleapis.com/auth/drive"
+    ]
 # The ID and range of a sample spreadsheet.
     SPREADSHEET_ID = config("EMPLOYEE_SPREADSHEET_ID")
     RANGE_NAME = "Form Responses 1!A1:AG"
@@ -81,6 +86,25 @@ class NewEmployeeData(BaseGoogleSheetAuthentication):
                 json_data = json.dumps(data_dict, indent=4)
                 return json.loads(json_data)
 
+        except HttpError as err:
+            print(err)
+            return {}
+
+    def download_Picture(self, file_id):
+        try:
+            service = build("drive", "v3", credentials=self.creds, static_discovery=False)
+            file_metadata = service.files().get(fileId=file_id, fields="name, mimeType").execute()
+            filename = file_metadata.get("name")  # original name with extension
+            request = service.files().get_media(fileId=file_id)
+            print("----------------------------------------- on process")
+            file = io.BytesIO()
+            downloader = MediaIoBaseDownload(file, request)
+            done = False
+            while done is False:
+                status, done = downloader.next_chunk()
+                print(f"downlod {int(status.progress()*100)}.")
+            file.seek(0)
+            return ContentFile(file.read(), name=filename)
         except HttpError as err:
             print(err)
             return {}
