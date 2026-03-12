@@ -325,6 +325,9 @@ def separate_upload_file(request):
         form = UploadFileForm()
     return render(request, "employees/upload_separation.html", {"form": form})
 
+from candidate.utils import CandidateGoogleSheet
+
+employeeGoogle = CandidateGoogleSheet()
 
 #update Employee Details
 def employee_details(request):
@@ -391,30 +394,7 @@ def employee_details(request):
                     employee.details.profile_picture = file_url
 
                     if not employee.details.profile_image:
-                        response = requests.get(file_url, stream=True)
-                        content_type = response.headers.get("Content-Type", "")
-                        
-                        if response.status_code == 200 and "image" in content_type:
-                            try:
-                                # Open image from response
-                                img = Image.open(BytesIO(response.content))
-                                img_format = img.format.lower()  # jpg, png, etc.
-                                
-                                # Save directly to Django ImageField
-                                image_io = BytesIO()
-                                img.save(image_io, format=img.format)
-                                image_name = f"{employee.EID}-{employee.name}.{img_format}"
-                                
-                                employee.details.profile_image.save(
-                                    image_name, ContentFile(image_io.getvalue()), save=True
-                                )
-                                print(f"✅ Saved image for {employee.name}")
-                                
-                            except Exception as e:
-                                print(f"❌ Error decoding image for {employee.name}: {e}")
-                        else:
-                            print(f"❌ {employee.name} - Failed to retrieve image, status code: {response.status_code}, content-type: {content_type}")
-
+                        employee.details.profile_image = employeeGoogle.download_resume(file_id=file_id)
                     employee.email = employee.candidate.email
                     employee.save()
                     
