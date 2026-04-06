@@ -177,8 +177,8 @@ def confirmation_letter(employee_data, pdf_file):
     {employee_data['issue_date'].strftime("%d-%b-%Y")}<br/><br/>								           
 
     <b>{employee_data['name']}</b><br/>
-    <b>Employee ID: {employee_data['EID']}</b><br/>
    {employee_data['designation']}<br/><br/><br/><br/>
+    <b>Employee ID: {employee_data['EID']}</b><br/>
     
     <b>Subject: Letter of Confirmation.</b><br/><br/><br/>
     Dear Mr. {employee_data['name']},
@@ -275,8 +275,8 @@ def extension_letter(employee_data, pdf_file):
     {employee_data['issue_date'].strftime("%d-%b-%Y")}<br/><br/>								           
 
     <b>{employee_data['name']}</b><br/>
-    <b>Employee ID: {employee_data['EID']}</b><br/>
    {employee_data['designation']}<br/><br/><br/><br/>
+    <b>Employee ID: {employee_data['EID']}</b><br/>
 
     
     <b>Subject: Extension of Probation period.</b><br/><br/><br/>
