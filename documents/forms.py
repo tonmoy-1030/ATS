@@ -197,10 +197,12 @@ class AppointmentLetterFilter(django_filters.FilterSet):
         
 
 class CandidateDetailsForm(forms.Form):
-    businessUnit = BusinessUnit.objects.all()
-    unitList = [(unit.id, unit.short_name) for unit in businessUnit] 
-
-    unit = forms.MultipleChoiceField(choices=unitList, widget=forms.SelectMultiple(attrs={'class': 'form-select', 'id': 'id_unit'}))
+    unit = forms.MultipleChoiceField(choices=[], widget=forms.SelectMultiple(attrs={'class': 'form-select', 'id': 'id_unit'}))
+    
+    def __init__(self, *args, **kwargs):
+        super().__init__(*args, **kwargs)
+        businessUnit = BusinessUnit.objects.all()
+        self.fields['unit'].choices = [(unit.id, unit.short_name) for unit in businessUnit] 
     from_date = forms.DateField(
         widget=forms.DateInput(attrs={'class': 'form-control', 'type': 'date'}),
         label="From Date"
@@ -212,8 +214,10 @@ class CandidateDetailsForm(forms.Form):
 
 
 class JobReportForm(forms.Form):
-    businessUnit = BusinessUnit.objects.all()
-    unitList = [(unit.id, unit.short_name) for unit in businessUnit] 
+    unit = forms.MultipleChoiceField(choices=[], widget=forms.SelectMultiple(attrs={'class': 'form-select', 'id': 'id_unit'}))
 
-    unit = forms.MultipleChoiceField(choices=unitList, widget=forms.SelectMultiple(attrs={'class': 'form-select', 'id': 'id_unit'}))
+    def __init__(self, *args, **kwargs):
+        super().__init__(*args, **kwargs)
+        businessUnit = BusinessUnit.objects.all()
+        self.fields['unit'].choices = [(unit.id, unit.short_name) for unit in businessUnit] 
    
